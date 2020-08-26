@@ -1876,7 +1876,7 @@ exports.paginateRest = paginateRest;
 /***/ 205:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-var Canvas = __webpack_require__(771);
+var { createCanvas } = __webpack_require__(771);
 
 var cloud = __webpack_require__(866);
 
@@ -1887,7 +1887,7 @@ async function genSVG(words) {
 
   const waitPromise = new Promise((resolve) => {
     cloud().size([640, 640])
-        .canvas(function() { return new Canvas(1, 1); })
+        .canvas(function() { return new createCanvas(1, 1); })
         .words(words)
         .padding(5)
         .rotate(function() { return ~~(Math.random() * 2) * 90; })
