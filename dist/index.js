@@ -5895,7 +5895,15 @@ async function getTopics() {
     }
   })
 
-  console.log(topicFreq);
+  let cloudArr = [];
+  for (const t in topicFreq) {
+    cloudArr.push({
+      text: t,
+      count: topicFreq[t]
+    })
+  }
+
+  console.log(cloudArr);
 }
 
 getTopics();
