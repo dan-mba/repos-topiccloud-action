@@ -1,6 +1,7 @@
-const { getTopics } = require('./lib/topics');
-const { genSVG } = require('./lib/word-cloud');
+const getTopics = require('./lib/topics');
+const genSVG = require('./lib/word-cloud');
 
-const topicArr = getTopics();
-console.log(topicArr);
-genSVG(topicArr);
+(async function(){
+  const topicArr = await getTopics();
+  await genSVG(topicArr);
+})
