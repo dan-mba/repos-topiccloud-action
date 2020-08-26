@@ -1877,6 +1877,7 @@ exports.paginateRest = paginateRest;
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
 var { createCanvas, registerFont } = __webpack_require__(771);
+var path = __webpack_require__(622);
 
 var cloud = __webpack_require__(866);
 
@@ -1885,7 +1886,7 @@ async function genSVG(words) {
   const minFont = 8;
   const fontIncr = 24/max;
 
-  registerFont('dist/oswald-latin-400.woff',{family:'Oswald'})
+  registerFont(path.join(__dirname,'oswald-latin-400.woff'),{family:'Oswald'})
   const canvas = createCanvas(1,1);
 
   const waitPromise = new Promise((resolve) => {
