@@ -1906,7 +1906,7 @@ async function genSVG(words) {
   return(retWords);
 }
 
-module.exports.genSVG = genSVG;
+module.exports = genSVG;
 
 
 /***/ }),
@@ -2655,7 +2655,7 @@ async function getTopics() {
   return cloudArr;
 }
 
-module.exports.getTopics = getTopics;
+module.exports = getTopics;
 
 /***/ }),
 
@@ -7755,13 +7755,13 @@ exports.HttpClient = HttpClient;
 /***/ 932:
 /***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
 
-const { getTopics } = __webpack_require__(390);
-const { genSVG } = __webpack_require__(205);
+const getTopics = __webpack_require__(390);
+const genSVG = __webpack_require__(205);
 
-const topicArr = getTopics();
-console.log(topicArr);
-genSVG(topicArr);
-
+(async function(){
+  const topicArr = await getTopics();
+  await genSVG(topicArr);
+})
 
 /***/ }),
 
