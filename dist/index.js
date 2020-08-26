@@ -1885,9 +1885,11 @@ async function genSVG(words) {
   const minFont = 8;
   const fontIncr = 24/max;
 
+  const canvas = createCanvas(1,1,'svg');
+
   const waitPromise = new Promise((resolve) => {
     cloud().size([640, 640])
-        .canvas(function() { return new createCanvas(1, 1); })
+        .canvas(function() { return canvas; })
         .words(words)
         .padding(5)
         .rotate(function() { return ~~(Math.random() * 2) * 90; })
@@ -1898,11 +1900,14 @@ async function genSVG(words) {
 
     function end(words) {
       console.log(JSON.stringify(words));
-      resolve(words);
+      const buffer = canvas.toBuffer()
+      resolve(buffer);
     } 
   });
 
   const retWords = await waitPromise;
+
+
   return(retWords);
 }
 
