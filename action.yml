@@ -1,0 +1,13 @@
+name: 'Repos-Topiccloud'
+description: 'Creates a wordcloud from the repo topics for the provided login'
+inputs:
+  login:
+    description: 'GitHub login'
+    required: true
+  myToken:
+    description: 'GitHub Secret Token'
+    required: true
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

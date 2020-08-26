@@ -1,0 +1,26 @@
+{
+  "name": "repos-topiccloud-action",
+  "version": "0.5.0",
+  "description": "GitHub Action to generate a SVG wordcloud for a GitHub user",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "ncc build index.js -o dist --source-map"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dan-mba/repos-topiccloud-action.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dan-mba/repos-topiccloud-action/issues"
+  },
+  "homepage": "https://github.com/dan-mba/repos-topiccloud-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.4",
+    "@actions/github": "^4.0.0",
+    "@vercel/ncc": "^0.23.0",
+    "canvas": "^2.6.1",
+    "d3-cloud": "^1.2.5"
+  }
+}
