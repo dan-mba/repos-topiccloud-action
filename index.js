@@ -1,3 +1,5 @@
-const {getTopics} = require('./lib/topics');
+const { getTopics } = require('./lib/topics');
+const { genSVG } = require('./lib/word-cloud');
 
-getTopics();
+const topicArr = getTopics();
+genSVG(topicArr);
