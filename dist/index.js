@@ -7761,7 +7761,8 @@ const genSVG = __webpack_require__(205);
 (async function(){
   const topicArr = await getTopics();
   await genSVG(topicArr);
-})
+})();
+
 
 /***/ }),
 
