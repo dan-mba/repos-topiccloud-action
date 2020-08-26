@@ -30,7 +30,9 @@ async function getTopics() {
       "login": login
     }
   );
-  console.log(request);
+  const topics = request.user.repositories.nodes
+    .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
+  console.log(topics);
 }
 
 getTopics();
