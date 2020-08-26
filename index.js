@@ -2,8 +2,8 @@ const github = require('@actions/github');
 const core = require('@actions/core');
 
 async function getTopics() {
-  const myToken = core.getInput('myToken');
-  const login = core.getInput('login');
+  const myToken = core.getInput('github-token');
+  const login = github.context.actor;
   const octokit = github.getOctokit(myToken);
 
   const request = await octokit.graphql(
@@ -32,7 +32,17 @@ async function getTopics() {
   );
   const topics = request.user.repositories.nodes
     .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
-  console.log(topics);
+  
+  let topicFreq = {};
+  topics.forEach(topic => {
+    if (topic in topicFreq) {
+      topicFreq[topic]++;
+    } else {
+      topicFreq[topic] = 1;
+    }
+  })
+
+  console.log(topicFreq);
 }
 
 getTopics();

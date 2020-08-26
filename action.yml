@@ -1,10 +1,7 @@
 name: 'Repos-Topiccloud'
-description: 'Creates a wordcloud from the repo topics for the provided login'
+description: 'Creates a wordcloud from the repo topics for the action user'
 inputs:
-  login:
-    description: 'GitHub login'
-    required: true
-  myToken:
+  github-token:
     description: 'GitHub Secret Token'
     required: true
 
