@@ -1876,7 +1876,7 @@ exports.paginateRest = paginateRest;
 /***/ 205:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
-var { createCanvas } = __webpack_require__(771);
+var { createCanvas, registerFont } = __webpack_require__(771);
 
 var cloud = __webpack_require__(866);
 
@@ -1885,7 +1885,8 @@ async function genSVG(words) {
   const minFont = 8;
   const fontIncr = 24/max;
 
-  const canvas = createCanvas(1,1,'svg');
+  registerFont('oswald-latin-400.woff',{family:'Oswald'})
+  const canvas = createCanvas(1,1);
 
   const waitPromise = new Promise((resolve) => {
     cloud().size([640, 640])
@@ -1893,14 +1894,14 @@ async function genSVG(words) {
         .words(words)
         .padding(5)
         .rotate(function() { return ~~(Math.random() * 2) * 90; })
-        .font("Impact")
+        .font("Oswald")
         .fontSize(function(d) { return minFont+(d.count*fontIncr); })
         .on("end", end)
         .start();
 
     function end(words) {
       console.log(JSON.stringify(words));
-      const buffer = canvas.toBuffer()
+      const buffer = canvas.toBuffer('image/svg+xml')
       resolve(buffer);
     } 
   });
