@@ -1885,7 +1885,7 @@ async function genSVG(words) {
   const minFont = 8;
   const fontIncr = 24/max;
 
-  const waitPromise = new Promise((resolve,reject) => {
+  const waitPromise = new Promise((resolve) => {
     cloud().size([640, 640])
         .canvas(function() { return new Canvas(1, 1); })
         .words(words)
@@ -7759,7 +7759,7 @@ const { getTopics } = __webpack_require__(390);
 const { genSVG } = __webpack_require__(205);
 
 const topicArr = getTopics();
-console.log(topicsArr);
+console.log(topicArr);
 genSVG(topicArr);
 
 
