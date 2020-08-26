@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Hello world action step
-      uses: dan-mba/repos-topiccloud-action@v0.510
+      uses: dan-mba/repos-topiccloud-action@v0.511
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
    
