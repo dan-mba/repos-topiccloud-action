@@ -22,5 +22,8 @@
     "@vercel/ncc": "^0.23.0",
     "canvas": "^2.6.1",
     "d3-cloud": "^1.2.5"
+  },
+  "devDependencies": {
+    "eslint": "^7.7.0"
   }
 }
