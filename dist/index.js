@@ -1880,7 +1880,7 @@ var Canvas = __webpack_require__(771);
 
 var cloud = __webpack_require__(866);
 
-module.exports.genSVG = async function(words) {
+async function genSVG(words) {
   const max = Math.max(words.map(w => w.size));
   const minFont = 8;
   const fontIncr = 24/max;
@@ -1905,6 +1905,9 @@ module.exports.genSVG = async function(words) {
   const retWords = await waitPromise;
   return(retWords);
 }
+
+module.exports.genSVG = genSVG;
+
 
 /***/ }),
 
@@ -7756,6 +7759,7 @@ const { getTopics } = __webpack_require__(390);
 const { genSVG } = __webpack_require__(205);
 
 const topicArr = getTopics();
+console.log(topicsArr);
 genSVG(topicArr);
 
 
