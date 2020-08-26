@@ -2418,6 +2418,68 @@ module.exports = require("os");
 
 /***/ }),
 
+/***/ 390:
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+const github = __webpack_require__(438);
+const core = __webpack_require__(186);
+
+async function getTopics() {
+  const myToken = core.getInput('github-token');
+  const login = github.context.actor;
+  const octokit = github.getOctokit(myToken);
+
+  const request = await octokit.graphql(
+    `
+      query getTopics($login: String!){
+        user(login: $login) {
+          repositories(first: 100) {
+            totalCount
+            nodes {
+              repositoryTopics(first: 100) {
+                totalCount
+                nodes {
+                  topic {
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `,
+    {
+      "login": login
+    }
+  );
+  const topics = request.user.repositories.nodes
+    .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
+  
+  let topicFreq = {};
+  topics.forEach(topic => {
+    if (topic in topicFreq) {
+      topicFreq[topic]++;
+    } else {
+      topicFreq[topic] = 1;
+    }
+  })
+
+  let cloudArr = [];
+  for (const t in topicFreq) {
+    cloudArr.push({
+      text: t,
+      count: topicFreq[t]
+    })
+  }
+
+  console.log(cloudArr);
+}
+
+module.exports.getTopics = getTopics;
+
+/***/ }),
+
 /***/ 413:
 /***/ (function(module) {
 
@@ -5851,60 +5913,7 @@ exports.HttpClient = HttpClient;
 /***/ 932:
 /***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
 
-const github = __webpack_require__(438);
-const core = __webpack_require__(186);
-
-async function getTopics() {
-  const myToken = core.getInput('github-token');
-  const login = github.context.actor;
-  const octokit = github.getOctokit(myToken);
-
-  const request = await octokit.graphql(
-    `
-      query getTopics($login: String!){
-        user(login: $login) {
-          repositories(first: 100) {
-            totalCount
-            nodes {
-              repositoryTopics(first: 100) {
-                totalCount
-                nodes {
-                  topic {
-                    name
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      "login": login
-    }
-  );
-  const topics = request.user.repositories.nodes
-    .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
-  
-  let topicFreq = {};
-  topics.forEach(topic => {
-    if (topic in topicFreq) {
-      topicFreq[topic]++;
-    } else {
-      topicFreq[topic] = 1;
-    }
-  })
-
-  let cloudArr = [];
-  for (const t in topicFreq) {
-    cloudArr.push({
-      text: t,
-      count: topicFreq[t]
-    })
-  }
-
-  console.log(cloudArr);
-}
+const {getTopics} = __webpack_require__(390);
 
 getTopics();
 
