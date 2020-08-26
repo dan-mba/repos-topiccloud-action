@@ -3,5 +3,6 @@ const genSVG = require('./lib/word-cloud');
 
 (async function(){
   const topicArr = await getTopics();
-  await genSVG(topicArr);
+  const buffer = await genSVG(topicArr);
+  console.log(buffer)
 })();
