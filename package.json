@@ -21,8 +21,10 @@
     "@actions/github": "^4.0.0",
     "@vercel/ncc": "^0.23.0",
     "canvas": "^2.6.1",
+    "d3": "^6.0.0",
     "d3-cloud": "^1.2.5",
-    "typeface-oswald": "^1.1.4"
+    "jsdom": "^16.4.0",
+    "randomcolor": "^0.6.2"
   },
   "devDependencies": {
     "eslint": "^7.7.0"
