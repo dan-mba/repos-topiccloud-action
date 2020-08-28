@@ -7,8 +7,12 @@ jobs:
   test-action:
     runs-on: ubuntu-latest
     steps:
-    - name: Hello world action step
-      uses: dan-mba/repos-topiccloud-action@v0.516
+    - uses: actions/checkout@v2
+    - name: Generate Word Cloud
+      uses: dan-mba/repos-topiccloud-action@v0.6
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
+    - name: Find
+      run: |
+        find . -name cloud.svg
    
