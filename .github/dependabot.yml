@@ -1,0 +1,11 @@
+# dependabot config for npm
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "production"
+      
