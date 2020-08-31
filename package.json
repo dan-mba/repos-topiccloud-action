@@ -1,6 +1,6 @@
 {
   "name": "repos-topiccloud-action",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "GitHub Action to generate a SVG wordcloud for a GitHub user",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "@actions/github": "^4.0.0",
     "@vercel/ncc": "^0.24.0",
     "canvas": "^2.6.1",
-    "d3": "^6.0.0",
+    "d3": "^6.1.0",
     "d3-cloud": "^1.2.5",
     "jsdom": "^16.4.0",
     "randomcolor": "^0.6.2"
