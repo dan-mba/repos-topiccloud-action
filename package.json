@@ -1,6 +1,6 @@
 {
   "name": "repos-topiccloud-action",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "GitHub Action to generate a SVG wordcloud for a GitHub user",
   "main": "index.js",
   "scripts": {
