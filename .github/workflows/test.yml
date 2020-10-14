@@ -12,6 +12,7 @@ jobs:
       uses: dan-mba/repos-topiccloud-action@v0.6
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
+        test-login: torch2424
     - name: Find
       run: |
         find . -name cloud.svg
