@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Generate Word Cloud
-      uses: dan-mba/repos-topiccloud-action@v0.6
+      uses: dan-mba/repos-topiccloud-action@master
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         test-login: torch2424
