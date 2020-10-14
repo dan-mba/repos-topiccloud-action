@@ -4,6 +4,9 @@ inputs:
   github-token:
     description: 'GitHub Secret Token'
     required: true
+  test-login:
+    description: 'login to test with'
+    required: false
 
 runs:
   using: 'node12'

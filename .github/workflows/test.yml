@@ -15,5 +15,5 @@ jobs:
         test-login: torch2424
     - name: Find
       run: |
-        find . -name cloud.svg
+        cat cloud.svg
    
