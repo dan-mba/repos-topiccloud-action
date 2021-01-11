@@ -20,7 +20,7 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
-    "@vercel/ncc": "^0.26.1",
+    "@vercel/ncc": "^0.26.2",
     "canvas": "^2.6.1",
     "d3": "^6.3.1",
     "d3-cloud": "^1.2.5",
