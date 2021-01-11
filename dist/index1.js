@@ -3,20 +3,20 @@ require('./sourcemap-register.js');module.exports =
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 771:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const Canvas = __webpack_require__(786)
-const Image = __webpack_require__(767)
-const CanvasRenderingContext2D = __webpack_require__(389)
-const parseFont = __webpack_require__(18)
-const packageJson = __webpack_require__(160)
-const bindings = __webpack_require__(829)
-const fs = __webpack_require__(747)
-const PNGStream = __webpack_require__(734)
-const PDFStream = __webpack_require__(977)
-const JPEGStream = __webpack_require__(503)
-const DOMMatrix = __webpack_require__(812).DOMMatrix
-const DOMPoint = __webpack_require__(812).DOMPoint
+const Canvas = __nccwpck_require__(786)
+const Image = __nccwpck_require__(767)
+const CanvasRenderingContext2D = __nccwpck_require__(389)
+const parseFont = __nccwpck_require__(18)
+const packageJson = __nccwpck_require__(160)
+const bindings = __nccwpck_require__(829)
+const fs = __nccwpck_require__(747)
+const PNGStream = __nccwpck_require__(734)
+const PDFStream = __nccwpck_require__(977)
+const JPEGStream = __nccwpck_require__(503)
+const DOMMatrix = __nccwpck_require__(812).DOMMatrix
+const DOMPoint = __nccwpck_require__(812).DOMPoint
 
 function createCanvas (width, height, type) {
   return new Canvas(width, height, type)
@@ -94,12 +94,12 @@ module.exports = {
 /***/ }),
 
 /***/ 812:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-const util = __webpack_require__(669)
+const util = __nccwpck_require__(669)
 
 // DOMMatrix per https://drafts.fxtf.org/geometry/#DOMMatrix
 
@@ -584,18 +584,18 @@ module.exports = {DOMMatrix, DOMPoint}
 /***/ }),
 
 /***/ 829:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-module.exports = __webpack_require__(756);
+module.exports = __nccwpck_require__(756);
 
 
 /***/ }),
 
 /***/ 786:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -606,14 +606,14 @@ module.exports = __webpack_require__(756);
  * MIT Licensed
  */
 
-const bindings = __webpack_require__(829)
+const bindings = __nccwpck_require__(829)
 const Canvas = module.exports = bindings.Canvas
-const Context2d = __webpack_require__(389)
-const PNGStream = __webpack_require__(734)
-const PDFStream = __webpack_require__(977)
-const JPEGStream = __webpack_require__(503)
+const Context2d = __nccwpck_require__(389)
+const PNGStream = __nccwpck_require__(734)
+const PDFStream = __nccwpck_require__(977)
+const JPEGStream = __nccwpck_require__(503)
 const FORMATS = ['image/png', 'image/jpeg']
-const util = __webpack_require__(669)
+const util = __nccwpck_require__(669)
 
 // TODO || is for Node.js pre-v6.6.0
 Canvas.prototype[util.inspect.custom || 'inspect'] = function () {
@@ -716,7 +716,7 @@ Canvas.prototype.toDataURL = function(a1, a2, a3){
 /***/ }),
 
 /***/ 389:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -727,9 +727,9 @@ Canvas.prototype.toDataURL = function(a1, a2, a3){
  * MIT Licensed
  */
 
-const bindings = __webpack_require__(829)
-const parseFont = __webpack_require__(18)
-const { DOMMatrix } = __webpack_require__(812)
+const bindings = __nccwpck_require__(829)
+const parseFont = __nccwpck_require__(18)
+const { DOMMatrix } = __nccwpck_require__(812)
 
 bindings.CanvasRenderingContext2dInit(DOMMatrix, parseFont)
 module.exports = bindings.CanvasRenderingContext2d
@@ -738,7 +738,7 @@ module.exports = bindings.CanvasRenderingContext2d
 /***/ }),
 
 /***/ 767:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -753,9 +753,9 @@ module.exports = bindings.CanvasRenderingContext2d
  * Module dependencies.
  */
 
-const bindings = __webpack_require__(829)
+const bindings = __nccwpck_require__(829)
 const Image = module.exports = bindings.Image
-const util = __webpack_require__(669)
+const util = __nccwpck_require__(669)
 
 // Lazily loaded simple-get
 let get;
@@ -790,7 +790,7 @@ Object.defineProperty(Image.prototype, 'src', {
           }
         }
 
-        if (!get) get = __webpack_require__(522);
+        if (!get) get = __nccwpck_require__(522);
 
         get.concat(val, (err, res, data) => {
           if (err) return onerror(err)
@@ -839,7 +839,7 @@ function setSource(img, src, origSrc){
 /***/ }),
 
 /***/ 503:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -850,8 +850,8 @@ function setSource(img, src, origSrc){
  * MIT Licensed
  */
 
-var Readable = __webpack_require__(413).Readable;
-var util = __webpack_require__(669);
+var Readable = __nccwpck_require__(413).Readable;
+var util = __nccwpck_require__(669);
 
 var JPEGStream = module.exports = function JPEGStream(canvas, options) {
   if (!(this instanceof JPEGStream)) {
@@ -1002,7 +1002,7 @@ module.exports = function (str) {
 /***/ }),
 
 /***/ 977:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -1011,8 +1011,8 @@ module.exports = function (str) {
  * Canvas - PDFStream
  */
 
-var Readable = __webpack_require__(413).Readable;
-var util = __webpack_require__(669);
+var Readable = __nccwpck_require__(413).Readable;
+var util = __nccwpck_require__(669);
 
 var PDFStream = module.exports = function PDFStream(canvas, options) {
   if (!(this instanceof PDFStream)) {
@@ -1049,7 +1049,7 @@ PDFStream.prototype._read = function _read() {
 /***/ }),
 
 /***/ 734:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -1060,8 +1060,8 @@ PDFStream.prototype._read = function _read() {
  * MIT Licensed
  */
 
-var Readable = __webpack_require__(413).Readable;
-var util = __webpack_require__(669);
+var Readable = __nccwpck_require__(413).Readable;
+var util = __nccwpck_require__(669);
 
 var PNGStream = module.exports = function PNGStream(canvas, options) {
   if (!(this instanceof PNGStream)) {
@@ -1103,13 +1103,13 @@ PNGStream.prototype._read = function _read() {
 /***/ }),
 
 /***/ 391:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
-const {PassThrough: PassThroughStream} = __webpack_require__(413);
-const zlib = __webpack_require__(761);
-const mimicResponse = __webpack_require__(610);
+const {PassThrough: PassThroughStream} = __nccwpck_require__(413);
+const zlib = __nccwpck_require__(761);
+const mimicResponse = __nccwpck_require__(610);
 
 const decompressResponse = response => {
 	const contentEncoding = (response.headers['content-encoding'] || '').toLowerCase();
@@ -1197,9 +1197,9 @@ module.exports = (fromStream, toStream) => {
 /***/ }),
 
 /***/ 223:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-var wrappy = __webpack_require__(940)
+var wrappy = __nccwpck_require__(940)
 module.exports = wrappy(once)
 module.exports.strict = wrappy(onceStrict)
 
@@ -1268,17 +1268,17 @@ module.exports = function (stream, cb) {
 /***/ }),
 
 /***/ 522:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 module.exports = simpleGet
 
-const concat = __webpack_require__(854)
-const decompressResponse = __webpack_require__(391) // excluded from browser build
-const http = __webpack_require__(605)
-const https = __webpack_require__(211)
-const once = __webpack_require__(223)
-const querystring = __webpack_require__(191)
-const url = __webpack_require__(835)
+const concat = __nccwpck_require__(854)
+const decompressResponse = __nccwpck_require__(391) // excluded from browser build
+const http = __nccwpck_require__(605)
+const https = __nccwpck_require__(211)
+const once = __nccwpck_require__(223)
+const querystring = __nccwpck_require__(191)
+const url = __nccwpck_require__(835)
 
 const isStream = o => o !== null && typeof o === 'object' && typeof o.pipe === 'function'
 
@@ -1414,9 +1414,9 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 756:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = require(__webpack_require__.ab + "build/Release/canvas1.node")
+module.exports = require(__nccwpck_require__.ab + "build/Release/canvas1.node")
 
 /***/ }),
 
@@ -1498,7 +1498,7 @@ module.exports = require("zlib");;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
+/******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		if(__webpack_module_cache__[moduleId]) {
 /******/ 			return __webpack_module_cache__[moduleId].exports;
@@ -1513,7 +1513,7 @@ module.exports = require("zlib");;
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
-/******/ 			__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 			__webpack_modules__[moduleId](module, module.exports, __nccwpck_require__);
 /******/ 			threw = false;
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
@@ -1526,11 +1526,11 @@ module.exports = require("zlib");;
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
-/******/ 	__webpack_require__.ab = __dirname + "/";/************************************************************************/
+/******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(771);
+/******/ 	return __nccwpck_require__(771);
 /******/ })()
 ;
 //# sourceMappingURL=index1.js.map
