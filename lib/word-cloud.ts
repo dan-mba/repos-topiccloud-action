@@ -1,18 +1,21 @@
-const buildCloud = require("./build-cloud");
-const drawCloud = require("./draw-cloud");
-const jsdom = require("jsdom");
+import buildCloud from "./build-cloud";
+import drawCloud from "./draw-cloud";
+import jsdom from "jsdom";
+import {Topic} from "./topics";
+import {Word} from "d3-cloud";
+
 const { JSDOM } = jsdom;
 const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
 var document = dom.window.document;
 
-async function genSVG(words) {
+async function genSVG(words: Array<Topic>) {
   const sizes = words.map(w => w.count);
   const max = Math.max(...sizes);
   const min = Math.min(...sizes);
   const minFont = 18;
   const fontIncr = (max-min) == 0 ? 0 : 66/Math.sqrt(max-min);
   
-  const wordsSized = words.map(w => { return {
+  const wordsSized: Array<Word> = words.map((w: Topic): Word => { return {
     text: w.text,
     size: minFont + (Math.sqrt(w.count - min) * fontIncr)
   }})
@@ -20,7 +23,7 @@ async function genSVG(words) {
   const waitPromise = new Promise((resolve) => {
     const layout = buildCloud(wordsSized, 800, 400, end)
 
-    function end(words) {
+    function end(words: Array<Word>) {
       drawCloud(words, layout, document)
       resolve(document.body.innerHTML);
     }
@@ -35,4 +38,4 @@ async function genSVG(words) {
   return(retBuffer);
 }
 
-module.exports = genSVG;
+export = genSVG;

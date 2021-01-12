@@ -1,8 +1,13 @@
-const d3 = require("d3");
-const randomColor = require("randomcolor");
-const core = require("@actions/core");
+import * as d3 from "d3";
+import {Word} from "d3-cloud";
+import randomColor from "randomcolor";
+import * as core from "@actions/core";
 
-function drawCloud(words, layout, document) {
+interface Layout {
+  size(): [number, number]
+}
+
+function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
   const colors = ["red", "yellow", "green", "blue", "purple", "pink", "monochrome"];
   const luminosities = ["bright", "light", "dark" ];
 
@@ -25,14 +30,16 @@ function drawCloud(words, layout, document) {
         .enter().append("text")
           .style("font-size", d => d.size + "px")
           .style("font-family", "Arial")
+          // ignore luminosity string literal type mismatch
+          // @ts-ignore
           .style("fill", () => randomColor({hue: color, luminosity: luminosity}))
           .attr("text-anchor", "middle")
           .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
-          .text(d => d.text);
+          .text(d => d.text!);
   } catch(e) {
     console.log('Drawing word cloud failed');
     throw e;
   }
 }
 
-module.exports = drawCloud;
+export = drawCloud;

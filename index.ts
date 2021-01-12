@@ -1,6 +1,6 @@
-const fs = require("fs");
-const getTopics = require("./lib/topics");
-const genSVG = require("./lib/word-cloud");
+import fs from "fs";
+import getTopics from "./lib/topics";
+import genSVG from "./lib/word-cloud";
 
 (async function(){
   let topicArr = await getTopics();
