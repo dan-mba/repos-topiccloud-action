@@ -1,5 +1,32 @@
-const github = require('@actions/github');
-const core = require('@actions/core');
+import * as github from "@actions/github";
+import * as core from "@actions/core";
+
+interface RepoQuery {
+  user: {
+    repositories: {
+      nodes: Array<{
+        repositoryTopics: {
+          nodes: Array<{
+            topic: {
+              name: string
+            }
+          }>
+        }
+      }>
+      pageInfo: {
+        endCursor: number
+        hasNextPage: boolean
+      }
+    }
+  }
+};
+
+interface Topic {
+  text: string
+  count: number
+};
+
+export type {Topic};
 
 async function getTopics() {
   const myToken = core.getInput('github-token');
@@ -10,7 +37,7 @@ async function getTopics() {
 
   const login = core.getInput('test-login') || github.context.actor;
   const octokit = github.getOctokit(myToken);
-  let topics = [];
+  let topics : Array<string> = [];
 
   const query =
     `
@@ -36,12 +63,13 @@ async function getTopics() {
     `;
 
   try {
-    let request = await octokit.graphql(
+    let request : RepoQuery = await octokit.graphql(
       query,
       {
         "login": login
       }
     );
+
     let newTopics = request.user.repositories.nodes
       .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
     topics = [...topics, ...newTopics];
@@ -57,9 +85,8 @@ async function getTopics() {
         .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
       topics = [...topics, ...newTopics];
     }
-
     
-    let topicFreq = {};
+    let topicFreq: {[Key: string]: number} = {};
     topics.forEach(topic => {
       if (topic in topicFreq) {
         topicFreq[topic]++;
@@ -68,7 +95,7 @@ async function getTopics() {
       }
     })
 
-    let cloudArr = [];
+    let cloudArr: Array<Topic> = [];
     for (const t in topicFreq) {
       cloudArr.push({
         text: t,
@@ -81,11 +108,10 @@ async function getTopics() {
     })
 
     return cloudArr;
-
   } catch(e) {
     console.log('Call to GitHub GraphQL API failed');
     throw e;
   }
 }
 
-module.exports = getTopics;
+export default getTopics;
