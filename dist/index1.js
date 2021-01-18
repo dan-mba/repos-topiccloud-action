@@ -1416,7 +1416,7 @@ function wrappy (fn, cb) {
 /***/ 756:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = require(__nccwpck_require__.ab + "build/Release/canvas1.node")
+module.exports = require(__nccwpck_require__.ab + "build/Release/canvas2.node")
 
 /***/ }),
 
