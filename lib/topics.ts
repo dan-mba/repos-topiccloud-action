@@ -1,5 +1,4 @@
 import * as github from "@actions/github";
-import * as core from "@actions/core";
 
 interface RepoQuery {
   user: {
@@ -28,14 +27,7 @@ interface Topic {
 
 export type {Topic};
 
-async function getTopics() {
-  const myToken = core.getInput('github-token');
-  if (!myToken) {
-    console.log('Required parameter "github-token" missing')
-    throw new Error('MissingParmErr')
-  }
-
-  const login = core.getInput('test-login') || github.context.actor;
+async function getTopics(login: string, myToken: string) {
   const octokit = github.getOctokit(myToken);
   let topics : Array<string> = [];
 
