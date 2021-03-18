@@ -12,12 +12,12 @@ async function genSVG(words: Array<Topic>) {
   const sizes = words.map(w => w.count);
   const max = Math.max(...sizes);
   const min = Math.min(...sizes);
-  const minFont = 18;
-  const fontIncr = (max-min) == 0 ? 0 : 66/Math.sqrt(max-min);
+  const minFont = 24;
+  const fontIncr = (max-min) == 0 ? 0 : 48/(max-min);
   
   const wordsSized: Array<Word> = words.map((w: Topic): Word => { return {
     text: w.text,
-    size: minFont + (Math.sqrt(w.count - min) * fontIncr)
+    size: minFont + ((w.count - min) * fontIncr)
   }})
 
   const waitPromise = new Promise((resolve) => {
