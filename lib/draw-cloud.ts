@@ -34,8 +34,15 @@ function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
           // @ts-ignore
           .style("fill", () => randomColor({hue: color, luminosity: luminosity}))
           .attr("text-anchor", "middle")
+          .attr("opacity","0.0")
           .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
-          .text(d => d.text!);
+          .text(d => d.text!)
+          .append("animate")
+            .attr("attributeName","opacity")
+            .attr("values","0.0;1.0")
+            .attr("dur","2s")
+            .attr("begin",(_,i) => `${i*500}ms`)
+            .attr("fill","freeze");
   } catch(e) {
     console.log('Drawing word cloud failed');
     throw e;
