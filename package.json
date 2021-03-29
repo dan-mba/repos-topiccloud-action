@@ -32,7 +32,7 @@
     "@tsconfig/node12": "^1.0.7",
     "@types/d3": "^6.3.0",
     "@types/d3-cloud": "^1.2.3",
-    "@types/jsdom": "^16.2.7",
+    "@types/jsdom": "^16.2.9",
     "@types/randomcolor": "^0.5.5",
     "dotenv": "^8.2.0",
     "eslint": "^7.22.0"
