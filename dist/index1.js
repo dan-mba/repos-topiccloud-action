@@ -1,5 +1,4 @@
-require('./sourcemap-register.js');module.exports =
-/******/ (() => { // webpackBootstrap
+require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 771:
@@ -1426,7 +1425,7 @@ module.exports = require(__nccwpck_require__.ab + "build/Release/canvas1.node")
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse("{\"name\":\"canvas\",\"description\":\"Canvas graphics API backed by Cairo\",\"version\":\"2.7.0\",\"author\":\"TJ Holowaychuk <tj@learnboost.com>\",\"main\":\"index.js\",\"browser\":\"browser.js\",\"contributors\":[\"Nathan Rajlich <nathan@tootallnate.net>\",\"Rod Vagg <r@va.gg>\",\"Juriy Zaytsev <kangax@gmail.com>\"],\"keywords\":[\"canvas\",\"graphic\",\"graphics\",\"pixman\",\"cairo\",\"image\",\"images\",\"pdf\"],\"homepage\":\"https://github.com/Automattic/node-canvas\",\"repository\":\"git://github.com/Automattic/node-canvas.git\",\"scripts\":{\"prebenchmark\":\"node-gyp build\",\"benchmark\":\"node benchmarks/run.js\",\"lint\":\"standard examples/*.js test/server.js test/public/*.js benchmarks/run.js lib/context2d.js util/has_lib.js browser.js index.js\",\"test\":\"mocha test/*.test.js\",\"pretest-server\":\"node-gyp build\",\"test-server\":\"node test/server.js\",\"install\":\"node-pre-gyp install --fallback-to-build\",\"dtslint\":\"dtslint types\"},\"binary\":{\"module_name\":\"canvas\",\"module_path\":\"build/Release\",\"host\":\"https://github.com/Automattic/node-canvas/releases/download/\",\"remote_path\":\"v{version}\",\"package_name\":\"{module_name}-v{version}-{node_abi}-{platform}-{libc}-{arch}.tar.gz\"},\"files\":[\"binding.gyp\",\"lib/\",\"src/\",\"util/\",\"types/index.d.ts\"],\"types\":\"types/index.d.ts\",\"dependencies\":{\"nan\":\"^2.14.0\",\"node-pre-gyp\":\"^0.15.0\",\"simple-get\":\"^3.0.3\"},\"devDependencies\":{\"@types/node\":\"^10.12.18\",\"assert-rejects\":\"^1.0.0\",\"dtslint\":\"^0.5.3\",\"express\":\"^4.16.3\",\"mocha\":\"^5.2.0\",\"pixelmatch\":\"^4.0.2\",\"standard\":\"^12.0.1\"},\"engines\":{\"node\":\">=6\"},\"license\":\"MIT\",\"_resolved\":\"https://registry.npmjs.org/canvas/-/canvas-2.7.0.tgz\",\"_integrity\":\"sha512-pzCxtkHb+5su5MQjTtepMDlIOtaXo277x0C0u3nMOxtkhTyQ+h2yNKhlROAaDllWgRyePAUitC08sXw26Eb6aw==\",\"_from\":\"canvas@2.7.0\"}");
+module.exports = JSON.parse('{"name":"canvas","description":"Canvas graphics API backed by Cairo","version":"2.7.0","author":"TJ Holowaychuk <tj@learnboost.com>","main":"index.js","browser":"browser.js","contributors":["Nathan Rajlich <nathan@tootallnate.net>","Rod Vagg <r@va.gg>","Juriy Zaytsev <kangax@gmail.com>"],"keywords":["canvas","graphic","graphics","pixman","cairo","image","images","pdf"],"homepage":"https://github.com/Automattic/node-canvas","repository":"git://github.com/Automattic/node-canvas.git","scripts":{"prebenchmark":"node-gyp build","benchmark":"node benchmarks/run.js","lint":"standard examples/*.js test/server.js test/public/*.js benchmarks/run.js lib/context2d.js util/has_lib.js browser.js index.js","test":"mocha test/*.test.js","pretest-server":"node-gyp build","test-server":"node test/server.js","install":"node-pre-gyp install --fallback-to-build","dtslint":"dtslint types"},"binary":{"module_name":"canvas","module_path":"build/Release","host":"https://github.com/Automattic/node-canvas/releases/download/","remote_path":"v{version}","package_name":"{module_name}-v{version}-{node_abi}-{platform}-{libc}-{arch}.tar.gz"},"files":["binding.gyp","lib/","src/","util/","types/index.d.ts"],"types":"types/index.d.ts","dependencies":{"nan":"^2.14.0","node-pre-gyp":"^0.15.0","simple-get":"^3.0.3"},"devDependencies":{"@types/node":"^10.12.18","assert-rejects":"^1.0.0","dtslint":"^0.5.3","express":"^4.16.3","mocha":"^5.2.0","pixelmatch":"^4.0.2","standard":"^12.0.1"},"engines":{"node":">=6"},"license":"MIT","_resolved":"https://registry.npmjs.org/canvas/-/canvas-2.7.0.tgz","_integrity":"sha512-pzCxtkHb+5su5MQjTtepMDlIOtaXo277x0C0u3nMOxtkhTyQ+h2yNKhlROAaDllWgRyePAUitC08sXw26Eb6aw==","_from":"canvas@2.7.0"}');
 
 /***/ }),
 
@@ -1502,8 +1501,9 @@ module.exports = require("zlib");;
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
-/******/ 		if(__webpack_module_cache__[moduleId]) {
-/******/ 			return __webpack_module_cache__[moduleId].exports;
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
@@ -1528,11 +1528,14 @@ module.exports = require("zlib");;
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
-/******/ 	__nccwpck_require__.ab = __dirname + "/";/************************************************************************/
-/******/ 	// module exports must be returned from runtime so entry inlining is disabled
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";/************************************************************************/
+/******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(771);
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(771);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=index1.js.map
