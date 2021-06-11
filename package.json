@@ -29,7 +29,7 @@
     "randomcolor": "^0.6.2"
   },
   "devDependencies": {
-    "@tsconfig/node12": "^1.0.7",
+    "@tsconfig/node12": "^1.0.8",
     "@types/d3": "^6.7.0",
     "@types/d3-cloud": "^1.2.3",
     "@types/jsdom": "^16.2.11",

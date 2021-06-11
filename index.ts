@@ -11,7 +11,7 @@ import genSVG from "./lib/word-cloud";
     throw new Error('MissingParmErr');
   }
 
-  const login = core.getInput('test-login') || github.context.actor;
+  const login = github.context.actor;
 
   let topicArr = await getTopics(login, myToken);
   if (!topicArr || topicArr.length == 0) {

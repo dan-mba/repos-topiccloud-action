@@ -12,7 +12,6 @@ jobs:
       uses: dan-mba/repos-topiccloud-action@master
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
-        test-login: torch2424
     - name: Find
       run: |
         cat cloud.svg
