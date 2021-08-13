@@ -36,7 +36,7 @@ function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
           .attr("text-anchor", "middle")
           .attr("opacity","0.0")
           .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
-          .text(d => d.text!)
+          .text(d => {console.log(d.text); return d.text!})
           .append("animate")
             .attr("attributeName","opacity")
             .attr("values","0.0;1.0")
@@ -49,4 +49,4 @@ function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
   }
 }
 
-export = drawCloud;
+export default drawCloud;

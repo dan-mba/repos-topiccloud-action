@@ -10,5 +10,5 @@ dotenv.config();
   if(topicArr.length > 30) topicArr = topicArr.slice(0,30);
 
   const buffer = await genSVG(topicArr);
-  fs.writeFileSync("cloud.svg", buffer);
+  fs.writeFileSync("cloud-test.svg", buffer);
 })();

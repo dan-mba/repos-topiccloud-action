@@ -1,5 +1,5 @@
 import fs from 'fs';
-import genSVG from '../lib/word-cloud';
+import genSVG from '../lib/word-cloud.js';
 
 (async function(){
 
@@ -42,5 +42,5 @@ import genSVG from '../lib/word-cloud';
   if(topicArr.length > 30) topicArr = topicArr.slice(0,30);
 
   const buffer = await genSVG(topicArr);
-  fs.writeFileSync("cloud.svg", buffer);
+  fs.writeFileSync("cloud-test.svg", buffer);
 })();
