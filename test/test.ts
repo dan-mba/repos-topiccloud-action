@@ -1,7 +1,7 @@
 import fs from 'fs';
 import dotenv from 'dotenv';
-import genSVG from '../lib/word-cloud';
-import getTopics from '../lib/topics';
+import genSVG from '../lib/word-cloud.js';
+import getTopics from '../lib/topics.js';
 
 dotenv.config();
 

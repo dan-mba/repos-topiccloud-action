@@ -1,8 +1,8 @@
 import fs from "fs";
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import getTopics from "./lib/topics";
-import genSVG from "./lib/word-cloud";
+import getTopics from "./lib/topics.js";
+import genSVG from "./lib/word-cloud.js";
 
 (async function(){
   let myToken = core.getInput('github-token');

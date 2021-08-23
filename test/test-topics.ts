@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import getTopics from '../lib/topics';
+import getTopics from '../lib/topics.js';
 
 dotenv.config();
 
