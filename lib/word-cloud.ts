@@ -24,7 +24,6 @@ async function genSVG(words: Array<Topic>) {
     const layout = buildCloud(wordsSized, 800, 400, end)
 
     function end(words: Array<Word>) {
-      console.log(JSON.stringify(words));
       drawCloud(words, layout, document)
       resolve(document.body.innerHTML);
     }

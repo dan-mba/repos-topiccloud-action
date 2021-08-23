@@ -104,3 +104,6 @@ typings/
 
 # TS Build
 build/
+
+# Test svg img
+cloud-test.svg
