@@ -7,4 +7,5 @@ inputs:
 
 runs:
   using: 'node12'
+  pre: 'version.js'
   main: 'dist/index.js'
