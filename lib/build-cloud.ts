@@ -1,5 +1,5 @@
 import cloud, {Word} from "d3-cloud";
-import {Canvas} from "skia-canvas";
+import {Canvas} from "canvas";
 
 // Generator function that will flip between returning 1 and 0
 function* iterator(): Generator<number> {
