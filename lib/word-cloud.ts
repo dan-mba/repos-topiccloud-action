@@ -1,5 +1,5 @@
-import buildCloud from "./build-cloud";
-import drawCloud from "./draw-cloud";
+import buildCloud from "./build-cloud.js";
+import drawCloud from "./draw-cloud.js";
 import jsdom from "jsdom";
 import {Topic} from "./topics";
 import {Word} from "d3-cloud";
@@ -38,4 +38,4 @@ async function genSVG(words: Array<Topic>) {
   return(retBuffer);
 }
 
-export = genSVG;
+export default genSVG;
