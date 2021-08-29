@@ -104,6 +104,7 @@ typings/
 
 # TS Build
 build/
+!dist/build/
 
 # Test svg img
 cloud-test.svg
