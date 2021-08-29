@@ -5,6 +5,7 @@ import getTopics from "./lib/topics.js";
 import genSVG from "./lib/word-cloud.js";
 
 (async function(){
+  console.log("Node Version:", process.version);
   let myToken = core.getInput('github-token');
   if (!myToken) {
     console.log('Required parameter "github-token" missing');
