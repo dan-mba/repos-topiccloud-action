@@ -28,14 +28,15 @@
     "d3-cloud": "^1.2.5",
     "jsdom": "^18.1.1",
     "randomcolor": "^0.6.2",
-    "canvas": "2.7.0"
+    "skia-canvas": "^0.9.27"
   },
   "devDependencies": {
-    "@tsconfig/node12": "^1.0.9",
+    "@tsconfig/node16": "^1.0.2",
     "@types/d3": "^7.1.0",
     "@types/d3-cloud": "^1.2.5",
     "@types/jsdom": "^16.2.13",
     "@types/randomcolor": "^0.5.6",
+    "@types/skia-canvas": "^0.9.2",
     "dotenv": "^10.0.0",
     "eslint": "^8.3.0"
   }
