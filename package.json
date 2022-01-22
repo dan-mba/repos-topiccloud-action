@@ -36,7 +36,7 @@
     "@types/d3-cloud": "^1.2.5",
     "@types/jsdom": "^16.2.14",
     "@types/randomcolor": "^0.5.6",
-    "@types/skia-canvas": "^0.9.2",
+    "@types/skia-canvas": "^0.9.28",
     "dotenv": "^14.2.0",
     "eslint": "^8.6.0"
   }
