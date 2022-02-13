@@ -28,7 +28,7 @@
     "d3-cloud": "^1.2.5",
     "jsdom": "^19.0.0",
     "randomcolor": "^0.6.2",
-    "skia-canvas": "^0.9.28"
+    "skia-canvas": "^0.9.29"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",
