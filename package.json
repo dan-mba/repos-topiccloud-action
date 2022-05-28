@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",
-    "@types/d3": "^7.1.0",
+    "@types/d3": "^7.4.0",
     "@types/d3-cloud": "^1.2.5",
     "@types/jsdom": "^16.2.14",
     "@types/randomcolor": "^0.5.6",
