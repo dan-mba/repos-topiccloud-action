@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc && ncc build build/index.js -o dist --source-map",
-    "testrun": "tsc && ncc run build/index.js",
-    "test": "node build/test/test.js",
-    "testtopics": "node build/test/test-topics.js",
-    "testcloud": "tsc && node build/test/test-cloud.js"
+    "testrun": "ncc run index.ts",
+    "test": "ncc run test/test.ts",
+    "testtopics": "ncc run test/test-topics.ts",
+    "testcloud": "ncc run test/test-cloud.ts"
   },
   "repository": {
     "type": "git",
