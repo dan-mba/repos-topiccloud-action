@@ -18,4 +18,5 @@ jobs:
     - name: Test
       run: |
         npm run testcloud
+        cat cloud-test.svg
    
