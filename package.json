@@ -4,7 +4,7 @@
   "description": "GitHub Action to generate a SVG wordcloud for a GitHub user",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && ncc build build/index.js -o dist --source-map",
+    "build": "ncc build index.ts -o dist --source-map",
     "testrun": "ncc run index.ts",
     "test": "ncc run test/test.ts",
     "testtopics": "ncc run test/test-topics.ts",
@@ -23,6 +23,7 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.3",
+    "@napi-rs/canvas": "^0.1.28",
     "@vercel/ncc": "^0.34.0",
     "d3": "^7.6.1",
     "d3-cloud": "^1.2.5",
@@ -38,6 +39,7 @@
     "@types/randomcolor": "^0.5.6",
     "@types/skia-canvas": "^0.9.28",
     "dotenv": "^16.0.1",
-    "eslint": "^8.21.0"
+    "eslint": "^8.22.0",
+    "typescript": "^4.7.4"
   }
 }
