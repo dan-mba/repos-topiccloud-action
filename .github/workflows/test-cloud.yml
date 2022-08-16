@@ -15,7 +15,6 @@ jobs:
     - name: Install
       run: |
         npm ci
-        tsc
     - name: Test
       run: |
         npm run testcloud
