@@ -34,7 +34,7 @@
     "@tsconfig/node16": "^1.0.3",
     "@types/d3": "^7.4.0",
     "@types/d3-cloud": "^1.2.5",
-    "@types/jsdom": "^20.0.0",
+    "@types/jsdom": "^20.0.1",
     "@types/randomcolor": "^0.5.6",
     "dotenv": "^16.0.3",
     "eslint": "^8.26.0",
