@@ -38,6 +38,6 @@
     "@types/randomcolor": "^0.5.7",
     "dotenv": "^16.0.3",
     "eslint": "^8.32.0",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.5"
   }
 }
