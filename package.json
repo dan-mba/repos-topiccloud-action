@@ -37,7 +37,7 @@
     "@types/jsdom": "^21.1.0",
     "@types/randomcolor": "^0.5.7",
     "dotenv": "^16.0.3",
-    "eslint": "^8.34.0",
+    "eslint": "^8.35.0",
     "typescript": "^4.9.5"
   }
 }
