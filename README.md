@@ -6,7 +6,7 @@ GitHub Action to create an svg of the 30 most used topics from all your repos
 
 ## SVG Topic Cloud
 
-![SVG Topic Cloud](https://raw.githubusercontent.com/dan-mba/repos-topiccloud-action/master/cloud.svg)
+![SVG Topic Cloud](https://raw.githubusercontent.com/dan-mba/repos-topiccloud-action/main/cloud.svg)
 
 
 ## Usage
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Generate Word Cloud
-      uses: dan-mba/repos-topiccloud-action@master
+      uses: dan-mba/repos-topiccloud-action@main
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
 ```
