@@ -21,23 +21,23 @@
   },
   "homepage": "https://github.com/dan-mba/repos-topiccloud-action#readme",
   "dependencies": {
-    "@actions/core": "^1.9.1",
-    "@actions/github": "^5.0.3",
-    "@vercel/ncc": "^0.34.0",
-    "d3": "^7.6.1",
-    "d3-cloud": "^1.2.5",
-    "jsdom": "^20.0.0",
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
+    "@vercel/ncc": "^0.36.1",
+    "d3": "^7.8.5",
+    "d3-cloud": "^1.2.7",
+    "jsdom": "^22.1.0",
     "randomcolor": "^0.6.2",
-    "skia-canvas": "^1.0.0"
+    "skia-canvas": "^1.0.1"
   },
   "devDependencies": {
-    "@tsconfig/node16": "^1.0.3",
+    "@tsconfig/node16": "^16.1.0",
     "@types/d3": "^7.4.0",
     "@types/d3-cloud": "^1.2.5",
-    "@types/jsdom": "^20.0.0",
-    "@types/randomcolor": "^0.5.6",
-    "dotenv": "^16.0.1",
-    "eslint": "^8.22.0",
-    "typescript": "^4.7.4"
+    "@types/jsdom": "^21.1.1",
+    "@types/randomcolor": "^0.5.7",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.46.0",
+    "typescript": "^5.1.6"
   }
 }
