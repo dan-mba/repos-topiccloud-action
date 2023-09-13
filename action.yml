@@ -6,6 +6,6 @@ inputs:
     required: true
 
 runs:
-  using: 'node16'
+  using: 'node20'
   pre: 'version.js'
   main: 'dist/index.js'

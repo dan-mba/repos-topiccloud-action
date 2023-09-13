@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.ts -o dist --source-map",
+    "ts": "tsc",
     "testrun": "ncc run index.ts",
     "test": "ncc run test/test.ts",
     "testtopics": "ncc run test/test-topics.ts",
@@ -31,7 +32,6 @@
     "skia-canvas": "^1.0.1"
   },
   "devDependencies": {
-    "@tsconfig/node16": "^16.1.1",
     "@types/d3": "^7.4.0",
     "@types/d3-cloud": "^1.2.5",
     "@types/jsdom": "^21.1.2",
