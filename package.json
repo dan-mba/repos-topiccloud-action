@@ -36,7 +36,7 @@
     "@types/d3-cloud": "^1.2.9",
     "@types/jsdom": "^21.1.6",
     "@types/randomcolor": "^0.5.9",
-    "dotenv": "^16.4.4",
+    "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
   }
