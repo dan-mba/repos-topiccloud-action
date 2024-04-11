@@ -7,5 +7,4 @@ inputs:
 
 runs:
   using: 'node20'
-  pre: 'version.js'
   main: 'dist/index.js'
