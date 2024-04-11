@@ -15,12 +15,11 @@ const createCanvas = (width: number, height: number): Canvas => {
 
 function buildCloud(words: Array<Word>, width: number, height: number, callback: (words: Array<Word>) => void) {
   try {
-    let flipRotation = iterator();
+    const flipRotation = iterator();
 
     return cloud().size([width , height])
       .words(words)
-      // ignore canvas type mismatch
-      // @ts-ignore
+      // @ts-expect-error ignore canvas type mismatch
       .canvas(function() { return createCanvas(1,1); })
       // Use an angle of 0 or -90 degrees
       .rotate(function() { return (flipRotation.next().value * 90) - 90; })

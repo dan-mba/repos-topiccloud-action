@@ -5,7 +5,7 @@ import getTopics from "./lib/topics.js";
 import genSVG from "./lib/word-cloud.js";
 
 (async function(){
-  let myToken = core.getInput('github-token');
+  const myToken = core.getInput('github-token');
   if (!myToken) {
     console.log('Required parameter "github-token" missing');
     throw new Error('MissingParmErr');
@@ -25,7 +25,7 @@ import genSVG from "./lib/word-cloud.js";
   try {
     fs.writeFileSync("cloud.svg", buffer);
   } catch(e) {
-    console.log('Error wrting "cloud.svg"');
+    console.log('Error writing "cloud.svg"');
     throw e;
   }
 })();

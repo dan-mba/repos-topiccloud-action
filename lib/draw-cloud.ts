@@ -30,8 +30,7 @@ function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
         .enter().append("text")
           .style("font-size", d => d.size + "px")
           .style("font-family", "Verdana, Arial")
-          // ignore luminosity string literal type mismatch
-          // @ts-ignore
+          // @ts-expect-error ignore luminosity string literal type mismatch
           .style("fill", () => randomColor({hue: color, luminosity: luminosity}))
           .attr("text-anchor", "middle")
           .attr("opacity","0.0")

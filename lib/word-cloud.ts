@@ -6,7 +6,7 @@ import {Word} from "d3-cloud";
 
 const { JSDOM } = jsdom;
 const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
-var document = dom.window.document;
+const document = dom.window.document;
 
 async function genSVG(words: Array<Topic>) {
   const sizes = words.map(w => w.count);

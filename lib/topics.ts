@@ -18,12 +18,12 @@ interface RepoQuery {
       }
     }
   }
-};
+}
 
 interface Topic {
   text: string
   count: number
-};
+}
 
 export type {Topic};
 
@@ -78,7 +78,7 @@ async function getTopics(login: string, myToken: string) {
       topics = [...topics, ...newTopics];
     }
     
-    let topicFreq: {[Key: string]: number} = {};
+    const topicFreq: {[Key: string]: number} = {};
     topics.forEach(topic => {
       if (topic in topicFreq) {
         topicFreq[topic]++;
@@ -87,7 +87,7 @@ async function getTopics(login: string, myToken: string) {
       }
     })
 
-    let cloudArr: Array<Topic> = [];
+    const cloudArr: Array<Topic> = [];
     for (const t in topicFreq) {
       cloudArr.push({
         text: t,
