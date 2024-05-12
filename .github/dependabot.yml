@@ -14,7 +14,7 @@ updates:
           - "eslint*"
           - "@eslint*"
           - "globals"
-          - "@typescript-eslint*"
+          - "typescript-eslint"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
