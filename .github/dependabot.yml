@@ -8,6 +8,13 @@ updates:
     schedule:
       interval: "weekly"
       day: "wednesday"
+    groups:
+      lint:
+        patterns:
+          - "eslint*"
+          - "@eslint*"
+          - "globals"
+          - "@typescript-eslint*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
