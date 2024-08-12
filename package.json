@@ -39,8 +39,8 @@
     "@types/randomcolor": "^0.5.9",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
-    "globals": "^15.8.0",
+    "globals": "^15.9.0",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^8.0.0"
+    "typescript-eslint": "^8.0.1"
   }
 }
