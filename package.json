@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.ts -o dist --source-map",
+    "lint": "eslint .",
     "ts": "tsc",
     "testrun": "ncc run index.ts",
     "test": "ncc run test/test.ts",
@@ -29,16 +30,15 @@
     "d3-cloud": "^1.2.7",
     "jsdom": "^24.1.1",
     "randomcolor": "^0.6.2",
-    "skia-canvas": "^1.0.1"
+    "skia-canvas": "^1.0.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
     "@types/d3": "^7.4.3",
     "@types/d3-cloud": "^1.2.9",
     "@types/jsdom": "^21.1.7",
     "@types/randomcolor": "^0.5.9",
     "dotenv": "^16.4.5",
-    "eslint": "^8.57.0",
+    "eslint": "^9.9.1",
     "globals": "^15.9.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.2.0"
