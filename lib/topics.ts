@@ -1,4 +1,4 @@
-import * as github from "@actions/github";
+import { graphql } from "@octokit/graphql";
 
 interface RepoQuery {
   user: {
@@ -28,8 +28,12 @@ interface Topic {
 export type {Topic};
 
 async function getTopics(login: string, myToken: string) {
-  const octokit = github.getOctokit(myToken);
   let topics : Array<string> = [];
+  const graphqlWithAuth = graphql.defaults({
+    headers: {
+      authorization: `token ${myToken}`,
+    },
+  });
 
   const query =
     `
@@ -55,7 +59,7 @@ async function getTopics(login: string, myToken: string) {
     `;
 
   try {
-    let request : RepoQuery = await octokit.graphql(
+    let request : RepoQuery = await graphqlWithAuth(
       query,
       {
         "login": login
@@ -66,7 +70,7 @@ async function getTopics(login: string, myToken: string) {
       .flatMap(n => n.repositoryTopics.nodes.map(t => t.topic.name));
     topics = [...topics, ...newTopics];
     while (request.user.repositories.pageInfo.hasNextPage) {
-      request = await octokit.graphql(
+      request = await graphqlWithAuth(
         query,
         {
           "login": login,
