@@ -24,7 +24,6 @@
   "homepage": "https://github.com/dan-mba/repos-topiccloud-action#readme",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
     "@octokit/graphql": "^8.2.1",
     "@vercel/ncc": "^0.38.3",
     "d3": "^7.9.0",
