@@ -1,6 +1,5 @@
 import fs from "fs";
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import getTopics from "./lib/topics.js";
 import genSVG from "./lib/word-cloud.js";
 
@@ -11,7 +10,11 @@ import genSVG from "./lib/word-cloud.js";
     throw new Error('MissingParmErr');
   }
 
-  const login = github.context.actor;
+  const login = process.env.GITHUB_ACTOR;
+  if (!login) {
+    console.log('Unable to access action actor');
+    throw new Error('MissingActorErr');
+  }
 
   let topicArr = await getTopics(login, myToken);
   if (!topicArr || topicArr.length == 0) {
