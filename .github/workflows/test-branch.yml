@@ -1,0 +1,22 @@
+name: Test Cloud
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-branch:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+    - name: Install
+      run: |
+        npm ci
+    - name: Test
+      run: |
+        npm run testrun
+        cat cloud.svg
+   
