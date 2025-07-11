@@ -19,4 +19,6 @@ jobs:
       run: |
         npm run testrun
         cat cloud.svg
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
    
