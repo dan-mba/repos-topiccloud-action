@@ -1,12 +1,10 @@
 import buildCloud from "./build-cloud.js";
 import drawCloud from "./draw-cloud.js";
-import jsdom from "jsdom";
+import {parseHTML} from 'linkedom';
 import {Topic} from "./topics";
 import {Word} from "d3-cloud";
 
-const { JSDOM } = jsdom;
-const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
-const document = dom.window.document;
+const {document} = parseHTML(`<!DOCTYPE html><body></body>`);
 
 async function genSVG(words: Array<Topic>) {
   const sizes = words.map(w => w.count);
