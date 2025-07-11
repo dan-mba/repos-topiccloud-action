@@ -1,10 +1,10 @@
-name: Test Cloud
+name: Test Branch
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-action:
+  test-branch:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -19,4 +19,6 @@ jobs:
       run: |
         npm run testrun
         cat cloud.svg
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
    
