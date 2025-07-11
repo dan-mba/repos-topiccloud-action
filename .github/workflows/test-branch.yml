@@ -1,4 +1,4 @@
-name: Test Cloud
+name: Test Branch
 
 on:
   workflow_dispatch:
