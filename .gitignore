@@ -108,3 +108,6 @@ build/
 
 # Test svg img
 cloud-test.svg
+
+# VSCode
+.vscode
