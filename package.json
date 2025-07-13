@@ -2,6 +2,7 @@
   "name": "repos-topiccloud-action",
   "version": "0.7.2",
   "description": "GitHub Action to generate a SVG wordcloud for a GitHub user",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.ts -o dist --source-map",
@@ -25,7 +26,6 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@octokit/graphql": "^9.0.1",
-    "@vercel/ncc": "^0.38.3",
     "d3": "^7.9.0",
     "d3-cloud": "^1.2.7",
     "linkedom": "^0.18.11",
@@ -37,6 +37,7 @@
     "@types/d3-cloud": "^1.2.9",
     "@types/node": "20.19.7",
     "@types/randomcolor": "^0.5.9",
+    "@vercel/ncc": "^0.38.3",
     "dotenv": "^17.2.0",
     "eslint": "^9.31.0",
     "globals": "^16.3.0",
