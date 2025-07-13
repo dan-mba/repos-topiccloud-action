@@ -2,6 +2,7 @@
   "name": "repos-topiccloud-action",
   "version": "0.7.2",
   "description": "GitHub Action to generate a SVG wordcloud for a GitHub user",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "build": "ncc build index.ts -o dist --source-map",

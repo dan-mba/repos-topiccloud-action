@@ -1,7 +1,7 @@
 import buildCloud from "./build-cloud.js";
 import drawCloud from "./draw-cloud.js";
 import {parseHTML} from 'linkedom';
-import {Topic} from "./topics";
+import {Topic} from "./topics.js";
 import {Word} from "d3-cloud";
 
 const {document} = parseHTML(`<!DOCTYPE html><body></body>`);
