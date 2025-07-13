@@ -4,15 +4,13 @@ import getTopics from "./lib/topics.js";
 import genSVG from "./lib/word-cloud.js";
 
 (async function(){
-  // eslint-disable-next-line prefer-const
   let myToken:string|undefined = core.getInput('github-token');
   if (!myToken) {
-    //uncomment these lines to allow for test-branch action
-    //myToken = process.env.GITHUB_TOKEN;
-    //if (!myToken) {
+    myToken = process.env.GITHUB_TOKEN;
+    if (!myToken) {
       console.log('Required parameter "github-token" missing');
       throw new Error('MissingParmErr');
-    //}
+    }
   }
 
   const login = process.env.GITHUB_ACTOR;
