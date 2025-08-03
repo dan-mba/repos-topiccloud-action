@@ -38,7 +38,7 @@
     "@types/node": "20.19.9",
     "@types/randomcolor": "^0.5.9",
     "@vercel/ncc": "^0.38.3",
-    "dotenv": "^17.2.0",
+    "dotenv": "^17.2.1",
     "eslint": "^9.31.0",
     "globals": "^16.3.0",
     "typescript": "^5.8.3",
