@@ -14,5 +14,6 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
     - name: Find
       run: |
+        ls -l cloud.svg
         cat cloud.svg
    
