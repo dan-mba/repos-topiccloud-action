@@ -46904,8 +46904,6 @@ const registerHTMLClass = (names, Class) => {
   }
 };
 
-// EXTERNAL MODULE: ./node_modules/linkedom/commonjs/perf_hooks.cjs
-var perf_hooks = __nccwpck_require__(1893);
 ;// CONCATENATED MODULE: ./node_modules/linkedom/esm/shared/jsdon.js
 
 
@@ -53017,8 +53015,6 @@ class TreeWalker {
 
 
 
-
-
 const query = (method, ownerDocument, selectors) => {
   let {[NEXT]: next, [symbols_END]: end} = ownerDocument;
   return method.call({ownerDocument, [NEXT]: next, [symbols_END]: end}, selectors);
@@ -53103,7 +53099,7 @@ class document_Document extends NonElementParentNode {
                 this[CUSTOM_ELEMENTS] = new CustomElementRegistry(this);
               return this[CUSTOM_ELEMENTS];
             case 'performance':
-              return perf_hooks/* performance */.F;
+              return globalThis.performance;
             case 'DOMParser':
               return this[DOM_PARSER];
             case 'Image':
@@ -55727,22 +55723,6 @@ try {
   module.exports = __nccwpck_require__(9989);
 } catch (fallback) {
   module.exports = __nccwpck_require__(3465);
-}
-/* c8 ignore stop */
-
-
-/***/ }),
-
-/***/ 1893:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-/* c8 ignore start */
-try {
-  const {performance} = __nccwpck_require__(2987);
-  exports.F = performance;
-}
-catch (fallback) {
-  exports.F = {now() { return +new Date; }};
 }
 /* c8 ignore stop */
 
