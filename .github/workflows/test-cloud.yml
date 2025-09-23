@@ -12,9 +12,11 @@ jobs:
       uses: actions/setup-node@v5
       with:
         node-version: 'lts/*'
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
     - name: Install
       run: |
-        npm ci
+        pnpm install
     - name: Test
       run: |
         npm run testcloud
