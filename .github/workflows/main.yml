@@ -24,8 +24,8 @@ jobs:
     - name: Build 
       run: |
         rm -rf dist
-        npm ci
-        npm run build
+        pnpm install
+        pnpm build
     - name: Commit files
       run: |
         git config --local user.email "action@github.com"
