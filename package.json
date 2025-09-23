@@ -30,16 +30,16 @@
     "d3-cloud": "^1.2.7",
     "linkedom": "^0.18.12",
     "randomcolor": "^0.6.2",
-    "skia-canvas": "^3.0.6"
+    "skia-canvas": "^3.0.7"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/d3-cloud": "^1.2.9",
-    "@types/node": "20.19.16",
+    "@types/node": "^24.5.2",
     "@types/randomcolor": "^0.5.9",
-    "@vercel/ncc": "^0.38.3",
+    "@vercel/ncc": "^0.38.4",
     "dotenv": "^17.2.2",
-    "eslint": "^9.33.0",
+    "eslint": "^9.36.0",
     "globals": "^16.4.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.0"

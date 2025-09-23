@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2024", "DOM"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "newLine": "lf",
@@ -18,7 +18,7 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "ES2022",
+    "target": "ES2024",
     "outDir": "build",                       /* Redirect output structure to the directory. */
   },
   "exclude": ["build", "dist", "node_modules"],
