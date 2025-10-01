@@ -27,8 +27,8 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2
       skia-canvas:
-        specifier: ^3.0.7
-        version: 3.0.7
+        specifier: ^3.0.8
+        version: 3.0.8
     devDependencies:
       '@types/d3':
         specifier: ^7.4.3
@@ -568,8 +568,8 @@ packages:
   delaunator@5.0.1:
     resolution: {integrity: sha512-8nvh+XBe96aCESrGOqMp/84b13H9cdKbG5P2ejQCh4d4sK9RL4371qou9drQjMhvnPmhWl5hnmqbEE0fXr9Xnw==}
 
-  detect-libc@2.1.0:
-    resolution: {integrity: sha512-vEtk+OcP7VBRtQZ1EJ3bdgzSfBjgnEalLTp5zjJrS+2Z1w2KZly4SBdac/WDU3hhsNAZ9E8SC96ME4Ey8MZ7cg==}
+  detect-libc@2.1.1:
+    resolution: {integrity: sha512-ecqj/sy1jcK1uWrwpR67UhYrIFQ+5WlGxth34WquCbamhFA6hkkwiu37o6J5xCHdo1oixJRfVRw+ywV+Hq/0Aw==}
     engines: {node: '>=8'}
 
   dom-serializer@2.0.0:
@@ -900,8 +900,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  skia-canvas@3.0.7:
-    resolution: {integrity: sha512-w0eye11neMdOt1erw2d0QOeNzB2AtvAtLo0QJn/68eLCPqcxhBRaHMpMIdsJK5VDyrW61SFtKlhVFF0InL+e7g==}
+  skia-canvas@3.0.8:
+    resolution: {integrity: sha512-FSYKxp8Ng2vOeeOBiyPhnn6ui6FirPJXMyjk4PKl8N/OWzVrkMawUgY9zubIWHMdYtyWFn0gfX3QlRwg6HBmdg==}
 
   string-split-by@1.0.0:
     resolution: {integrity: sha512-KaJKY+hfpzNyet/emP81PJA9hTVSfxNLS9SFTWxdCnnW1/zOOwiV248+EfoX7IQFcBaOp4G5YE6xTJMF+pLg6A==}
@@ -1560,7 +1560,7 @@ snapshots:
     dependencies:
       robust-predicates: 3.0.2
 
-  detect-libc@2.1.0: {}
+  detect-libc@2.1.1: {}
 
   dom-serializer@2.0.0:
     dependencies:
@@ -1871,9 +1871,9 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  skia-canvas@3.0.7:
+  skia-canvas@3.0.8:
     dependencies:
-      detect-libc: 2.1.0
+      detect-libc: 2.1.1
       follow-redirects: 1.15.11
       https-proxy-agent: 7.0.6
       string-split-by: 1.0.0

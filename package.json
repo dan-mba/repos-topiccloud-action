@@ -30,7 +30,7 @@
     "d3-cloud": "^1.2.7",
     "linkedom": "^0.18.12",
     "randomcolor": "^0.6.2",
-    "skia-canvas": "^3.0.7"
+    "skia-canvas": "^3.0.8"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
