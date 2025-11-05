@@ -25,7 +25,7 @@
   "homepage": "https://github.com/dan-mba/repos-topiccloud-action#readme",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@octokit/graphql": "^9.0.2",
+    "@octokit/graphql": "^9.0.3",
     "d3": "^7.9.0",
     "d3-cloud": "^1.2.7",
     "linkedom": "^0.18.12",
