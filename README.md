@@ -15,6 +15,7 @@ GitHub Action to create an svg of the 30 most used topics from all your repos
 name: Create cloud
 on:
   workflow_dispatch:
+
 jobs:
   cloud-action:
     runs-on: ubuntu-latest
