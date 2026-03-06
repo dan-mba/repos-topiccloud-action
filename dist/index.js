@@ -3142,7 +3142,7 @@ CSSOM.CSSDocumentRule = (__nccwpck_require__(1992)/* .CSSDocumentRule */ .N);
 
 /***/ }),
 
-/***/ 7905:
+/***/ 4998:
 /***/ ((module) => {
 
 (function(f){if(true){module.exports=f()}else { var g; }})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c=__WEBPACK_EXTERNAL_createRequire(import.meta.url);if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u=__WEBPACK_EXTERNAL_createRequire(import.meta.url),i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
@@ -3168,7 +3168,6 @@ module.exports = function() {
       fontSize = cloudFontSize,
       fontStyle = cloudFontNormal,
       fontWeight = cloudFontNormal,
-      rotate = cloudRotate,
       padding = cloudPadding,
       spiral = archimedeanSpiral,
       words = [],
@@ -3176,6 +3175,7 @@ module.exports = function() {
       event = dispatch("word", "end"),
       timer = null,
       random = Math.random,
+      rotate = () => (~~(random() * 6) - 3) * 30,
       cloud = {},
       canvas = cloudCanvas;
 
@@ -3374,10 +3374,6 @@ function cloudFontNormal() {
 
 function cloudFontSize(d) {
   return Math.sqrt(d.value);
-}
-
-function cloudRotate() {
-  return (~~(random() * 6) - 3) * 30;
 }
 
 function cloudPadding() {
@@ -38040,8 +38036,8 @@ __nccwpck_require__.d(dist_esm_namespaceObject, {
   iX: () => (Parser_Parser)
 });
 
-// EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.8/node_modules/d3-cloud/build/d3.layout.cloud.js
-var d3_layout_cloud = __nccwpck_require__(7905);
+// EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.9/node_modules/d3-cloud/build/d3.layout.cloud.js
+var d3_layout_cloud = __nccwpck_require__(4998);
 var d3_layout_cloud_default = /*#__PURE__*/__nccwpck_require__.n(d3_layout_cloud);
 // EXTERNAL MODULE: ./node_modules/.pnpm/skia-canvas@3.0.8/node_modules/skia-canvas/lib/index.js
 var lib = __nccwpck_require__(7402);
