@@ -38,7 +38,7 @@
     "@types/d3-cloud": "^1.2.9",
     "@types/node": "^24.13.1",
     "@types/randomcolor": "^0.5.9",
-    "@vercel/ncc": "^0.38.4",
+    "@vercel/ncc": "^0.44.0",
     "dotenv": "^17.4.2",
     "eslint": "^10.4.1",
     "globals": "^17.6.0",
