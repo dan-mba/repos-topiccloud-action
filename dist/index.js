@@ -257,676 +257,6 @@ exports.Agent = Agent;
 
 /***/ }),
 
-/***/ 3784:
-/***/ ((module) => {
-
-module.exports = {
-	trueFunc: function trueFunc(){
-		return true;
-	},
-	falseFunc: function falseFunc(){
-		return false;
-	}
-};
-
-/***/ }),
-
-/***/ 6452:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.stringify = exports.parse = exports.isTraversal = void 0;
-__exportStar(__nccwpck_require__(7697), exports);
-var parse_1 = __nccwpck_require__(8871);
-Object.defineProperty(exports, "isTraversal", ({ enumerable: true, get: function () { return parse_1.isTraversal; } }));
-Object.defineProperty(exports, "parse", ({ enumerable: true, get: function () { return parse_1.parse; } }));
-var stringify_1 = __nccwpck_require__(569);
-Object.defineProperty(exports, "stringify", ({ enumerable: true, get: function () { return stringify_1.stringify; } }));
-
-
-/***/ }),
-
-/***/ 8871:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parse = exports.isTraversal = void 0;
-var types_1 = __nccwpck_require__(7697);
-var reName = /^[^\\#]?(?:\\(?:[\da-f]{1,6}\s?|.)|[\w\-\u00b0-\uFFFF])+/;
-var reEscape = /\\([\da-f]{1,6}\s?|(\s)|.)/gi;
-var actionTypes = new Map([
-    [126 /* Tilde */, types_1.AttributeAction.Element],
-    [94 /* Circumflex */, types_1.AttributeAction.Start],
-    [36 /* Dollar */, types_1.AttributeAction.End],
-    [42 /* Asterisk */, types_1.AttributeAction.Any],
-    [33 /* ExclamationMark */, types_1.AttributeAction.Not],
-    [124 /* Pipe */, types_1.AttributeAction.Hyphen],
-]);
-// Pseudos, whose data property is parsed as well.
-var unpackPseudos = new Set([
-    "has",
-    "not",
-    "matches",
-    "is",
-    "where",
-    "host",
-    "host-context",
-]);
-/**
- * Checks whether a specific selector is a traversal.
- * This is useful eg. in swapping the order of elements that
- * are not traversals.
- *
- * @param selector Selector to check.
- */
-function isTraversal(selector) {
-    switch (selector.type) {
-        case types_1.SelectorType.Adjacent:
-        case types_1.SelectorType.Child:
-        case types_1.SelectorType.Descendant:
-        case types_1.SelectorType.Parent:
-        case types_1.SelectorType.Sibling:
-        case types_1.SelectorType.ColumnCombinator:
-            return true;
-        default:
-            return false;
-    }
-}
-exports.isTraversal = isTraversal;
-var stripQuotesFromPseudos = new Set(["contains", "icontains"]);
-// Unescape function taken from https://github.com/jquery/sizzle/blob/master/src/sizzle.js#L152
-function funescape(_, escaped, escapedWhitespace) {
-    var high = parseInt(escaped, 16) - 0x10000;
-    // NaN means non-codepoint
-    return high !== high || escapedWhitespace
-        ? escaped
-        : high < 0
-            ? // BMP codepoint
-                String.fromCharCode(high + 0x10000)
-            : // Supplemental Plane codepoint (surrogate pair)
-                String.fromCharCode((high >> 10) | 0xd800, (high & 0x3ff) | 0xdc00);
-}
-function unescapeCSS(str) {
-    return str.replace(reEscape, funescape);
-}
-function isQuote(c) {
-    return c === 39 /* SingleQuote */ || c === 34 /* DoubleQuote */;
-}
-function isWhitespace(c) {
-    return (c === 32 /* Space */ ||
-        c === 9 /* Tab */ ||
-        c === 10 /* NewLine */ ||
-        c === 12 /* FormFeed */ ||
-        c === 13 /* CarriageReturn */);
-}
-/**
- * Parses `selector`, optionally with the passed `options`.
- *
- * @param selector Selector to parse.
- * @param options Options for parsing.
- * @returns Returns a two-dimensional array.
- * The first dimension represents selectors separated by commas (eg. `sub1, sub2`),
- * the second contains the relevant tokens for that selector.
- */
-function parse(selector) {
-    var subselects = [];
-    var endIndex = parseSelector(subselects, "".concat(selector), 0);
-    if (endIndex < selector.length) {
-        throw new Error("Unmatched selector: ".concat(selector.slice(endIndex)));
-    }
-    return subselects;
-}
-exports.parse = parse;
-function parseSelector(subselects, selector, selectorIndex) {
-    var tokens = [];
-    function getName(offset) {
-        var match = selector.slice(selectorIndex + offset).match(reName);
-        if (!match) {
-            throw new Error("Expected name, found ".concat(selector.slice(selectorIndex)));
-        }
-        var name = match[0];
-        selectorIndex += offset + name.length;
-        return unescapeCSS(name);
-    }
-    function stripWhitespace(offset) {
-        selectorIndex += offset;
-        while (selectorIndex < selector.length &&
-            isWhitespace(selector.charCodeAt(selectorIndex))) {
-            selectorIndex++;
-        }
-    }
-    function readValueWithParenthesis() {
-        selectorIndex += 1;
-        var start = selectorIndex;
-        var counter = 1;
-        for (; counter > 0 && selectorIndex < selector.length; selectorIndex++) {
-            if (selector.charCodeAt(selectorIndex) ===
-                40 /* LeftParenthesis */ &&
-                !isEscaped(selectorIndex)) {
-                counter++;
-            }
-            else if (selector.charCodeAt(selectorIndex) ===
-                41 /* RightParenthesis */ &&
-                !isEscaped(selectorIndex)) {
-                counter--;
-            }
-        }
-        if (counter) {
-            throw new Error("Parenthesis not matched");
-        }
-        return unescapeCSS(selector.slice(start, selectorIndex - 1));
-    }
-    function isEscaped(pos) {
-        var slashCount = 0;
-        while (selector.charCodeAt(--pos) === 92 /* BackSlash */)
-            slashCount++;
-        return (slashCount & 1) === 1;
-    }
-    function ensureNotTraversal() {
-        if (tokens.length > 0 && isTraversal(tokens[tokens.length - 1])) {
-            throw new Error("Did not expect successive traversals.");
-        }
-    }
-    function addTraversal(type) {
-        if (tokens.length > 0 &&
-            tokens[tokens.length - 1].type === types_1.SelectorType.Descendant) {
-            tokens[tokens.length - 1].type = type;
-            return;
-        }
-        ensureNotTraversal();
-        tokens.push({ type: type });
-    }
-    function addSpecialAttribute(name, action) {
-        tokens.push({
-            type: types_1.SelectorType.Attribute,
-            name: name,
-            action: action,
-            value: getName(1),
-            namespace: null,
-            ignoreCase: "quirks",
-        });
-    }
-    /**
-     * We have finished parsing the current part of the selector.
-     *
-     * Remove descendant tokens at the end if they exist,
-     * and return the last index, so that parsing can be
-     * picked up from here.
-     */
-    function finalizeSubselector() {
-        if (tokens.length &&
-            tokens[tokens.length - 1].type === types_1.SelectorType.Descendant) {
-            tokens.pop();
-        }
-        if (tokens.length === 0) {
-            throw new Error("Empty sub-selector");
-        }
-        subselects.push(tokens);
-    }
-    stripWhitespace(0);
-    if (selector.length === selectorIndex) {
-        return selectorIndex;
-    }
-    loop: while (selectorIndex < selector.length) {
-        var firstChar = selector.charCodeAt(selectorIndex);
-        switch (firstChar) {
-            // Whitespace
-            case 32 /* Space */:
-            case 9 /* Tab */:
-            case 10 /* NewLine */:
-            case 12 /* FormFeed */:
-            case 13 /* CarriageReturn */: {
-                if (tokens.length === 0 ||
-                    tokens[0].type !== types_1.SelectorType.Descendant) {
-                    ensureNotTraversal();
-                    tokens.push({ type: types_1.SelectorType.Descendant });
-                }
-                stripWhitespace(1);
-                break;
-            }
-            // Traversals
-            case 62 /* GreaterThan */: {
-                addTraversal(types_1.SelectorType.Child);
-                stripWhitespace(1);
-                break;
-            }
-            case 60 /* LessThan */: {
-                addTraversal(types_1.SelectorType.Parent);
-                stripWhitespace(1);
-                break;
-            }
-            case 126 /* Tilde */: {
-                addTraversal(types_1.SelectorType.Sibling);
-                stripWhitespace(1);
-                break;
-            }
-            case 43 /* Plus */: {
-                addTraversal(types_1.SelectorType.Adjacent);
-                stripWhitespace(1);
-                break;
-            }
-            // Special attribute selectors: .class, #id
-            case 46 /* Period */: {
-                addSpecialAttribute("class", types_1.AttributeAction.Element);
-                break;
-            }
-            case 35 /* Hash */: {
-                addSpecialAttribute("id", types_1.AttributeAction.Equals);
-                break;
-            }
-            case 91 /* LeftSquareBracket */: {
-                stripWhitespace(1);
-                // Determine attribute name and namespace
-                var name_1 = void 0;
-                var namespace = null;
-                if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */) {
-                    // Equivalent to no namespace
-                    name_1 = getName(1);
-                }
-                else if (selector.startsWith("*|", selectorIndex)) {
-                    namespace = "*";
-                    name_1 = getName(2);
-                }
-                else {
-                    name_1 = getName(0);
-                    if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */ &&
-                        selector.charCodeAt(selectorIndex + 1) !==
-                            61 /* Equal */) {
-                        namespace = name_1;
-                        name_1 = getName(1);
-                    }
-                }
-                stripWhitespace(0);
-                // Determine comparison operation
-                var action = types_1.AttributeAction.Exists;
-                var possibleAction = actionTypes.get(selector.charCodeAt(selectorIndex));
-                if (possibleAction) {
-                    action = possibleAction;
-                    if (selector.charCodeAt(selectorIndex + 1) !==
-                        61 /* Equal */) {
-                        throw new Error("Expected `=`");
-                    }
-                    stripWhitespace(2);
-                }
-                else if (selector.charCodeAt(selectorIndex) === 61 /* Equal */) {
-                    action = types_1.AttributeAction.Equals;
-                    stripWhitespace(1);
-                }
-                // Determine value
-                var value = "";
-                var ignoreCase = null;
-                if (action !== "exists") {
-                    if (isQuote(selector.charCodeAt(selectorIndex))) {
-                        var quote = selector.charCodeAt(selectorIndex);
-                        var sectionEnd = selectorIndex + 1;
-                        while (sectionEnd < selector.length &&
-                            (selector.charCodeAt(sectionEnd) !== quote ||
-                                isEscaped(sectionEnd))) {
-                            sectionEnd += 1;
-                        }
-                        if (selector.charCodeAt(sectionEnd) !== quote) {
-                            throw new Error("Attribute value didn't end");
-                        }
-                        value = unescapeCSS(selector.slice(selectorIndex + 1, sectionEnd));
-                        selectorIndex = sectionEnd + 1;
-                    }
-                    else {
-                        var valueStart = selectorIndex;
-                        while (selectorIndex < selector.length &&
-                            ((!isWhitespace(selector.charCodeAt(selectorIndex)) &&
-                                selector.charCodeAt(selectorIndex) !==
-                                    93 /* RightSquareBracket */) ||
-                                isEscaped(selectorIndex))) {
-                            selectorIndex += 1;
-                        }
-                        value = unescapeCSS(selector.slice(valueStart, selectorIndex));
-                    }
-                    stripWhitespace(0);
-                    // See if we have a force ignore flag
-                    var forceIgnore = selector.charCodeAt(selectorIndex) | 0x20;
-                    // If the forceIgnore flag is set (either `i` or `s`), use that value
-                    if (forceIgnore === 115 /* LowerS */) {
-                        ignoreCase = false;
-                        stripWhitespace(1);
-                    }
-                    else if (forceIgnore === 105 /* LowerI */) {
-                        ignoreCase = true;
-                        stripWhitespace(1);
-                    }
-                }
-                if (selector.charCodeAt(selectorIndex) !==
-                    93 /* RightSquareBracket */) {
-                    throw new Error("Attribute selector didn't terminate");
-                }
-                selectorIndex += 1;
-                var attributeSelector = {
-                    type: types_1.SelectorType.Attribute,
-                    name: name_1,
-                    action: action,
-                    value: value,
-                    namespace: namespace,
-                    ignoreCase: ignoreCase,
-                };
-                tokens.push(attributeSelector);
-                break;
-            }
-            case 58 /* Colon */: {
-                if (selector.charCodeAt(selectorIndex + 1) === 58 /* Colon */) {
-                    tokens.push({
-                        type: types_1.SelectorType.PseudoElement,
-                        name: getName(2).toLowerCase(),
-                        data: selector.charCodeAt(selectorIndex) ===
-                            40 /* LeftParenthesis */
-                            ? readValueWithParenthesis()
-                            : null,
-                    });
-                    continue;
-                }
-                var name_2 = getName(1).toLowerCase();
-                var data = null;
-                if (selector.charCodeAt(selectorIndex) ===
-                    40 /* LeftParenthesis */) {
-                    if (unpackPseudos.has(name_2)) {
-                        if (isQuote(selector.charCodeAt(selectorIndex + 1))) {
-                            throw new Error("Pseudo-selector ".concat(name_2, " cannot be quoted"));
-                        }
-                        data = [];
-                        selectorIndex = parseSelector(data, selector, selectorIndex + 1);
-                        if (selector.charCodeAt(selectorIndex) !==
-                            41 /* RightParenthesis */) {
-                            throw new Error("Missing closing parenthesis in :".concat(name_2, " (").concat(selector, ")"));
-                        }
-                        selectorIndex += 1;
-                    }
-                    else {
-                        data = readValueWithParenthesis();
-                        if (stripQuotesFromPseudos.has(name_2)) {
-                            var quot = data.charCodeAt(0);
-                            if (quot === data.charCodeAt(data.length - 1) &&
-                                isQuote(quot)) {
-                                data = data.slice(1, -1);
-                            }
-                        }
-                        data = unescapeCSS(data);
-                    }
-                }
-                tokens.push({ type: types_1.SelectorType.Pseudo, name: name_2, data: data });
-                break;
-            }
-            case 44 /* Comma */: {
-                finalizeSubselector();
-                tokens = [];
-                stripWhitespace(1);
-                break;
-            }
-            default: {
-                if (selector.startsWith("/*", selectorIndex)) {
-                    var endIndex = selector.indexOf("*/", selectorIndex + 2);
-                    if (endIndex < 0) {
-                        throw new Error("Comment was not terminated");
-                    }
-                    selectorIndex = endIndex + 2;
-                    // Remove leading whitespace
-                    if (tokens.length === 0) {
-                        stripWhitespace(0);
-                    }
-                    break;
-                }
-                var namespace = null;
-                var name_3 = void 0;
-                if (firstChar === 42 /* Asterisk */) {
-                    selectorIndex += 1;
-                    name_3 = "*";
-                }
-                else if (firstChar === 124 /* Pipe */) {
-                    name_3 = "";
-                    if (selector.charCodeAt(selectorIndex + 1) === 124 /* Pipe */) {
-                        addTraversal(types_1.SelectorType.ColumnCombinator);
-                        stripWhitespace(2);
-                        break;
-                    }
-                }
-                else if (reName.test(selector.slice(selectorIndex))) {
-                    name_3 = getName(0);
-                }
-                else {
-                    break loop;
-                }
-                if (selector.charCodeAt(selectorIndex) === 124 /* Pipe */ &&
-                    selector.charCodeAt(selectorIndex + 1) !== 124 /* Pipe */) {
-                    namespace = name_3;
-                    if (selector.charCodeAt(selectorIndex + 1) ===
-                        42 /* Asterisk */) {
-                        name_3 = "*";
-                        selectorIndex += 2;
-                    }
-                    else {
-                        name_3 = getName(1);
-                    }
-                }
-                tokens.push(name_3 === "*"
-                    ? { type: types_1.SelectorType.Universal, namespace: namespace }
-                    : { type: types_1.SelectorType.Tag, name: name_3, namespace: namespace });
-            }
-        }
-    }
-    finalizeSubselector();
-    return selectorIndex;
-}
-
-
-/***/ }),
-
-/***/ 569:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.stringify = void 0;
-var types_1 = __nccwpck_require__(7697);
-var attribValChars = ["\\", '"'];
-var pseudoValChars = __spreadArray(__spreadArray([], attribValChars, true), ["(", ")"], false);
-var charsToEscapeInAttributeValue = new Set(attribValChars.map(function (c) { return c.charCodeAt(0); }));
-var charsToEscapeInPseudoValue = new Set(pseudoValChars.map(function (c) { return c.charCodeAt(0); }));
-var charsToEscapeInName = new Set(__spreadArray(__spreadArray([], pseudoValChars, true), [
-    "~",
-    "^",
-    "$",
-    "*",
-    "+",
-    "!",
-    "|",
-    ":",
-    "[",
-    "]",
-    " ",
-    ".",
-], false).map(function (c) { return c.charCodeAt(0); }));
-/**
- * Turns `selector` back into a string.
- *
- * @param selector Selector to stringify.
- */
-function stringify(selector) {
-    return selector
-        .map(function (token) { return token.map(stringifyToken).join(""); })
-        .join(", ");
-}
-exports.stringify = stringify;
-function stringifyToken(token, index, arr) {
-    switch (token.type) {
-        // Simple types
-        case types_1.SelectorType.Child:
-            return index === 0 ? "> " : " > ";
-        case types_1.SelectorType.Parent:
-            return index === 0 ? "< " : " < ";
-        case types_1.SelectorType.Sibling:
-            return index === 0 ? "~ " : " ~ ";
-        case types_1.SelectorType.Adjacent:
-            return index === 0 ? "+ " : " + ";
-        case types_1.SelectorType.Descendant:
-            return " ";
-        case types_1.SelectorType.ColumnCombinator:
-            return index === 0 ? "|| " : " || ";
-        case types_1.SelectorType.Universal:
-            // Return an empty string if the selector isn't needed.
-            return token.namespace === "*" &&
-                index + 1 < arr.length &&
-                "name" in arr[index + 1]
-                ? ""
-                : "".concat(getNamespace(token.namespace), "*");
-        case types_1.SelectorType.Tag:
-            return getNamespacedName(token);
-        case types_1.SelectorType.PseudoElement:
-            return "::".concat(escapeName(token.name, charsToEscapeInName)).concat(token.data === null
-                ? ""
-                : "(".concat(escapeName(token.data, charsToEscapeInPseudoValue), ")"));
-        case types_1.SelectorType.Pseudo:
-            return ":".concat(escapeName(token.name, charsToEscapeInName)).concat(token.data === null
-                ? ""
-                : "(".concat(typeof token.data === "string"
-                    ? escapeName(token.data, charsToEscapeInPseudoValue)
-                    : stringify(token.data), ")"));
-        case types_1.SelectorType.Attribute: {
-            if (token.name === "id" &&
-                token.action === types_1.AttributeAction.Equals &&
-                token.ignoreCase === "quirks" &&
-                !token.namespace) {
-                return "#".concat(escapeName(token.value, charsToEscapeInName));
-            }
-            if (token.name === "class" &&
-                token.action === types_1.AttributeAction.Element &&
-                token.ignoreCase === "quirks" &&
-                !token.namespace) {
-                return ".".concat(escapeName(token.value, charsToEscapeInName));
-            }
-            var name_1 = getNamespacedName(token);
-            if (token.action === types_1.AttributeAction.Exists) {
-                return "[".concat(name_1, "]");
-            }
-            return "[".concat(name_1).concat(getActionValue(token.action), "=\"").concat(escapeName(token.value, charsToEscapeInAttributeValue), "\"").concat(token.ignoreCase === null ? "" : token.ignoreCase ? " i" : " s", "]");
-        }
-    }
-}
-function getActionValue(action) {
-    switch (action) {
-        case types_1.AttributeAction.Equals:
-            return "";
-        case types_1.AttributeAction.Element:
-            return "~";
-        case types_1.AttributeAction.Start:
-            return "^";
-        case types_1.AttributeAction.End:
-            return "$";
-        case types_1.AttributeAction.Any:
-            return "*";
-        case types_1.AttributeAction.Not:
-            return "!";
-        case types_1.AttributeAction.Hyphen:
-            return "|";
-        case types_1.AttributeAction.Exists:
-            throw new Error("Shouldn't be here");
-    }
-}
-function getNamespacedName(token) {
-    return "".concat(getNamespace(token.namespace)).concat(escapeName(token.name, charsToEscapeInName));
-}
-function getNamespace(namespace) {
-    return namespace !== null
-        ? "".concat(namespace === "*"
-            ? "*"
-            : escapeName(namespace, charsToEscapeInName), "|")
-        : "";
-}
-function escapeName(str, charsToEscape) {
-    var lastIdx = 0;
-    var ret = "";
-    for (var i = 0; i < str.length; i++) {
-        if (charsToEscape.has(str.charCodeAt(i))) {
-            ret += "".concat(str.slice(lastIdx, i), "\\").concat(str.charAt(i));
-            lastIdx = i + 1;
-        }
-    }
-    return ret.length > 0 ? ret + str.slice(lastIdx) : str;
-}
-
-
-/***/ }),
-
-/***/ 7697:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AttributeAction = exports.IgnoreCaseMode = exports.SelectorType = void 0;
-var SelectorType;
-(function (SelectorType) {
-    SelectorType["Attribute"] = "attribute";
-    SelectorType["Pseudo"] = "pseudo";
-    SelectorType["PseudoElement"] = "pseudo-element";
-    SelectorType["Tag"] = "tag";
-    SelectorType["Universal"] = "universal";
-    // Traversals
-    SelectorType["Adjacent"] = "adjacent";
-    SelectorType["Child"] = "child";
-    SelectorType["Descendant"] = "descendant";
-    SelectorType["Parent"] = "parent";
-    SelectorType["Sibling"] = "sibling";
-    SelectorType["ColumnCombinator"] = "column-combinator";
-})(SelectorType = exports.SelectorType || (exports.SelectorType = {}));
-/**
- * Modes for ignore case.
- *
- * This could be updated to an enum, and the object is
- * the current stand-in that will allow code to be updated
- * without big changes.
- */
-exports.IgnoreCaseMode = {
-    Unknown: null,
-    QuirksMode: "quirks",
-    IgnoreCase: true,
-    CaseSensitive: false,
-};
-var AttributeAction;
-(function (AttributeAction) {
-    AttributeAction["Any"] = "any";
-    AttributeAction["Element"] = "element";
-    AttributeAction["End"] = "end";
-    AttributeAction["Equals"] = "equals";
-    AttributeAction["Exists"] = "exists";
-    AttributeAction["Hyphen"] = "hyphen";
-    AttributeAction["Not"] = "not";
-    AttributeAction["Start"] = "start";
-})(AttributeAction = exports.AttributeAction || (exports.AttributeAction = {}));
-
-
-/***/ }),
-
 /***/ 9668:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -37276,7 +36606,7 @@ __nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5974);
 /* harmony import */ var _lib_topics_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1222);
-/* harmony import */ var _lib_word_cloud_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(2906);
+/* harmony import */ var _lib_word_cloud_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(8750);
 
 
 
@@ -38354,7 +37684,7 @@ async function getTopics(login, myToken) {
 
 /***/ }),
 
-/***/ 2906:
+/***/ 8750:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -38363,59 +37693,52 @@ __nccwpck_require__.d(__webpack_exports__, {
   A: () => (/* binding */ word_cloud)
 });
 
-// NAMESPACE OBJECT: ./node_modules/.pnpm/domutils@3.2.2/node_modules/domutils/lib/esm/index.js
-var domutils_lib_esm_namespaceObject = {};
-__nccwpck_require__.r(domutils_lib_esm_namespaceObject);
-__nccwpck_require__.d(domutils_lib_esm_namespaceObject, {
-  DocumentPosition: () => (DocumentPosition),
-  append: () => (manipulation_append),
-  appendChild: () => (appendChild),
-  compareDocumentPosition: () => (compareDocumentPosition),
-  existsOne: () => (existsOne),
-  filter: () => (querying_filter),
-  find: () => (querying_find),
-  findAll: () => (findAll),
-  findOne: () => (findOne),
-  findOneChild: () => (findOneChild),
-  getAttributeValue: () => (getAttributeValue),
-  getChildren: () => (getChildren),
-  getElementById: () => (getElementById),
-  getElements: () => (getElements),
-  getElementsByClassName: () => (getElementsByClassName),
-  getElementsByTagName: () => (getElementsByTagName),
-  getElementsByTagType: () => (getElementsByTagType),
-  getFeed: () => (feeds_getFeed),
-  getInnerHTML: () => (getInnerHTML),
-  getName: () => (getName),
-  getOuterHTML: () => (getOuterHTML),
-  getParent: () => (getParent),
-  getSiblings: () => (getSiblings),
-  getText: () => (getText),
-  hasAttrib: () => (hasAttrib),
-  hasChildren: () => (hasChildren),
-  innerText: () => (innerText),
-  isCDATA: () => (isCDATA),
-  isComment: () => (isComment),
-  isDocument: () => (isDocument),
-  isTag: () => (node_isTag),
-  isText: () => (isText),
-  nextElementSibling: () => (nextElementSibling),
-  prepend: () => (prepend),
-  prependChild: () => (prependChild),
-  prevElementSibling: () => (prevElementSibling),
-  removeElement: () => (removeElement),
-  removeSubsets: () => (removeSubsets),
-  replaceElement: () => (replaceElement),
-  testElement: () => (testElement),
-  textContent: () => (textContent),
-  uniqueSort: () => (uniqueSort)
-});
-
 // NAMESPACE OBJECT: ./node_modules/.pnpm/htmlparser2@10.1.0/node_modules/htmlparser2/dist/esm/index.js
 var dist_esm_namespaceObject = {};
 __nccwpck_require__.r(dist_esm_namespaceObject);
 __nccwpck_require__.d(dist_esm_namespaceObject, {
   iX: () => (Parser_Parser)
+});
+
+// NAMESPACE OBJECT: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/index.js
+var domutils_dist_namespaceObject = {};
+__nccwpck_require__.r(domutils_dist_namespaceObject);
+__nccwpck_require__.d(domutils_dist_namespaceObject, {
+  DocumentPosition: () => (helpers_DocumentPosition),
+  append: () => (manipulation_append),
+  appendChild: () => (appendChild),
+  compareDocumentPosition: () => (helpers_compareDocumentPosition),
+  existsOne: () => (querying_existsOne),
+  filter: () => (dist_querying_filter),
+  find: () => (dist_querying_find),
+  findAll: () => (querying_findAll),
+  findOne: () => (dist_querying_findOne),
+  getAttributeValue: () => (traversal_getAttributeValue),
+  getChildren: () => (traversal_getChildren),
+  getElementById: () => (legacy_getElementById),
+  getElements: () => (legacy_getElements),
+  getElementsByClassName: () => (legacy_getElementsByClassName),
+  getElementsByTagName: () => (dist_legacy_getElementsByTagName),
+  getElementsByTagType: () => (legacy_getElementsByTagType),
+  getFeed: () => (dist_feeds_getFeed),
+  getInnerHTML: () => (stringify_getInnerHTML),
+  getName: () => (traversal_getName),
+  getOuterHTML: () => (stringify_getOuterHTML),
+  getParent: () => (traversal_getParent),
+  getSiblings: () => (traversal_getSiblings),
+  getText: () => (stringify_getText),
+  hasAttrib: () => (traversal_hasAttrib),
+  innerText: () => (stringify_innerText),
+  nextElementSibling: () => (traversal_nextElementSibling),
+  prepend: () => (prepend),
+  prependChild: () => (prependChild),
+  prevElementSibling: () => (traversal_prevElementSibling),
+  removeElement: () => (removeElement),
+  removeSubsets: () => (helpers_removeSubsets),
+  replaceElement: () => (replaceElement),
+  testElement: () => (legacy_testElement),
+  textContent: () => (dist_stringify_textContent),
+  uniqueSort: () => (helpers_uniqueSort)
 });
 
 // EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.9/node_modules/d3-cloud/build/d3.layout.cloud.js
@@ -38590,7 +37913,7 @@ function childFirst() {
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/d3-selection@3.0.0/node_modules/d3-selection/src/selection/selectChildren.js
 
 
-var filter = Array.prototype.filter;
+var selectChildren_filter = Array.prototype.filter;
 
 function children() {
   return Array.from(this.children);
@@ -38598,7 +37921,7 @@ function children() {
 
 function childrenFilter(match) {
   return function() {
-    return filter.call(this.children, match);
+    return selectChildren_filter.call(this.children, match);
   };
 }
 
@@ -42698,7 +42021,7 @@ function drawCloud(words, layout, document) {
 }
 /* harmony default export */ const draw_cloud = (drawCloud);
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/symbols.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/symbols.js
 // used in Attr to signal changes
 const CHANGED = Symbol('changed');
 
@@ -44772,7 +44095,7 @@ var esm_ElementType;
  *
  * @param elem Element to test
  */
-function isTag(elem) {
+function esm_isTag(elem) {
     return (elem.type === esm_ElementType.Tag ||
         elem.type === esm_ElementType.Script ||
         elem.type === esm_ElementType.Style);
@@ -45021,27 +44344,27 @@ class node_Element extends NodeWithChildren {
  * @returns `true` if the node is a `Element`, `false` otherwise.
  */
 function node_isTag(node) {
-    return isTag(node);
+    return esm_isTag(node);
 }
 /**
  * @param node Node to check.
  * @returns `true` if the node has the type `CDATA`, `false` otherwise.
  */
-function isCDATA(node) {
+function node_isCDATA(node) {
     return node.type === esm_ElementType.CDATA;
 }
 /**
  * @param node Node to check.
  * @returns `true` if the node has the type `Text`, `false` otherwise.
  */
-function isText(node) {
+function node_isText(node) {
     return node.type === esm_ElementType.Text;
 }
 /**
  * @param node Node to check.
  * @returns `true` if the node has the type `Comment`, `false` otherwise.
  */
-function isComment(node) {
+function node_isComment(node) {
     return node.type === esm_ElementType.Comment;
 }
 /**
@@ -45062,7 +44385,7 @@ function isDocument(node) {
  * @param node Node to check.
  * @returns `true` if the node has children, `false` otherwise.
  */
-function hasChildren(node) {
+function node_hasChildren(node) {
     return Object.prototype.hasOwnProperty.call(node, "children");
 }
 /**
@@ -45073,10 +44396,10 @@ function hasChildren(node) {
  */
 function cloneNode(node, recursive = false) {
     let result;
-    if (isText(node)) {
+    if (node_isText(node)) {
         result = new node_Text(node.data);
     }
-    else if (isComment(node)) {
+    else if (node_isComment(node)) {
         result = new node_Comment(node.data);
     }
     else if (node_isTag(node)) {
@@ -45094,7 +44417,7 @@ function cloneNode(node, recursive = false) {
         }
         result = clone;
     }
-    else if (isCDATA(node)) {
+    else if (node_isCDATA(node)) {
         const children = recursive ? cloneChildren(node.children) : [];
         const clone = new node_CDATA(children);
         children.forEach((child) => (child.parent = clone));
@@ -46165,7 +45488,7 @@ function encode(data, options = EntityLevel.XML) {
 
 //# sourceMappingURL=index.js.map
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/dom-serializer@2.0.0/node_modules/dom-serializer/lib/esm/foreignNames.js
-const elementNames = new Map([
+const foreignNames_elementNames = new Map([
     "altGlyph",
     "altGlyphDef",
     "altGlyphItem",
@@ -46204,7 +45527,7 @@ const elementNames = new Map([
     "radialGradient",
     "textPath",
 ].map((val) => [val.toLowerCase(), val]));
-const attributeNames = new Map([
+const foreignNames_attributeNames = new Map([
     "definitionURL",
     "attributeName",
     "attributeType",
@@ -46302,8 +45625,8 @@ function formatAttributes(attributes, opts) {
     const encode = ((_a = opts.encodeEntities) !== null && _a !== void 0 ? _a : opts.decodeEntities) === false
         ? replaceQuotes
         : opts.xmlMode || opts.encodeEntities !== "utf8"
-            ? escape_encodeXML
-            : escape_escapeAttribute;
+            ? encodeXML
+            : escapeAttribute;
     return Object.keys(attributes)
         .map((key) => {
         var _a, _b;
@@ -46359,24 +45682,24 @@ function render(node, options = {}) {
     }
     return output;
 }
-/* harmony default export */ const lib_esm = (render);
+/* harmony default export */ const lib_esm = ((/* unused pure expression or super */ null && (render)));
 function renderNode(node, options) {
     switch (node.type) {
-        case Root:
+        case ElementType.Root:
             return render(node.children, options);
         // @ts-expect-error We don't use `Doctype` yet
-        case Doctype:
-        case Directive:
+        case ElementType.Doctype:
+        case ElementType.Directive:
             return renderDirective(node);
-        case esm_Comment:
+        case ElementType.Comment:
             return renderComment(node);
-        case esm_CDATA:
+        case ElementType.CDATA:
             return renderCdata(node);
-        case Script:
-        case Style:
-        case Tag:
+        case ElementType.Script:
+        case ElementType.Style:
+        case ElementType.Tag:
             return renderTag(node, options);
-        case esm_Text:
+        case ElementType.Text:
             return renderText(node, options);
     }
 }
@@ -46446,8 +45769,8 @@ function renderText(elem, opts) {
             unencodedElements.has(elem.parent.name))) {
         data =
             opts.xmlMode || opts.encodeEntities !== "utf8"
-                ? escape_encodeXML(data)
-                : escape_escapeText(data);
+                ? encodeXML(data)
+                : escapeText(data);
     }
     return data;
 }
@@ -46470,7 +45793,7 @@ function renderComment(elem) {
  * @returns `node`'s outer HTML.
  */
 function getOuterHTML(node, options) {
-    return lib_esm(node, options);
+    return renderHTML(node, options);
 }
 /**
  * @category Stringify
@@ -46495,7 +45818,7 @@ function getInnerHTML(node, options) {
 function getText(node) {
     if (Array.isArray(node))
         return node.map(getText).join("");
-    if (node_isTag(node))
+    if (isTag(node))
         return node.name === "br" ? "\n" : getText(node.children);
     if (isCDATA(node))
         return getText(node.children);
@@ -46511,11 +45834,11 @@ function getText(node) {
  * @returns `node`'s text content.
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent}
  */
-function textContent(node) {
+function stringify_textContent(node) {
     if (Array.isArray(node))
-        return node.map(textContent).join("");
+        return node.map(stringify_textContent).join("");
     if (hasChildren(node) && !isComment(node)) {
-        return textContent(node.children);
+        return stringify_textContent(node.children);
     }
     if (isText(node))
         return node.data;
@@ -46532,7 +45855,7 @@ function textContent(node) {
 function innerText(node) {
     if (Array.isArray(node))
         return node.map(innerText).join("");
-    if (hasChildren(node) && (node.type === esm_ElementType.Tag || isCDATA(node))) {
+    if (hasChildren(node) && (node.type === ElementType.Tag || isCDATA(node))) {
         return innerText(node.children);
     }
     if (isText(node))
@@ -46634,7 +45957,7 @@ function getName(elem) {
  */
 function nextElementSibling(elem) {
     let { next } = elem;
-    while (next !== null && !node_isTag(next))
+    while (next !== null && !isTag(next))
         ({ next } = next);
     return next;
 }
@@ -46648,146 +45971,11 @@ function nextElementSibling(elem) {
  */
 function prevElementSibling(elem) {
     let { prev } = elem;
-    while (prev !== null && !node_isTag(prev))
+    while (prev !== null && !isTag(prev))
         ({ prev } = prev);
     return prev;
 }
 //# sourceMappingURL=traversal.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@3.2.2/node_modules/domutils/lib/esm/manipulation.js
-/**
- * Remove an element from the dom
- *
- * @category Manipulation
- * @param elem The element to be removed
- */
-function removeElement(elem) {
-    if (elem.prev)
-        elem.prev.next = elem.next;
-    if (elem.next)
-        elem.next.prev = elem.prev;
-    if (elem.parent) {
-        const childs = elem.parent.children;
-        const childsIndex = childs.lastIndexOf(elem);
-        if (childsIndex >= 0) {
-            childs.splice(childsIndex, 1);
-        }
-    }
-    elem.next = null;
-    elem.prev = null;
-    elem.parent = null;
-}
-/**
- * Replace an element in the dom
- *
- * @category Manipulation
- * @param elem The element to be replaced
- * @param replacement The element to be added
- */
-function replaceElement(elem, replacement) {
-    const prev = (replacement.prev = elem.prev);
-    if (prev) {
-        prev.next = replacement;
-    }
-    const next = (replacement.next = elem.next);
-    if (next) {
-        next.prev = replacement;
-    }
-    const parent = (replacement.parent = elem.parent);
-    if (parent) {
-        const childs = parent.children;
-        childs[childs.lastIndexOf(elem)] = replacement;
-        elem.parent = null;
-    }
-}
-/**
- * Append a child to an element.
- *
- * @category Manipulation
- * @param parent The element to append to.
- * @param child The element to be added as a child.
- */
-function appendChild(parent, child) {
-    removeElement(child);
-    child.next = null;
-    child.parent = parent;
-    if (parent.children.push(child) > 1) {
-        const sibling = parent.children[parent.children.length - 2];
-        sibling.next = child;
-        child.prev = sibling;
-    }
-    else {
-        child.prev = null;
-    }
-}
-/**
- * Append an element after another.
- *
- * @category Manipulation
- * @param elem The element to append after.
- * @param next The element be added.
- */
-function manipulation_append(elem, next) {
-    removeElement(next);
-    const { parent } = elem;
-    const currNext = elem.next;
-    next.next = currNext;
-    next.prev = elem;
-    elem.next = next;
-    next.parent = parent;
-    if (currNext) {
-        currNext.prev = next;
-        if (parent) {
-            const childs = parent.children;
-            childs.splice(childs.lastIndexOf(currNext), 0, next);
-        }
-    }
-    else if (parent) {
-        parent.children.push(next);
-    }
-}
-/**
- * Prepend a child to an element.
- *
- * @category Manipulation
- * @param parent The element to prepend before.
- * @param child The element to be added as a child.
- */
-function prependChild(parent, child) {
-    removeElement(child);
-    child.parent = parent;
-    child.prev = null;
-    if (parent.children.unshift(child) !== 1) {
-        const sibling = parent.children[1];
-        sibling.prev = child;
-        child.next = sibling;
-    }
-    else {
-        child.next = null;
-    }
-}
-/**
- * Prepend an element before another.
- *
- * @category Manipulation
- * @param elem The element to prepend before.
- * @param prev The element be added.
- */
-function prepend(elem, prev) {
-    removeElement(prev);
-    const { parent } = elem;
-    if (parent) {
-        const childs = parent.children;
-        childs.splice(childs.indexOf(elem), 0, prev);
-    }
-    if (elem.prev) {
-        elem.prev.next = prev;
-    }
-    prev.parent = parent;
-    prev.prev = elem.prev;
-    prev.next = elem;
-    elem.prev = prev;
-}
-//# sourceMappingURL=manipulation.js.map
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@3.2.2/node_modules/domutils/lib/esm/querying.js
 
 /**
@@ -46869,15 +46057,15 @@ function findOneChild(test, nodes) {
  * @param recurse Also consider child nodes.
  * @returns The first node that passes `test`.
  */
-function findOne(test, nodes, recurse = true) {
+function querying_findOne(test, nodes, recurse = true) {
     const searchedNodes = Array.isArray(nodes) ? nodes : [nodes];
     for (let i = 0; i < searchedNodes.length; i++) {
         const node = searchedNodes[i];
-        if (node_isTag(node) && test(node)) {
+        if (isTag(node) && test(node)) {
             return node;
         }
         if (recurse && hasChildren(node) && node.children.length > 0) {
-            const found = findOne(test, node.children, true);
+            const found = querying_findOne(test, node.children, true);
             if (found)
                 return found;
         }
@@ -46893,7 +46081,7 @@ function findOne(test, nodes, recurse = true) {
  * @returns Whether a tree of nodes contains at least one node passing the test.
  */
 function existsOne(test, nodes) {
-    return (Array.isArray(nodes) ? nodes : [nodes]).some((node) => (node_isTag(node) && test(node)) ||
+    return (Array.isArray(nodes) ? nodes : [nodes]).some((node) => (isTag(node) && test(node)) ||
         (hasChildren(node) && existsOne(test, node.children)));
 }
 /**
@@ -46922,7 +46110,7 @@ function findAll(test, nodes) {
             continue;
         }
         const elem = nodeStack[0][indexStack[0]++];
-        if (node_isTag(elem) && test(elem))
+        if (isTag(elem) && test(elem))
             result.push(elem);
         if (hasChildren(elem) && elem.children.length > 0) {
             indexStack.unshift(0);
@@ -46955,9 +46143,9 @@ const Checks = {
     },
     tag_contains(data) {
         if (typeof data === "function") {
-            return (elem) => isText(elem) && data(elem.data);
+            return (elem) => node_isText(elem) && data(elem.data);
         }
-        return (elem) => isText(elem) && elem.data === data;
+        return (elem) => node_isText(elem) && elem.data === data;
     },
 };
 /**
@@ -46971,9 +46159,9 @@ const Checks = {
  */
 function getAttribCheck(attrib, value) {
     if (typeof value === "function") {
-        return (elem) => node_isTag(elem) && value(elem.attribs[attrib]);
+        return (elem) => isTag(elem) && value(elem.attribs[attrib]);
     }
-    return (elem) => node_isTag(elem) && elem.attribs[attrib] === value;
+    return (elem) => isTag(elem) && elem.attribs[attrib] === value;
 }
 /**
  * Returns a function that returns `true` if either of the input functions
@@ -47028,7 +46216,7 @@ function testElement(options, node) {
  */
 function getElements(options, nodes, recurse, limit = Infinity) {
     const test = compileTest(options);
-    return test ? querying_filter(test, nodes, recurse, limit) : [];
+    return test ? filter(test, nodes, recurse, limit) : [];
 }
 /**
  * Returns the node with the supplied ID.
@@ -47054,8 +46242,8 @@ function getElementById(id, nodes, recurse = true) {
  * @param limit Maximum number of nodes to return.
  * @returns All nodes with the supplied `tagName`.
  */
-function getElementsByTagName(tagName, nodes, recurse = true, limit = Infinity) {
-    return querying_filter(Checks["tag_name"](tagName), nodes, recurse, limit);
+function legacy_getElementsByTagName(tagName, nodes, recurse = true, limit = Infinity) {
+    return filter(Checks["tag_name"](tagName), nodes, recurse, limit);
 }
 /**
  * Returns all nodes with the supplied `className`.
@@ -47068,7 +46256,7 @@ function getElementsByTagName(tagName, nodes, recurse = true, limit = Infinity) 
  * @returns All nodes with the supplied `className`.
  */
 function getElementsByClassName(className, nodes, recurse = true, limit = Infinity) {
-    return querying_filter(getAttribCheck("class", className), nodes, recurse, limit);
+    return filter(getAttribCheck("class", className), nodes, recurse, limit);
 }
 /**
  * Returns all nodes with the supplied `type`.
@@ -47081,7 +46269,7 @@ function getElementsByClassName(className, nodes, recurse = true, limit = Infini
  * @returns All nodes with the supplied `type`.
  */
 function getElementsByTagType(type, nodes, recurse = true, limit = Infinity) {
-    return querying_filter(Checks["tag_type"](type), nodes, recurse, limit);
+    return filter(Checks["tag_type"](type), nodes, recurse, limit);
 }
 //# sourceMappingURL=legacy.js.map
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@3.2.2/node_modules/domutils/lib/esm/helpers.js
@@ -47320,8 +46508,8 @@ function getRssFeed(feedRoot) {
     addConditionally(feed, "author", "managingEditor", childs, true);
     return feed;
 }
-const MEDIA_KEYS_STRING = ["url", "type", "lang"];
-const MEDIA_KEYS_INT = [
+const MEDIA_KEYS_STRING = (/* unused pure expression or super */ null && (["url", "type", "lang"]));
+const MEDIA_KEYS_INT = (/* unused pure expression or super */ null && ([
     "fileSize",
     "bitrate",
     "framerate",
@@ -47330,7 +46518,7 @@ const MEDIA_KEYS_INT = [
     "duration",
     "height",
     "width",
-];
+]));
 /**
  * Get all media elements of a feed item.
  *
@@ -47489,7 +46677,7 @@ function parseFeed(feed, options = parseFeedDefaultOptions) {
 }
 
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/constants.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/constants.js
 // Internal
 const constants_NODE_END = -1;
 
@@ -47524,7 +46712,7 @@ const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 // SVG
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/object.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/object.js
 const {
   assign: object_assign,
   create: object_create,
@@ -47537,7 +46725,7 @@ const {
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/utils.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/utils.js
 
 
 
@@ -47602,10 +46790,10 @@ const htmlToFragment = (ownerDocument, html) => {
 
   return fragment;
 };
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/shadow-roots.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/shadow-roots.js
 const shadowRoots = new WeakMap;
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/custom-element-registry.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/custom-element-registry.js
 
 
 
@@ -47812,7 +47000,7 @@ class CustomElementRegistry {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/parse-from-string.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/parse-from-string.js
 
 
 
@@ -47936,7 +47124,7 @@ const parseFromString = (document, isHTML, markupLanguage) => {
   return document;
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/register-html-class.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/register-html-class.js
 const register_html_class_htmlClasses = new Map;
 
 const registerHTMLClass = (names, Class) => {
@@ -47946,7 +47134,7 @@ const registerHTMLClass = (names, Class) => {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/jsdon.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/jsdon.js
 
 
 
@@ -48013,7 +47201,7 @@ const elementAsJSON = (element, json) => {
   loopSegment(element, json);
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/mutation-observer.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/mutation-observer.js
 
 
 const createRecord =
@@ -48196,7 +47384,7 @@ class MutationObserverClass {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/attributes.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/attributes.js
 
 
 
@@ -48302,7 +47490,7 @@ export const nullableAttribute = {
 };
 */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/event-target.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/event-target.js
 // https://dom.spec.whatwg.org/#interface-eventtarget
 
 const wm = new WeakMap();
@@ -48392,7 +47580,7 @@ class DOMEventTarget {
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/node-list.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/node-list.js
 // https://dom.spec.whatwg.org/#interface-nodelist
 
 /**
@@ -48402,7 +47590,7 @@ class NodeList extends Array {
   item(i) { return i < this.length ? this[i] : null; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/node.js
 // https://dom.spec.whatwg.org/#node
 
 
@@ -48593,7 +47781,7 @@ class node_Node extends DOMEventTarget {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/text-escaper.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/text-escaper.js
 const {replace} = '';
 
 // escape
@@ -48617,7 +47805,7 @@ const pe = m => esca[m];
  */
 const text_escaper_escape = es => replace.call(es, ca, pe);
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/attr.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/attr.js
 
 
 
@@ -48676,7 +47864,7 @@ class attr_Attr extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/node.js
 
 
 
@@ -48719,7 +47907,7 @@ const nextSibling = node => {
   return next && (next.nodeType === constants_NODE_END ? null : next);
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/mixin/non-document-type-child-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/mixin/non-document-type-child-node.js
 // https://dom.spec.whatwg.org/#nondocumenttypechildnode
 // CharacterData, Element
 
@@ -48741,7 +47929,7 @@ const previousElementSibling = node => {
   return prev;
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/mixin/child-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/mixin/child-node.js
 // https://dom.spec.whatwg.org/#childnode
 // CharacterData, DocumentType, Element
 
@@ -48805,7 +47993,7 @@ const child_node_remove = (prev, current, next) => {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/character-data.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/character-data.js
 // https://dom.spec.whatwg.org/#interface-characterdata
 
 
@@ -48891,7 +48079,7 @@ class CharacterData extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/cdata-section.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/cdata-section.js
 
 
 
@@ -48913,7 +48101,7 @@ class cdata_section_CDATASection extends CharacterData {
   toString() { return `<![CDATA[${this[VALUE]}]]>`; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/comment.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/comment.js
 
 
 
@@ -48935,91 +48123,2229 @@ class comment_Comment extends CharacterData {
   toString() { return `<!--${this[VALUE]}-->`; }
 }
 
-// EXTERNAL MODULE: ./node_modules/.pnpm/boolbase@1.0.0/node_modules/boolbase/index.js
-var boolbase = __nccwpck_require__(3784);
-// EXTERNAL MODULE: ./node_modules/.pnpm/css-what@6.2.2/node_modules/css-what/lib/commonjs/index.js
-var commonjs = __nccwpck_require__(6452);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/sort.js
-
-const procedure = new Map([
-    [commonjs.SelectorType.Universal, 50],
-    [commonjs.SelectorType.Tag, 30],
-    [commonjs.SelectorType.Attribute, 1],
-    [commonjs.SelectorType.Pseudo, 0],
-]);
-function isTraversal(token) {
-    return !procedure.has(token.type);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/boolbase@2.0.0/node_modules/boolbase/dist/index.js
+function trueFunc() {
+    return true;
 }
-const attributes = new Map([
-    [commonjs.AttributeAction.Exists, 10],
-    [commonjs.AttributeAction.Equals, 8],
-    [commonjs.AttributeAction.Not, 7],
-    [commonjs.AttributeAction.Start, 6],
-    [commonjs.AttributeAction.End, 6],
-    [commonjs.AttributeAction.Any, 5],
+function falseFunc() {
+    return false;
+}
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-what@8.0.0/node_modules/css-what/dist/types.js
+/** Discriminants for selector token kinds. */
+var SelectorType;
+(function (SelectorType) {
+    SelectorType["Attribute"] = "attribute";
+    SelectorType["Pseudo"] = "pseudo";
+    SelectorType["PseudoElement"] = "pseudo-element";
+    SelectorType["Tag"] = "tag";
+    SelectorType["Universal"] = "universal";
+    // Traversals
+    SelectorType["Adjacent"] = "adjacent";
+    SelectorType["Child"] = "child";
+    SelectorType["Descendant"] = "descendant";
+    SelectorType["Parent"] = "parent";
+    SelectorType["Sibling"] = "sibling";
+    SelectorType["ColumnCombinator"] = "column-combinator";
+})(SelectorType || (SelectorType = {}));
+/**
+ * Modes for ignore case.
+ *
+ * This could be updated to an enum, and the object is
+ * the current stand-in that will allow code to be updated
+ * without big changes.
+ */
+const IgnoreCaseMode = {
+    Unknown: null,
+    QuirksMode: "quirks",
+    IgnoreCase: true,
+    CaseSensitive: false,
+};
+/** Operators available for attribute selectors. */
+var AttributeAction;
+(function (AttributeAction) {
+    AttributeAction["Any"] = "any";
+    AttributeAction["Element"] = "element";
+    AttributeAction["End"] = "end";
+    AttributeAction["Equals"] = "equals";
+    AttributeAction["Exists"] = "exists";
+    AttributeAction["Hyphen"] = "hyphen";
+    AttributeAction["Not"] = "not";
+    AttributeAction["Start"] = "start";
+})(AttributeAction || (AttributeAction = {}));
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-what@8.0.0/node_modules/css-what/dist/parse.js
+
+const reName = /^[^#\\]?(?:\\(?:[\da-f]{1,6}\s?|.)|[\w\u00B0-\uFFFF-])+/;
+const reEscape = /\\([\da-f]{1,6}\s?|(\s)|.)/gi;
+var CharCode;
+(function (CharCode) {
+    CharCode[CharCode["LeftParenthesis"] = 40] = "LeftParenthesis";
+    CharCode[CharCode["RightParenthesis"] = 41] = "RightParenthesis";
+    CharCode[CharCode["LeftSquareBracket"] = 91] = "LeftSquareBracket";
+    CharCode[CharCode["RightSquareBracket"] = 93] = "RightSquareBracket";
+    CharCode[CharCode["Comma"] = 44] = "Comma";
+    CharCode[CharCode["Period"] = 46] = "Period";
+    CharCode[CharCode["Colon"] = 58] = "Colon";
+    CharCode[CharCode["SingleQuote"] = 39] = "SingleQuote";
+    CharCode[CharCode["DoubleQuote"] = 34] = "DoubleQuote";
+    CharCode[CharCode["Plus"] = 43] = "Plus";
+    CharCode[CharCode["Tilde"] = 126] = "Tilde";
+    CharCode[CharCode["QuestionMark"] = 63] = "QuestionMark";
+    CharCode[CharCode["ExclamationMark"] = 33] = "ExclamationMark";
+    CharCode[CharCode["Slash"] = 47] = "Slash";
+    CharCode[CharCode["Equal"] = 61] = "Equal";
+    CharCode[CharCode["Dollar"] = 36] = "Dollar";
+    CharCode[CharCode["Pipe"] = 124] = "Pipe";
+    CharCode[CharCode["Circumflex"] = 94] = "Circumflex";
+    CharCode[CharCode["Asterisk"] = 42] = "Asterisk";
+    CharCode[CharCode["GreaterThan"] = 62] = "GreaterThan";
+    CharCode[CharCode["LessThan"] = 60] = "LessThan";
+    CharCode[CharCode["Hash"] = 35] = "Hash";
+    CharCode[CharCode["LowerI"] = 105] = "LowerI";
+    CharCode[CharCode["LowerS"] = 115] = "LowerS";
+    CharCode[CharCode["BackSlash"] = 92] = "BackSlash";
+    // Whitespace
+    CharCode[CharCode["Space"] = 32] = "Space";
+    CharCode[CharCode["Tab"] = 9] = "Tab";
+    CharCode[CharCode["NewLine"] = 10] = "NewLine";
+    CharCode[CharCode["FormFeed"] = 12] = "FormFeed";
+    CharCode[CharCode["CarriageReturn"] = 13] = "CarriageReturn";
+})(CharCode || (CharCode = {}));
+const actionTypes = new Map([
+    [CharCode.Tilde, AttributeAction.Element],
+    [CharCode.Circumflex, AttributeAction.Start],
+    [CharCode.Dollar, AttributeAction.End],
+    [CharCode.Asterisk, AttributeAction.Any],
+    [CharCode.ExclamationMark, AttributeAction.Not],
+    [CharCode.Pipe, AttributeAction.Hyphen],
+]);
+// Pseudos, whose data property is parsed as well.
+const unpackPseudos = new Set([
+    "has",
+    "not",
+    "matches",
+    "is",
+    "where",
+    "host",
+    "host-context",
 ]);
 /**
- * Sort the parts of the passed selector,
- * as there is potential for optimization
- * (some types of selectors are faster than others)
- *
- * @param arr Selector to sort
+ * Pseudo elements defined in CSS Level 1 and CSS Level 2 can be written with
+ * a single colon; eg. :before will turn into ::before.
+ * @see {@link https://www.w3.org/TR/2018/WD-selectors-4-20181121/#pseudo-element-syntax}
  */
-function sortByProcedure(arr) {
-    const procs = arr.map(getProcedure);
-    for (let i = 1; i < arr.length; i++) {
-        const procNew = procs[i];
-        if (procNew < 0)
-            continue;
-        for (let j = i - 1; j >= 0 && procNew < procs[j]; j--) {
-            const token = arr[j + 1];
-            arr[j + 1] = arr[j];
-            arr[j] = token;
-            procs[j + 1] = procs[j];
-            procs[j] = procNew;
+const pseudosToPseudoElements = new Set([
+    "before",
+    "after",
+    "first-line",
+    "first-letter",
+]);
+/**
+ * Checks whether a specific selector is a traversal.
+ * This is useful eg. in swapping the order of elements that
+ * are not traversals.
+ * @param selector Selector to check.
+ */
+function isTraversal(selector) {
+    switch (selector.type) {
+        case SelectorType.Adjacent:
+        case SelectorType.Child:
+        case SelectorType.Descendant:
+        case SelectorType.Parent:
+        case SelectorType.Sibling:
+        case SelectorType.ColumnCombinator: {
+            return true;
+        }
+        case SelectorType.Attribute:
+        case SelectorType.Pseudo:
+        case SelectorType.PseudoElement:
+        case SelectorType.Tag:
+        case SelectorType.Universal: {
+            return false;
         }
     }
 }
-function getProcedure(token) {
-    var _a, _b;
-    let proc = (_a = procedure.get(token.type)) !== null && _a !== void 0 ? _a : -1;
-    if (token.type === commonjs.SelectorType.Attribute) {
-        proc = (_b = attributes.get(token.action)) !== null && _b !== void 0 ? _b : 4;
-        if (token.action === commonjs.AttributeAction.Equals && token.name === "id") {
-            // Prefer ID selectors (eg. #ID)
-            proc = 9;
+const stripQuotesFromPseudos = new Set(["contains", "icontains"]);
+// Unescape function taken from https://github.com/jquery/sizzle/blob/master/src/sizzle.js#L152
+function funescape(_, escaped, escapedWhitespace) {
+    const high = Number.parseInt(escaped, 16) - 0x1_00_00;
+    // NaN means non-codepoint
+    return Number.isNaN(high) || escapedWhitespace
+        ? escaped
+        : high < 0
+            ? // BMP codepoint
+                String.fromCharCode(high + 0x1_00_00)
+            : // Supplemental Plane codepoint (surrogate pair)
+                String.fromCharCode((high >> 10) | 0xd8_00, (high & 0x3_ff) | 0xdc_00);
+}
+function unescapeCSS(cssString) {
+    return cssString.replace(reEscape, funescape);
+}
+function isQuote(c) {
+    return c === CharCode.SingleQuote || c === CharCode.DoubleQuote;
+}
+function parse_isWhitespace(c) {
+    return (c === CharCode.Space ||
+        c === CharCode.Tab ||
+        c === CharCode.NewLine ||
+        c === CharCode.FormFeed ||
+        c === CharCode.CarriageReturn);
+}
+/**
+ * Parses `selector`.
+ * @param selector Selector to parse.
+ * @returns Returns a two-dimensional array.
+ * The first dimension represents selectors separated by commas (eg. `sub1, sub2`),
+ * the second contains the relevant tokens for that selector.
+ */
+function parse_parse(selector) {
+    const subselects = [];
+    const endIndex = parseSelector(subselects, `${selector}`, 0);
+    if (endIndex < selector.length) {
+        throw new Error(`Unmatched selector: ${selector.slice(endIndex)}`);
+    }
+    return subselects;
+}
+function parseSelector(subselects, selector, selectorIndex) {
+    let tokens = [];
+    function getName(offset) {
+        const match = selector.slice(selectorIndex + offset).match(reName);
+        if (!match) {
+            throw new Error(`Expected name, found ${selector.slice(selectorIndex)}`);
         }
-        if (token.ignoreCase) {
-            /*
-             * IgnoreCase adds some overhead, prefer "normal" token
-             * this is a binary operation, to ensure it's still an int
-             */
-            proc >>= 1;
+        const [name] = match;
+        selectorIndex += offset + name.length;
+        return unescapeCSS(name);
+    }
+    function stripWhitespace(offset) {
+        selectorIndex += offset;
+        while (selectorIndex < selector.length &&
+            parse_isWhitespace(selector.charCodeAt(selectorIndex))) {
+            selectorIndex++;
         }
     }
-    else if (token.type === commonjs.SelectorType.Pseudo) {
-        if (!token.data) {
-            proc = 3;
-        }
-        else if (token.name === "has" || token.name === "contains") {
-            proc = 0; // Expensive in any case
-        }
-        else if (Array.isArray(token.data)) {
-            // Eg. :matches, :not
-            proc = Math.min(...token.data.map((d) => Math.min(...d.map(getProcedure))));
-            // If we have traversals, try to avoid executing this selector
-            if (proc < 0) {
-                proc = 0;
+    function readValueWithParenthesis() {
+        selectorIndex += 1;
+        const start = selectorIndex;
+        for (let counter = 1; selectorIndex < selector.length; selectorIndex++) {
+            switch (selector.charCodeAt(selectorIndex)) {
+                case CharCode.BackSlash: {
+                    // Skip next character
+                    selectorIndex += 1;
+                    break;
+                }
+                case CharCode.LeftParenthesis: {
+                    counter += 1;
+                    break;
+                }
+                case CharCode.RightParenthesis: {
+                    counter -= 1;
+                    if (counter === 0) {
+                        return unescapeCSS(selector.slice(start, selectorIndex++));
+                    }
+                    break;
+                }
             }
         }
-        else {
-            proc = 2;
+        throw new Error("Parenthesis not matched");
+    }
+    function ensureNotTraversal() {
+        if (tokens.length > 0 && isTraversal(tokens[tokens.length - 1])) {
+            throw new Error("Did not expect successive traversals.");
         }
     }
-    return proc;
+    function addTraversal(type) {
+        if (tokens.length > 0 &&
+            tokens[tokens.length - 1].type === SelectorType.Descendant) {
+            tokens[tokens.length - 1].type = type;
+            return;
+        }
+        ensureNotTraversal();
+        tokens.push({ type });
+    }
+    function addSpecialAttribute(name, action) {
+        tokens.push({
+            type: SelectorType.Attribute,
+            name,
+            action,
+            value: getName(1),
+            namespace: null,
+            ignoreCase: "quirks",
+        });
+    }
+    /**
+     * We have finished parsing the current part of the selector.
+     *
+     * Remove descendant tokens at the end if they exist,
+     * and return the last index, so that parsing can be
+     * picked up from here.
+     */
+    function finalizeSubselector() {
+        if (tokens.length > 0 &&
+            tokens[tokens.length - 1].type === SelectorType.Descendant) {
+            tokens.pop();
+        }
+        if (tokens.length === 0) {
+            throw new Error("Empty sub-selector");
+        }
+        subselects.push(tokens);
+    }
+    stripWhitespace(0);
+    if (selector.length === selectorIndex) {
+        return selectorIndex;
+    }
+    loop: while (selectorIndex < selector.length) {
+        const firstChar = selector.charCodeAt(selectorIndex);
+        switch (firstChar) {
+            // Whitespace
+            case CharCode.Space:
+            case CharCode.Tab:
+            case CharCode.NewLine:
+            case CharCode.FormFeed:
+            case CharCode.CarriageReturn: {
+                if (tokens.length === 0 ||
+                    tokens[0].type !== SelectorType.Descendant) {
+                    ensureNotTraversal();
+                    tokens.push({ type: SelectorType.Descendant });
+                }
+                stripWhitespace(1);
+                break;
+            }
+            // Traversals
+            case CharCode.GreaterThan: {
+                addTraversal(SelectorType.Child);
+                stripWhitespace(1);
+                break;
+            }
+            case CharCode.LessThan: {
+                addTraversal(SelectorType.Parent);
+                stripWhitespace(1);
+                break;
+            }
+            case CharCode.Tilde: {
+                addTraversal(SelectorType.Sibling);
+                stripWhitespace(1);
+                break;
+            }
+            case CharCode.Plus: {
+                addTraversal(SelectorType.Adjacent);
+                stripWhitespace(1);
+                break;
+            }
+            // Special attribute selectors: .class, #id
+            case CharCode.Period: {
+                addSpecialAttribute("class", AttributeAction.Element);
+                break;
+            }
+            case CharCode.Hash: {
+                addSpecialAttribute("id", AttributeAction.Equals);
+                break;
+            }
+            case CharCode.LeftSquareBracket: {
+                stripWhitespace(1);
+                // Determine attribute name and namespace
+                let name;
+                let namespace = null;
+                if (selector.charCodeAt(selectorIndex) === CharCode.Pipe) {
+                    // Equivalent to no namespace
+                    name = getName(1);
+                }
+                else if (selector.startsWith("*|", selectorIndex)) {
+                    namespace = "*";
+                    name = getName(2);
+                }
+                else {
+                    name = getName(0);
+                    if (selector.charCodeAt(selectorIndex) === CharCode.Pipe &&
+                        selector.charCodeAt(selectorIndex + 1) !==
+                            CharCode.Equal) {
+                        namespace = name;
+                        name = getName(1);
+                    }
+                }
+                stripWhitespace(0);
+                // Determine comparison operation
+                let action = AttributeAction.Exists;
+                const possibleAction = actionTypes.get(selector.charCodeAt(selectorIndex));
+                if (possibleAction) {
+                    action = possibleAction;
+                    if (selector.charCodeAt(selectorIndex + 1) !==
+                        CharCode.Equal) {
+                        throw new Error("Expected `=`");
+                    }
+                    stripWhitespace(2);
+                }
+                else if (selector.charCodeAt(selectorIndex) === CharCode.Equal) {
+                    action = AttributeAction.Equals;
+                    stripWhitespace(1);
+                }
+                // Determine value
+                let value = "";
+                let ignoreCase = null;
+                if (action !== "exists") {
+                    if (isQuote(selector.charCodeAt(selectorIndex))) {
+                        const quote = selector.charCodeAt(selectorIndex);
+                        selectorIndex += 1;
+                        const sectionStart = selectorIndex;
+                        while (selectorIndex < selector.length &&
+                            selector.charCodeAt(selectorIndex) !== quote) {
+                            selectorIndex +=
+                                // Skip next character if it is escaped
+                                selector.charCodeAt(selectorIndex) ===
+                                    CharCode.BackSlash
+                                    ? 2
+                                    : 1;
+                        }
+                        if (selector.charCodeAt(selectorIndex) !== quote) {
+                            throw new Error("Attribute value didn't end");
+                        }
+                        value = unescapeCSS(selector.slice(sectionStart, selectorIndex));
+                        selectorIndex += 1;
+                    }
+                    else {
+                        const valueStart = selectorIndex;
+                        while (selectorIndex < selector.length &&
+                            !parse_isWhitespace(selector.charCodeAt(selectorIndex)) &&
+                            selector.charCodeAt(selectorIndex) !==
+                                CharCode.RightSquareBracket) {
+                            selectorIndex +=
+                                // Skip next character if it is escaped
+                                selector.charCodeAt(selectorIndex) ===
+                                    CharCode.BackSlash
+                                    ? 2
+                                    : 1;
+                        }
+                        value = unescapeCSS(selector.slice(valueStart, selectorIndex));
+                    }
+                    stripWhitespace(0);
+                    // See if we have a force ignore flag
+                    switch (selector.charCodeAt(selectorIndex) | 0x20) {
+                        // If the forceIgnore flag is set (either `i` or `s`), use that value
+                        case CharCode.LowerI: {
+                            ignoreCase = true;
+                            stripWhitespace(1);
+                            break;
+                        }
+                        case CharCode.LowerS: {
+                            ignoreCase = false;
+                            stripWhitespace(1);
+                            break;
+                        }
+                    }
+                }
+                if (selector.charCodeAt(selectorIndex) !==
+                    CharCode.RightSquareBracket) {
+                    throw new Error("Attribute selector didn't terminate");
+                }
+                selectorIndex += 1;
+                const attributeSelector = {
+                    type: SelectorType.Attribute,
+                    name,
+                    action,
+                    value,
+                    namespace,
+                    ignoreCase,
+                };
+                tokens.push(attributeSelector);
+                break;
+            }
+            case CharCode.Colon: {
+                if (selector.charCodeAt(selectorIndex + 1) === CharCode.Colon) {
+                    tokens.push({
+                        type: SelectorType.PseudoElement,
+                        name: getName(2).toLowerCase(),
+                        data: selector.charCodeAt(selectorIndex) ===
+                            CharCode.LeftParenthesis
+                            ? readValueWithParenthesis()
+                            : null,
+                    });
+                    break;
+                }
+                const name = getName(1).toLowerCase();
+                if (pseudosToPseudoElements.has(name)) {
+                    tokens.push({
+                        type: SelectorType.PseudoElement,
+                        name,
+                        data: null,
+                    });
+                    break;
+                }
+                let data = null;
+                if (selector.charCodeAt(selectorIndex) ===
+                    CharCode.LeftParenthesis) {
+                    if (unpackPseudos.has(name)) {
+                        if (isQuote(selector.charCodeAt(selectorIndex + 1))) {
+                            throw new Error(`Pseudo-selector ${name} cannot be quoted`);
+                        }
+                        data = [];
+                        selectorIndex = parseSelector(data, selector, selectorIndex + 1);
+                        if (selector.charCodeAt(selectorIndex) !==
+                            CharCode.RightParenthesis) {
+                            throw new Error(`Missing closing parenthesis in :${name} (${selector})`);
+                        }
+                        selectorIndex += 1;
+                    }
+                    else {
+                        data = readValueWithParenthesis();
+                        if (stripQuotesFromPseudos.has(name)) {
+                            const quot = data.charCodeAt(0);
+                            if (quot === data.charCodeAt(data.length - 1) &&
+                                isQuote(quot)) {
+                                data = data.slice(1, -1);
+                            }
+                        }
+                        data = unescapeCSS(data);
+                    }
+                }
+                tokens.push({ type: SelectorType.Pseudo, name, data });
+                break;
+            }
+            case CharCode.Comma: {
+                finalizeSubselector();
+                tokens = [];
+                stripWhitespace(1);
+                break;
+            }
+            default: {
+                if (selector.startsWith("/*", selectorIndex)) {
+                    const endIndex = selector.indexOf("*/", selectorIndex + 2);
+                    if (endIndex === -1) {
+                        throw new Error("Comment was not terminated");
+                    }
+                    selectorIndex = endIndex + 2;
+                    // Remove leading whitespace
+                    if (tokens.length === 0) {
+                        stripWhitespace(0);
+                    }
+                    break;
+                }
+                let namespace = null;
+                let name;
+                if (firstChar === CharCode.Asterisk) {
+                    selectorIndex += 1;
+                    name = "*";
+                }
+                else if (firstChar === CharCode.Pipe) {
+                    name = "";
+                    if (selector.charCodeAt(selectorIndex + 1) === CharCode.Pipe) {
+                        addTraversal(SelectorType.ColumnCombinator);
+                        stripWhitespace(2);
+                        break;
+                    }
+                }
+                else if (reName.test(selector.slice(selectorIndex))) {
+                    name = getName(0);
+                }
+                else {
+                    break loop;
+                }
+                if (selector.charCodeAt(selectorIndex) === CharCode.Pipe &&
+                    selector.charCodeAt(selectorIndex + 1) !== CharCode.Pipe) {
+                    namespace = name;
+                    if (selector.charCodeAt(selectorIndex + 1) ===
+                        CharCode.Asterisk) {
+                        name = "*";
+                        selectorIndex += 2;
+                    }
+                    else {
+                        name = getName(1);
+                    }
+                }
+                tokens.push(name === "*"
+                    ? { type: SelectorType.Universal, namespace }
+                    : { type: SelectorType.Tag, name, namespace });
+            }
+        }
+    }
+    finalizeSubselector();
+    return selectorIndex;
 }
-//# sourceMappingURL=sort.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/attributes.js
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domelementtype@3.0.0/node_modules/domelementtype/dist/index.js
+/** Types of elements found in htmlparser2's DOM */
+var dist_ElementType;
+(function (ElementType) {
+    /** Type for the root element of a document */
+    ElementType["Root"] = "root";
+    /** Type for Text */
+    ElementType["Text"] = "text";
+    /** Type for <? ... ?> */
+    ElementType["Directive"] = "directive";
+    /** Type for <!-- ... --> */
+    ElementType["Comment"] = "comment";
+    /** Type for <script> tags */
+    ElementType["Script"] = "script";
+    /** Type for <style> tags */
+    ElementType["Style"] = "style";
+    /** Type for Any tag */
+    ElementType["Tag"] = "tag";
+    /** Type for <![CDATA[ ... ]]> */
+    ElementType["CDATA"] = "cdata";
+    /** Type for <!doctype ...> */
+    ElementType["Doctype"] = "doctype";
+})(dist_ElementType || (dist_ElementType = {}));
+/**
+ * Tests whether an element is a tag or not.
+ * @param element Element to test
+ * @param element.type Node type discriminator to check.
+ */
+function dist_isTag(element) {
+    return (element.type === dist_ElementType.Tag ||
+        element.type === dist_ElementType.Script ||
+        element.type === dist_ElementType.Style);
+}
+// Exports for backwards compatibility
+/** Type for the root element of a document */
+// eslint-disable-next-line prefer-destructuring
+const dist_Root = dist_ElementType.Root;
+/** Type for Text */
+// eslint-disable-next-line prefer-destructuring
+const dist_Text = dist_ElementType.Text;
+/** Type for <? ... ?> */
+// eslint-disable-next-line prefer-destructuring
+const dist_Directive = dist_ElementType.Directive;
+/** Type for <!-- ... --> */
+// eslint-disable-next-line prefer-destructuring
+const dist_Comment = dist_ElementType.Comment;
+/** Type for <script> tags */
+// eslint-disable-next-line prefer-destructuring
+const dist_Script = dist_ElementType.Script;
+/** Type for <style> tags */
+// eslint-disable-next-line prefer-destructuring
+const dist_Style = dist_ElementType.Style;
+/** Type for Any tag */
+// eslint-disable-next-line prefer-destructuring
+const dist_Tag = dist_ElementType.Tag;
+/** Type for <![CDATA[ ... ]]> */
+// eslint-disable-next-line prefer-destructuring
+const dist_CDATA = dist_ElementType.CDATA;
+/** Type for <!doctype ...> */
+// eslint-disable-next-line prefer-destructuring
+const dist_Doctype = dist_ElementType.Doctype;
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domhandler@6.0.1/node_modules/domhandler/dist/node.js
+
+/**
+ * This object will be used as the prototype for Nodes when creating a
+ * DOM-Level-1-compliant structure.
+ */
+class dist_node_Node {
+    /** Parent of the node */
+    parent = null;
+    /** Previous sibling */
+    prev = null;
+    /** Next sibling */
+    next = null;
+    /** The start index of the node. Requires `withStartIndices` on the handler to be `true. */
+    startIndex = null;
+    /** The end index of the node. Requires `withEndIndices` on the handler to be `true. */
+    endIndex = null;
+    // Read-write aliases for properties
+    /**
+     * Same as {@link parent}.
+     * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+     */
+    get parentNode() {
+        return this.parent;
+    }
+    set parentNode(parent) {
+        this.parent = parent;
+    }
+    /**
+     * Same as {@link prev}.
+     * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+     */
+    get previousSibling() {
+        return this.prev;
+    }
+    set previousSibling(previous) {
+        this.prev = previous;
+    }
+    /**
+     * Same as {@link next}.
+     * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+     */
+    get nextSibling() {
+        return this.next;
+    }
+    set nextSibling(next) {
+        this.next = next;
+    }
+    /**
+     * Clone this node, and optionally its children.
+     * @param recursive Clone child nodes as well.
+     * @returns A clone of the node.
+     */
+    cloneNode(recursive = false) {
+        return node_cloneNode(this, recursive);
+    }
+}
+/**
+ * A node that contains some data.
+ */
+class node_DataNode extends dist_node_Node {
+    data;
+    /**
+     * @param data The content of the data node
+     */
+    constructor(data) {
+        super();
+        this.data = data;
+    }
+    /**
+     * Same as {@link data}.
+     * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+     */
+    get nodeValue() {
+        return this.data;
+    }
+    set nodeValue(data) {
+        this.data = data;
+    }
+}
+/**
+ * Text within the document.
+ */
+class dist_node_Text extends node_DataNode {
+    type = dist_ElementType.Text;
+    get nodeType() {
+        return 3;
+    }
+}
+/**
+ * Comments within the document.
+ */
+class dist_node_Comment extends node_DataNode {
+    type = dist_ElementType.Comment;
+    get nodeType() {
+        return 8;
+    }
+}
+/**
+ * Processing instructions, including doc types.
+ */
+class dist_node_ProcessingInstruction extends node_DataNode {
+    type = dist_ElementType.Directive;
+    name;
+    constructor(name, data) {
+        super(data);
+        this.name = name;
+    }
+    get nodeType() {
+        return 1;
+    }
+    /** If this is a doctype, the document type name (parse5 only). */
+    "x-name";
+    /** If this is a doctype, the document type public identifier (parse5 only). */
+    "x-publicId";
+    /** If this is a doctype, the document type system identifier (parse5 only). */
+    "x-systemId";
+}
+/**
+ * A node that can have children.
+ */
+class node_NodeWithChildren extends dist_node_Node {
+    children;
+    /**
+     * @param children Children of the node. Only certain node types can have children.
+     */
+    constructor(children) {
+        super();
+        this.children = children;
+    }
+    // Aliases
+    /** First child of the node. */
+    get firstChild() {
+        return this.children[0] ?? null;
+    }
+    /** Last child of the node. */
+    get lastChild() {
+        return this.children.length > 0
+            ? this.children[this.children.length - 1]
+            : null;
+    }
+    /**
+     * Same as {@link children}.
+     * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+     */
+    get childNodes() {
+        return this.children;
+    }
+    set childNodes(children) {
+        this.children = children;
+    }
+}
+/**
+ * CDATA nodes.
+ */
+class dist_node_CDATA extends node_NodeWithChildren {
+    type = dist_ElementType.CDATA;
+    get nodeType() {
+        return 4;
+    }
+}
+/**
+ * The root node of the document.
+ */
+class dist_node_Document extends node_NodeWithChildren {
+    type = dist_ElementType.Root;
+    get nodeType() {
+        return 9;
+    }
+}
+/**
+ * An element within the DOM.
+ */
+class dist_node_Element extends node_NodeWithChildren {
+    name;
+    attribs;
+    type;
+    /**
+     * @param name Name of the tag, eg. `div`, `span`.
+     * @param attribs Object mapping attribute names to attribute values.
+     * @param children Children of the node.
+     * @param type Node type used for the new node instance.
+     */
+    constructor(name, attribs, children = [], type = name === "script"
+        ? dist_ElementType.Script
+        : name === "style"
+            ? dist_ElementType.Style
+            : dist_ElementType.Tag) {
+        super(children);
+        this.name = name;
+        this.attribs = attribs;
+        this.type = type;
+    }
+    get nodeType() {
+        return 1;
+    }
+    // DOM Level 1 aliases
+    /**
+     * Same as {@link name}.
+     * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+     */
+    get tagName() {
+        return this.name;
+    }
+    set tagName(name) {
+        this.name = name;
+    }
+    get attributes() {
+        return Object.keys(this.attribs).map((name) => ({
+            name,
+            value: this.attribs[name],
+            namespace: this["x-attribsNamespace"]?.[name],
+            prefix: this["x-attribsPrefix"]?.[name],
+        }));
+    }
+    /** Element namespace (parse5 only). */
+    namespace;
+    /** Element attribute namespaces (parse5 only). */
+    "x-attribsNamespace";
+    /** Element attribute namespace-related prefixes (parse5 only). */
+    "x-attribsPrefix";
+}
+/**
+ * Checks if `node` is an element node.
+ * @param node Node to check.
+ * @returns `true` if the node is an element node.
+ */
+function dist_node_isTag(node) {
+    return dist_isTag(node);
+}
+/**
+ * Checks if `node` is a CDATA node.
+ * @param node Node to check.
+ * @returns `true` if the node is a CDATA node.
+ */
+function dist_node_isCDATA(node) {
+    return node.type === dist_ElementType.CDATA;
+}
+/**
+ * Checks if `node` is a text node.
+ * @param node Node to check.
+ * @returns `true` if the node is a text node.
+ */
+function dist_node_isText(node) {
+    return node.type === dist_ElementType.Text;
+}
+/**
+ * Checks if `node` is a comment node.
+ * @param node Node to check.
+ * @returns `true` if the node is a comment node.
+ */
+function dist_node_isComment(node) {
+    return node.type === dist_ElementType.Comment;
+}
+/**
+ * Checks if `node` is a directive node.
+ * @param node Node to check.
+ * @returns `true` if the node is a directive node.
+ */
+function node_isDirective(node) {
+    return node.type === dist_ElementType.Directive;
+}
+/**
+ * Checks if `node` is a document node.
+ * @param node Node to check.
+ * @returns `true` if the node is a document node.
+ */
+function node_isDocument(node) {
+    return node.type === dist_ElementType.Root;
+}
+/**
+ * Checks if `node` has children.
+ * @param node Node to check.
+ * @returns `true` if the node has children.
+ */
+function dist_node_hasChildren(node) {
+    return Object.hasOwn(node, "children");
+}
+/**
+ * Clone a node, and optionally its children.
+ * @param node Node to clone.
+ * @param recursive Clone child nodes as well.
+ * @returns A clone of the node.
+ */
+function node_cloneNode(node, recursive = false) {
+    let result;
+    if (dist_node_isText(node)) {
+        result = new dist_node_Text(node.data);
+    }
+    else if (dist_node_isComment(node)) {
+        result = new dist_node_Comment(node.data);
+    }
+    else if (dist_node_isTag(node)) {
+        const children = recursive ? node_cloneChildren(node.children) : [];
+        const clone = new dist_node_Element(node.name, { ...node.attribs }, children);
+        for (const child of children) {
+            child.parent = clone;
+        }
+        if (node.namespace != null) {
+            clone.namespace = node.namespace;
+        }
+        if (node["x-attribsNamespace"]) {
+            clone["x-attribsNamespace"] = { ...node["x-attribsNamespace"] };
+        }
+        if (node["x-attribsPrefix"]) {
+            clone["x-attribsPrefix"] = { ...node["x-attribsPrefix"] };
+        }
+        result = clone;
+    }
+    else if (dist_node_isCDATA(node)) {
+        const children = recursive ? node_cloneChildren(node.children) : [];
+        const clone = new dist_node_CDATA(children);
+        for (const child of children) {
+            child.parent = clone;
+        }
+        result = clone;
+    }
+    else if (node_isDocument(node)) {
+        const children = recursive ? node_cloneChildren(node.children) : [];
+        const clone = new dist_node_Document(children);
+        for (const child of children) {
+            child.parent = clone;
+        }
+        if (node["x-mode"]) {
+            clone["x-mode"] = node["x-mode"];
+        }
+        result = clone;
+    }
+    else if (node_isDirective(node)) {
+        const instruction = new dist_node_ProcessingInstruction(node.name, node.data);
+        if (node["x-name"] != null) {
+            instruction["x-name"] = node["x-name"];
+            instruction["x-publicId"] = node["x-publicId"];
+            instruction["x-systemId"] = node["x-systemId"];
+        }
+        result = instruction;
+    }
+    else {
+        throw new Error(`Not implemented yet: ${node.type}`);
+    }
+    result.startIndex = node.startIndex;
+    result.endIndex = node.endIndex;
+    if (node.sourceCodeLocation != null) {
+        result.sourceCodeLocation = node.sourceCodeLocation;
+    }
+    return result;
+}
+/**
+ * Clone a list of child nodes.
+ * @param childs The child nodes to clone.
+ * @returns A list of cloned child nodes.
+ */
+function node_cloneChildren(childs) {
+    const children = childs.map((child) => node_cloneNode(child, true));
+    for (let index = 1; index < children.length; index++) {
+        children[index].prev = children[index - 1];
+        children[index - 1].next = children[index];
+    }
+    return children;
+}
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/querying.js
+
+/**
+ * Search a node and its children for nodes passing a test function. If `node` is not an array, it will be wrapped in one.
+ *
+ * @category Querying
+ * @param test Function to test nodes on.
+ * @param node Node to search. Will be included in the result set if it matches.
+ * @param recurse Also consider child nodes.
+ * @param limit Maximum number of nodes to return.
+ * @returns All nodes passing `test`.
+ */
+function dist_querying_filter(test, node, recurse = true, limit = Number.POSITIVE_INFINITY) {
+    return dist_querying_find(test, Array.isArray(node) ? node : [node], recurse, limit);
+}
+/**
+ * Search an array of nodes and their children for nodes passing a test function.
+ *
+ * @category Querying
+ * @param test Function to test nodes on.
+ * @param nodes Array of nodes to search.
+ * @param recurse Also consider child nodes.
+ * @param limit Maximum number of nodes to return.
+ * @returns All nodes passing `test`.
+ */
+function dist_querying_find(test, nodes, recurse, limit) {
+    const result = [];
+    /** Stack of the arrays we are looking at. */
+    const nodeStack = [Array.isArray(nodes) ? nodes : [nodes]];
+    /** Stack of the indices within the arrays. */
+    const indexStack = [0];
+    for (;;) {
+        // First, check if the current array has any more elements to look at.
+        if (indexStack[0] >= nodeStack[0].length) {
+            // If we have no more arrays to look at, we are done.
+            if (indexStack.length === 1) {
+                return result;
+            }
+            // Otherwise, remove the current array from the stack.
+            nodeStack.shift();
+            indexStack.shift();
+            // Loop back to the start to continue with the next array.
+            continue;
+        }
+        const element = nodeStack[0][indexStack[0]++];
+        if (test(element)) {
+            result.push(element);
+            if (--limit <= 0)
+                return result;
+        }
+        if (recurse && dist_node_hasChildren(element) && element.children.length > 0) {
+            /*
+             * Add the children to the stack. We are depth-first, so this is
+             * the next array we look at.
+             */
+            indexStack.unshift(0);
+            nodeStack.unshift(element.children);
+        }
+    }
+}
+/**
+ * Finds one element in a tree that passes a test.
+ *
+ * @category Querying
+ * @param test Function to test nodes on.
+ * @param nodes Node or array of nodes to search.
+ * @param recurse Also consider child nodes.
+ * @returns The first node that passes `test`.
+ */
+function dist_querying_findOne(test, nodes, recurse = true) {
+    const searchedNodes = Array.isArray(nodes) ? nodes : [nodes];
+    for (const node of searchedNodes) {
+        if (dist_node_isTag(node) && test(node)) {
+            return node;
+        }
+        if (recurse && dist_node_hasChildren(node) && node.children.length > 0) {
+            const found = dist_querying_findOne(test, node.children, true);
+            if (found)
+                return found;
+        }
+    }
+    return null;
+}
+/**
+ * Checks if a tree of nodes contains at least one node passing a test.
+ *
+ * @category Querying
+ * @param test Function to test nodes on.
+ * @param nodes Array of nodes to search.
+ * @returns Whether a tree of nodes contains at least one node passing the test.
+ */
+function querying_existsOne(test, nodes) {
+    return (Array.isArray(nodes) ? nodes : [nodes]).some((node) => (dist_node_isTag(node) && test(node)) ||
+        (dist_node_hasChildren(node) && querying_existsOne(test, node.children)));
+}
+/**
+ * Search an array of nodes and their children for elements passing a test function.
+ *
+ * Same as `find`, but limited to elements and with less options, leading to reduced complexity.
+ *
+ * @category Querying
+ * @param test Function to test nodes on.
+ * @param nodes Array of nodes to search.
+ * @returns All nodes passing `test`.
+ */
+function querying_findAll(test, nodes) {
+    const result = [];
+    const nodeStack = [Array.isArray(nodes) ? nodes : [nodes]];
+    const indexStack = [0];
+    for (;;) {
+        if (indexStack[0] >= nodeStack[0].length) {
+            if (nodeStack.length === 1) {
+                return result;
+            }
+            // Otherwise, remove the current array from the stack.
+            nodeStack.shift();
+            indexStack.shift();
+            // Loop back to the start to continue with the next array.
+            continue;
+        }
+        const element = nodeStack[0][indexStack[0]++];
+        if (dist_node_isTag(element) && test(element))
+            result.push(element);
+        if (dist_node_hasChildren(element) && element.children.length > 0) {
+            indexStack.unshift(0);
+            nodeStack.unshift(element.children);
+        }
+    }
+}
+//# sourceMappingURL=querying.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/legacy.js
+
+
+/**
+ * A map of functions to check nodes against.
+ */
+const legacy_Checks = {
+    tag_name(name) {
+        if (typeof name === "function") {
+            return (element) => dist_node_isTag(element) && name(element.name);
+        }
+        if (name === "*") {
+            return dist_node_isTag;
+        }
+        return (element) => dist_node_isTag(element) && element.name === name;
+    },
+    tag_type(type) {
+        if (typeof type === "function") {
+            return (element) => type(element.type);
+        }
+        return (element) => element.type === type;
+    },
+    tag_contains(data) {
+        if (typeof data === "function") {
+            return (element) => dist_node_isText(element) && data(element.data);
+        }
+        return (element) => dist_node_isText(element) && element.data === data;
+    },
+};
+/**
+ * Returns a function to check whether a node has an attribute with a particular
+ * value.
+ *
+ * @param attrib Attribute to check.
+ * @param value Attribute value to look for.
+ * @returns A function to check whether the a node has an attribute with a
+ *   particular value.
+ */
+function legacy_getAttribCheck(attrib, value) {
+    if (typeof value === "function") {
+        return (element) => dist_node_isTag(element) && value(element.attribs[attrib]);
+    }
+    return (element) => dist_node_isTag(element) && element.attribs[attrib] === value;
+}
+/**
+ * Returns a function that returns `true` if either of the input functions
+ * returns `true` for a node.
+ *
+ * @param a First function to combine.
+ * @param b Second function to combine.
+ * @returns A function taking a node and returning `true` if either of the input
+ *   functions returns `true` for the node.
+ */
+function legacy_combineFuncs(a, b) {
+    return (element) => a(element) || b(element);
+}
+/**
+ * Returns a function that executes all checks in `options` and returns `true`
+ * if any of them match a node.
+ *
+ * @param options An object describing nodes to look for.
+ * @returns A function that executes all checks in `options` and returns `true`
+ *   if any of them match a node.
+ */
+function legacy_compileTest(options) {
+    const funcs = Object.keys(options).map((key) => {
+        const value = options[key];
+        return Object.hasOwn(legacy_Checks, key)
+            ? legacy_Checks[key](value)
+            : legacy_getAttribCheck(key, value);
+    });
+    return funcs.length === 0 ? null : funcs.reduce(legacy_combineFuncs);
+}
+/**
+ * Checks whether a node matches the description in `options`.
+ *
+ * @category Legacy Query Functions
+ * @param options An object describing nodes to look for.
+ * @param node The element to test.
+ * @returns Whether the element matches the description in `options`.
+ */
+function legacy_testElement(options, node) {
+    const test = legacy_compileTest(options);
+    return test ? test(node) : true;
+}
+/**
+ * Returns all nodes that match `options`.
+ *
+ * @category Legacy Query Functions
+ * @param options An object describing nodes to look for.
+ * @param nodes Nodes to search through.
+ * @param recurse Also consider child nodes.
+ * @param limit Maximum number of nodes to return.
+ * @returns All nodes that match `options`.
+ */
+function legacy_getElements(options, nodes, recurse, limit = Number.POSITIVE_INFINITY) {
+    const test = legacy_compileTest(options);
+    return test ? dist_querying_filter(test, nodes, recurse, limit) : [];
+}
+/**
+ * Returns the node with the supplied ID.
+ *
+ * @category Legacy Query Functions
+ * @param id The unique ID attribute value to look for.
+ * @param nodes Nodes to search through.
+ * @param recurse Also consider child nodes.
+ * @returns The node with the supplied ID.
+ */
+function legacy_getElementById(id, nodes, recurse = true) {
+    if (!Array.isArray(nodes))
+        nodes = [nodes];
+    return dist_querying_findOne(legacy_getAttribCheck("id", id), nodes, recurse);
+}
+/**
+ * Returns all nodes with the supplied `tagName`.
+ *
+ * @category Legacy Query Functions
+ * @param tagName Tag name to search for.
+ * @param nodes Nodes to search through.
+ * @param recurse Also consider child nodes.
+ * @param limit Maximum number of nodes to return.
+ * @returns All nodes with the supplied `tagName`.
+ */
+function dist_legacy_getElementsByTagName(tagName, nodes, recurse = true, limit = Number.POSITIVE_INFINITY) {
+    return dist_querying_filter(legacy_Checks["tag_name"](tagName), nodes, recurse, limit);
+}
+/**
+ * Returns all nodes with the supplied `className`.
+ *
+ * @category Legacy Query Functions
+ * @param className Class name to search for.
+ * @param nodes Nodes to search through.
+ * @param recurse Also consider child nodes.
+ * @param limit Maximum number of nodes to return.
+ * @returns All nodes with the supplied `className`.
+ */
+function legacy_getElementsByClassName(className, nodes, recurse = true, limit = Number.POSITIVE_INFINITY) {
+    return dist_querying_filter(legacy_getAttribCheck("class", className), nodes, recurse, limit);
+}
+/**
+ * Returns all nodes with the supplied `type`.
+ *
+ * @category Legacy Query Functions
+ * @param type Element type to look for.
+ * @param nodes Nodes to search through.
+ * @param recurse Also consider child nodes.
+ * @param limit Maximum number of nodes to return.
+ * @returns All nodes with the supplied `type`.
+ */
+function legacy_getElementsByTagType(type, nodes, recurse = true, limit = Number.POSITIVE_INFINITY) {
+    return dist_querying_filter(legacy_Checks["tag_type"](type), nodes, recurse, limit);
+}
+//# sourceMappingURL=legacy.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/entities@8.0.0/node_modules/entities/dist/escape.js
+const escape_xmlCodeMap = new Map([
+    [34, "&quot;"],
+    [38, "&amp;"],
+    [39, "&apos;"],
+    [60, "&lt;"],
+    [62, "&gt;"],
+]);
+// For compatibility with node < 4, we wrap `codePointAt`
+/**
+ * Read a code point at a given index.
+ * @param input Input string to encode or decode.
+ * @param index Current read position in the input string.
+ */
+const dist_escape_getCodePoint = typeof String.prototype.codePointAt === "function"
+    ? (input, index) => input.codePointAt(index)
+    : // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+        (c, index) => (c.charCodeAt(index) & 0xfc_00) === 0xd8_00
+            ? (c.charCodeAt(index) - 0xd8_00) * 0x4_00 +
+                c.charCodeAt(index + 1) -
+                0xdc_00 +
+                0x1_00_00
+            : c.charCodeAt(index);
+/**
+ * Bitset for ASCII characters that need to be escaped in XML.
+ */
+const XML_BITSET_VALUE = 0x50_00_00_c4; // 32..63 -> 34 ("),38 (&),39 ('),60 (<),62 (>)
+/**
+ * Encodes all non-ASCII characters, as well as characters not valid in XML
+ * documents using XML entities. Uses a fast bitset scan instead of RegExp.
+ *
+ * If a character has no equivalent entity, a numeric hexadecimal reference
+ * (eg. `&#xfc;`) will be used.
+ * @param input Input string to encode or decode.
+ */
+function dist_escape_encodeXML(input) {
+    let out;
+    let last = 0;
+    const { length } = input;
+    for (let index = 0; index < length; index++) {
+        const char = input.charCodeAt(index);
+        // Check for ASCII chars that don't need escaping
+        if (char < 0x80 &&
+            (((XML_BITSET_VALUE >>> char) & 1) === 0 || char >= 64 || char < 32)) {
+            continue;
+        }
+        if (out === undefined)
+            out = input.substring(0, index);
+        else if (last !== index)
+            out += input.substring(last, index);
+        if (char < 64) {
+            // Known replacement
+            out += escape_xmlCodeMap.get(char);
+            last = index + 1;
+            continue;
+        }
+        // Non-ASCII: encode as numeric entity (handle surrogate pair)
+        const cp = dist_escape_getCodePoint(input, index);
+        out += `&#x${cp.toString(16)};`;
+        if (cp !== char)
+            index++; // Skip trailing surrogate
+        last = index + 1;
+    }
+    if (out === undefined)
+        return input;
+    if (last < length)
+        out += input.substr(last);
+    return out;
+}
+/**
+ * Encodes all non-ASCII characters, as well as characters not valid in XML
+ * documents using numeric hexadecimal reference (eg. `&#xfc;`).
+ *
+ * Have a look at `escapeUTF8` if you want a more concise output at the expense
+ * of reduced transportability.
+ * @param data String to escape.
+ */
+const dist_escape_escape = (/* unused pure expression or super */ null && (dist_escape_encodeXML));
+/**
+ * Creates a function that escapes all characters matched by the given regular
+ * expression using the given map of characters to escape to their entities.
+ * @param regex Regular expression to match characters to escape.
+ * @param map Map of characters to escape to their entities.
+ * @returns Function that escapes all characters matched by the given regular
+ * expression using the given map of characters to escape to their entities.
+ */
+function escape_getEscaper(regex, map) {
+    return function escape(data) {
+        let match;
+        let lastIndex = 0;
+        let result = "";
+        while ((match = regex.exec(data))) {
+            if (lastIndex !== match.index) {
+                result += data.substring(lastIndex, match.index);
+            }
+            // We know that this character will be in the map.
+            result += map.get(match[0].charCodeAt(0));
+            // Every match will be of length 1
+            lastIndex = match.index + 1;
+        }
+        return result + data.substring(lastIndex);
+    };
+}
+/**
+ * Encodes all characters not valid in XML documents using XML entities.
+ *
+ * Note that the output will be character-set dependent.
+ * @param data String to escape.
+ */
+const dist_escape_escapeUTF8 = /* #__PURE__ */ (/* unused pure expression or super */ null && (escape_getEscaper(/["&'<>]/g, escape_xmlCodeMap)));
+/**
+ * Encodes all characters that have to be escaped in HTML attributes,
+ * following {@link https://html.spec.whatwg.org/multipage/parsing.html#escapingString}.
+ * @param data String to escape.
+ */
+const dist_escape_escapeAttribute = 
+/* #__PURE__ */ escape_getEscaper(/["&\u00A0]/g, new Map([
+    [34, "&quot;"],
+    [38, "&amp;"],
+    [160, "&nbsp;"],
+]));
+/**
+ * Encodes all characters that have to be escaped in HTML text,
+ * following {@link https://html.spec.whatwg.org/multipage/parsing.html#escapingString}.
+ * @param data String to escape.
+ */
+const dist_escape_escapeText = /* #__PURE__ */ escape_getEscaper(/[&<>\u00A0]/g, new Map([
+    [38, "&amp;"],
+    [60, "&lt;"],
+    [62, "&gt;"],
+    [160, "&nbsp;"],
+]));
+//# sourceMappingURL=escape.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/dom-serializer@3.1.1/node_modules/dom-serializer/dist/foreign-names.js
+/**
+ * Mixed-case SVG and MathML element names recognized in foreign content.
+ * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inforeign
+ */
+const foreign_names_elementNames = new Map("altGlyph altGlyphDef altGlyphItem animateColor animateMotion animateTransform clipPath feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur feImage feMerge feMergeNode feMorphology feOffset fePointLight feSpecularLighting feSpotLight feTile feTurbulence foreignObject glyphRef linearGradient radialGradient textPath"
+    .split(" ")
+    .map((name) => [name.toLowerCase(), name]));
+/**
+ * Mixed-case SVG and MathML attribute names recognized in foreign content.
+ * @see https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inforeign
+ */
+const foreign_names_attributeNames = new Map("definitionURL attributeName attributeType baseFrequency baseProfile calcMode clipPathUnits diffuseConstant edgeMode filterUnits glyphRef gradientTransform gradientUnits kernelMatrix kernelUnitLength keyPoints keySplines keyTimes lengthAdjust limitingConeAngle markerHeight markerUnits markerWidth maskContentUnits maskUnits numOctaves pathLength patternContentUnits patternTransform patternUnits pointsAtX pointsAtY pointsAtZ preserveAlpha preserveAspectRatio primitiveUnits refX refY repeatCount repeatDur requiredExtensions requiredFeatures specularConstant specularExponent spreadMethod startOffset stdDeviation stitchTiles surfaceScale systemLanguage tableValues targetX targetY textLength viewBox viewTarget xChannelSelector yChannelSelector zoomAndPan"
+    .split(" ")
+    .map((name) => [name.toLowerCase(), name]));
+//# sourceMappingURL=foreign-names.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/dom-serializer@3.1.1/node_modules/dom-serializer/dist/index.js
+
+
+
+// ── Constants ────────────────────────────────────────────────────────
+/** Elements whose text content is never entity-encoded. */
+const dist_unencodedElements = new Set("style script xmp iframe noembed noframes plaintext noscript".split(" "));
+/** HTML void elements — they cannot have children. */
+const dist_voidElements = new Set("area base basefont br col command embed frame hr img input isindex keygen link meta param source track wbr".split(" "));
+/** Elements that switch the parser into foreign (XML-like) mode. */
+const dist_foreignElements = new Set(["svg", "math"]);
+/**
+ * Foreign-mode integration points: children of these elements are parsed
+ * as HTML again, not as foreign content.
+ */
+const dist_foreignModeIntegrationPoints = new Set("mi mo mn ms mtext annotation-xml foreignObject desc title".split(" "));
+// ── Public API ───────────────────────────────────────────────────────
+/**
+ * Renders a DOM node or an array of DOM nodes to a string.
+ *
+ * Can be thought of as the equivalent of the `outerHTML` of the passed
+ * node(s).
+ * @param node Node to be rendered.
+ * @param options Changes serialization behavior
+ */
+function dist_render(node, options = {}) {
+    const nodes = "length" in node ? node : [node];
+    /*
+     * `xmlMode` is threaded as a separate argument through the internal
+     * functions so that foreign-mode transitions (svg/mathml ↔ html) can
+     * adjust it without copying the options object on every element.
+     */
+    const xmlMode = options.xmlMode ?? false;
+    let output = "";
+    // eslint-disable-next-line unicorn/no-for-loop
+    for (let index = 0; index < nodes.length; index++) {
+        output += dist_renderNode(nodes[index], options, xmlMode);
+    }
+    return output;
+}
+/* harmony default export */ const dist = (dist_render);
+// ── Internal rendering ───────────────────────────────────────────────
+/**
+ * Render an array of child nodes (skips the single-node wrapping in `render`).
+ * @param children The child nodes to render.
+ * @param options The serialization options.
+ * @param xmlMode The XML mode to use.
+ */
+function renderChildren(children, options, xmlMode) {
+    let output = "";
+    // eslint-disable-next-line unicorn/no-for-loop
+    for (let index = 0; index < children.length; index++) {
+        output += dist_renderNode(children[index], options, xmlMode);
+    }
+    return output;
+}
+function dist_renderNode(node, options, xmlMode) {
+    switch (node.type) {
+        case dist_Root: {
+            return renderChildren(node.children, options, xmlMode);
+        }
+        case dist_Directive: {
+            return `<${node.data}>`;
+        }
+        case dist_Comment: {
+            return `<!--${node.data}-->`;
+        }
+        case dist_CDATA: {
+            return `<![CDATA[${node.children[0].data}]]>`;
+        }
+        case dist_Script:
+        case dist_Style:
+        case dist_Tag: {
+            return dist_renderTag(node, options, xmlMode);
+        }
+        case dist_Text: {
+            const element = node;
+            const data = element.data || "";
+            /*
+             * Skip encoding when entities weren't decoded on input, or when
+             * inside a raw-text element (script, style, etc.) in HTML mode.
+             */
+            if ((options.encodeEntities ?? options.decodeEntities) !== false &&
+                !(!xmlMode &&
+                    element.parent &&
+                    dist_unencodedElements.has(element.parent.name))) {
+                // `xmlMode: "foreign"` is truthy
+                return xmlMode || options.encodeEntities !== "utf8"
+                    ? dist_escape_encodeXML(data)
+                    : dist_escape_escapeText(data);
+            }
+            return data;
+        }
+    }
+}
+function dist_renderTag(element, options, xmlMode) {
+    if (xmlMode === "foreign") {
+        // Correct lowercase element names back to their canonical mixed-case form
+        element.name = foreign_names_elementNames.get(element.name) ?? element.name;
+        // Integration points exit foreign mode: their children are HTML
+        if (element.parent &&
+            dist_foreignModeIntegrationPoints.has(element.parent.name)) {
+            xmlMode = false;
+        }
+    }
+    if (!xmlMode && dist_foreignElements.has(element.name)) {
+        xmlMode = "foreign";
+    }
+    const { name, children } = element;
+    // Cache the void-element check — used for both self-closing and closing-tag logic
+    const isVoid = !xmlMode && dist_voidElements.has(name);
+    let tag = `<${name}${dist_formatAttributes(element.attribs, options, xmlMode)}`;
+    if (children.length === 0 &&
+        (xmlMode
+            ? options.selfClosingTags !== false
+            : options.selfClosingTags && isVoid)) {
+        // XML: `<br/>`, HTML: `<br />`
+        tag += xmlMode ? "/>" : " />";
+    }
+    else {
+        tag += ">";
+        if (children.length > 0) {
+            tag += renderChildren(children, options, xmlMode);
+        }
+        if (!isVoid) {
+            tag += `</${name}>`;
+        }
+    }
+    return tag;
+}
+// ── Attribute formatting ─────────────────────────────────────────────
+function dist_replaceQuotes(value) {
+    return value.replaceAll('"', "&quot;");
+}
+/**
+ * Serialize an element's attribute map to a string.
+ *
+ * Returns a string with a leading space before each attribute, or an
+ * empty string if there are no attributes. This convention lets the
+ * caller unconditionally concatenate the result onto the tag name.
+ * @param attributes
+ * @param options
+ * @param xmlMode
+ */
+function dist_formatAttributes(attributes, options, xmlMode) {
+    if (!attributes)
+        return "";
+    /*
+     * Pick the right encoder:
+     *  - Encoding disabled → only escape double-quotes (for valid attributes)
+     *  - XML / non-utf8    → full numeric entity encoding (encodeXML)
+     *  - HTML + utf8       → minimal escaping (escapeAttribute)
+     */
+    const encode = (options.encodeEntities ?? options.decodeEntities) === false
+        ? dist_replaceQuotes
+        : xmlMode || options.encodeEntities !== "utf8"
+            ? dist_escape_encodeXML
+            : dist_escape_escapeAttribute;
+    const isForeign = xmlMode === "foreign";
+    const showEmpty = !!(options.emptyAttrs ?? xmlMode);
+    let result = "";
+    for (const key in attributes) {
+        if (!Object.hasOwn(attributes, key))
+            continue;
+        const value = attributes[key];
+        const k = isForeign ? (foreign_names_attributeNames.get(key) ?? key) : key;
+        result +=
+            !showEmpty && (value == null || value === "")
+                ? ` ${k}`
+                : ` ${k}="${encode(value == null ? "" : String(value))}"`;
+    }
+    return result;
+}
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/stringify.js
+
+
+
+/**
+ * @category Stringify
+ * @deprecated Use the `dom-serializer` module directly.
+ * @param node Node to get the outer HTML of.
+ * @param options Options for serialization.
+ * @returns `node`'s outer HTML.
+ */
+function stringify_getOuterHTML(node, options) {
+    return dist(node, options);
+}
+/**
+ * @category Stringify
+ * @deprecated Use the `dom-serializer` module directly.
+ * @param node Node to get the inner HTML of.
+ * @param options Options for serialization.
+ * @returns `node`'s inner HTML.
+ */
+function stringify_getInnerHTML(node, options) {
+    return dist_node_hasChildren(node)
+        ? node.children.map((node) => stringify_getOuterHTML(node, options)).join("")
+        : "";
+}
+/**
+ * Get a node's inner text. Same as `textContent`, but inserts newlines for `<br>` tags. Ignores comments.
+ *
+ * @category Stringify
+ * @deprecated Use `textContent` instead.
+ * @param node Node to get the inner text of.
+ * @returns `node`'s inner text.
+ */
+function stringify_getText(node) {
+    if (Array.isArray(node))
+        return node.map(stringify_getText).join("");
+    if (dist_node_isTag(node))
+        return node.name === "br" ? "\n" : stringify_getText(node.children);
+    if (dist_node_isCDATA(node))
+        return stringify_getText(node.children);
+    if (dist_node_isText(node))
+        return node.data;
+    return "";
+}
+/**
+ * Get a node's text content. Ignores comments.
+ *
+ * @category Stringify
+ * @param node Node to get the text content of.
+ * @returns `node`'s text content.
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent}
+ */
+function dist_stringify_textContent(node) {
+    if (Array.isArray(node))
+        return node.map(dist_stringify_textContent).join("");
+    if (dist_node_hasChildren(node) && !dist_node_isComment(node)) {
+        return dist_stringify_textContent(node.children);
+    }
+    if (dist_node_isText(node))
+        return node.data;
+    return "";
+}
+/**
+ * Get a node's inner text, ignoring `<script>` and `<style>` tags. Ignores comments.
+ *
+ * @category Stringify
+ * @param node Node to get the inner text of.
+ * @returns `node`'s inner text.
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Node/innerText}
+ */
+function stringify_innerText(node) {
+    if (Array.isArray(node))
+        return node.map(stringify_innerText).join("");
+    if (dist_node_hasChildren(node) && (node.type === dist_ElementType.Tag || dist_node_isCDATA(node))) {
+        return stringify_innerText(node.children);
+    }
+    if (dist_node_isText(node))
+        return node.data;
+    return "";
+}
+//# sourceMappingURL=stringify.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/feeds.js
+
+
+/**
+ * Get the feed object from the root of a DOM tree.
+ *
+ * @category Feeds
+ * @param document The DOM to extract the feed from.
+ * @returns The feed.
+ */
+function dist_feeds_getFeed(document) {
+    const feedRoot = feeds_getOneElement(feeds_isValidFeed, document);
+    return feedRoot
+        ? feedRoot.name === "feed"
+            ? feeds_getAtomFeed(feedRoot)
+            : feeds_getRssFeed(feedRoot)
+        : null;
+}
+/**
+ * Parse an Atom feed.
+ *
+ * @param feedRoot The root of the feed.
+ * @returns The parsed feed.
+ */
+function feeds_getAtomFeed(feedRoot) {
+    const childs = feedRoot.children;
+    const feed = {
+        type: "atom",
+        items: dist_legacy_getElementsByTagName("entry", childs).map((item) => {
+            const { children } = item;
+            const entry = { media: feeds_getMediaElements(children) };
+            feeds_addConditionally(entry, "id", "id", children);
+            feeds_addConditionally(entry, "title", "title", children);
+            const href = feeds_getOneElement("link", children)?.attribs["href"];
+            if (href) {
+                entry.link = href;
+            }
+            const description = feeds_fetch("summary", children) || feeds_fetch("content", children);
+            if (description) {
+                entry.description = description;
+            }
+            const pubDate = feeds_fetch("updated", children);
+            if (pubDate) {
+                entry.pubDate = new Date(pubDate);
+            }
+            return entry;
+        }),
+    };
+    feeds_addConditionally(feed, "id", "id", childs);
+    feeds_addConditionally(feed, "title", "title", childs);
+    const href = feeds_getOneElement("link", childs)?.attribs["href"];
+    if (href) {
+        feed.link = href;
+    }
+    feeds_addConditionally(feed, "description", "subtitle", childs);
+    const updated = feeds_fetch("updated", childs);
+    if (updated) {
+        feed.updated = new Date(updated);
+    }
+    feeds_addConditionally(feed, "author", "email", childs, true);
+    return feed;
+}
+/**
+ * Parse a RSS feed.
+ *
+ * @param feedRoot The root of the feed.
+ * @returns The parsed feed.
+ */
+function feeds_getRssFeed(feedRoot) {
+    const childs = feeds_getOneElement("channel", feedRoot.children)?.children ?? [];
+    const feed = {
+        type: feedRoot.name.substr(0, 3),
+        id: "",
+        items: dist_legacy_getElementsByTagName("item", feedRoot.children).map((item) => {
+            const { children } = item;
+            const entry = { media: feeds_getMediaElements(children) };
+            feeds_addConditionally(entry, "id", "guid", children);
+            feeds_addConditionally(entry, "title", "title", children);
+            feeds_addConditionally(entry, "link", "link", children);
+            feeds_addConditionally(entry, "description", "description", children);
+            const pubDate = feeds_fetch("pubDate", children) || feeds_fetch("dc:date", children);
+            if (pubDate)
+                entry.pubDate = new Date(pubDate);
+            return entry;
+        }),
+    };
+    feeds_addConditionally(feed, "title", "title", childs);
+    feeds_addConditionally(feed, "link", "link", childs);
+    feeds_addConditionally(feed, "description", "description", childs);
+    const updated = feeds_fetch("lastBuildDate", childs);
+    if (updated) {
+        feed.updated = new Date(updated);
+    }
+    feeds_addConditionally(feed, "author", "managingEditor", childs, true);
+    return feed;
+}
+const feeds_MEDIA_KEYS_STRING = ["url", "type", "lang"];
+const feeds_MEDIA_KEYS_INT = [
+    "fileSize",
+    "bitrate",
+    "framerate",
+    "samplingrate",
+    "channels",
+    "duration",
+    "height",
+    "width",
+];
+/**
+ * Get all media elements of a feed item.
+ *
+ * @param where Nodes to search in.
+ * @returns Media elements.
+ */
+function feeds_getMediaElements(where) {
+    return dist_legacy_getElementsByTagName("media:content", where).map((element) => {
+        const { attribs } = element;
+        const media = {
+            medium: attribs["medium"],
+            isDefault: !!attribs["isDefault"],
+        };
+        for (const attrib of feeds_MEDIA_KEYS_STRING) {
+            if (attribs[attrib]) {
+                media[attrib] = attribs[attrib];
+            }
+        }
+        for (const attrib of feeds_MEDIA_KEYS_INT) {
+            if (attribs[attrib]) {
+                media[attrib] = Number.parseInt(attribs[attrib], 10);
+            }
+        }
+        if (attribs["expression"]) {
+            media.expression = attribs["expression"];
+        }
+        return media;
+    });
+}
+/**
+ * Get one element by tag name.
+ *
+ * @param tagName Tag name to look for
+ * @param node Node to search in
+ * @returns The element or null
+ */
+function feeds_getOneElement(tagName, node) {
+    return dist_legacy_getElementsByTagName(tagName, node, true, 1)[0];
+}
+/**
+ * Get the text content of an element with a certain tag name.
+ *
+ * @param tagName Tag name to look for.
+ * @param where Node to search in.
+ * @param recurse Whether to recurse into child nodes.
+ * @returns The text content of the element.
+ */
+function feeds_fetch(tagName, where, recurse = false) {
+    return dist_stringify_textContent(dist_legacy_getElementsByTagName(tagName, where, recurse, 1)).trim();
+}
+/**
+ * Adds a property to an object if it has a value.
+ *
+ * @param object Object to be extended.
+ * @param property Property name.
+ * @param tagName Tag name that contains the conditionally added property.
+ * @param where Element to search for the property.
+ * @param recurse Whether to recurse into child nodes.
+ */
+function feeds_addConditionally(object, property, tagName, where, recurse = false) {
+    const value = feeds_fetch(tagName, where, recurse);
+    if (value)
+        object[property] = value;
+}
+/**
+ * Checks if an element is a feed root node.
+ *
+ * @param value The name of the element to check.
+ * @returns Whether an element is a feed root node.
+ */
+function feeds_isValidFeed(value) {
+    return value === "rss" || value === "feed" || value === "rdf:RDF";
+}
+//# sourceMappingURL=feeds.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/helpers.js
+
+/**
+ * Given an array of nodes, remove any member that is contained by another
+ * member.
+ *
+ * @category Helpers
+ * @param nodes Nodes to filter.
+ * @returns Remaining nodes that aren't contained by other nodes.
+ */
+function helpers_removeSubsets(nodes) {
+    let index = nodes.length;
+    /*
+     * Check if each node (or one of its ancestors) is already contained in the
+     * array.
+     */
+    while (--index >= 0) {
+        const node = nodes[index];
+        /*
+         * Remove the node if it is not unique.
+         * We are going through the array from the end, so we only
+         * have to check nodes that preceed the node under consideration in the array.
+         */
+        if (index > 0 && nodes.lastIndexOf(node, index - 1) >= 0) {
+            nodes.splice(index, 1);
+            continue;
+        }
+        for (let ancestor = node.parent; ancestor; ancestor = ancestor.parent) {
+            if (nodes.includes(ancestor)) {
+                nodes.splice(index, 1);
+                break;
+            }
+        }
+    }
+    return nodes;
+}
+/**
+ * @category Helpers
+ * @see {@link http://dom.spec.whatwg.org/#dom-node-comparedocumentposition}
+ */
+var helpers_DocumentPosition;
+(function (DocumentPosition) {
+    DocumentPosition[DocumentPosition["DISCONNECTED"] = 1] = "DISCONNECTED";
+    DocumentPosition[DocumentPosition["PRECEDING"] = 2] = "PRECEDING";
+    DocumentPosition[DocumentPosition["FOLLOWING"] = 4] = "FOLLOWING";
+    DocumentPosition[DocumentPosition["CONTAINS"] = 8] = "CONTAINS";
+    DocumentPosition[DocumentPosition["CONTAINED_BY"] = 16] = "CONTAINED_BY";
+})(helpers_DocumentPosition || (helpers_DocumentPosition = {}));
+/**
+ * Compare the position of one node against another node in any other document,
+ * returning a bitmask with the values from {@link DocumentPosition}.
+ *
+ * Document order:
+ * > There is an ordering, document order, defined on all the nodes in the
+ * > document corresponding to the order in which the first character of the
+ * > XML representation of each node occurs in the XML representation of the
+ * > document after expansion of general entities. Thus, the document element
+ * > node will be the first node. Element nodes occur before their children.
+ * > Thus, document order orders element nodes in order of the occurrence of
+ * > their start-tag in the XML (after expansion of entities). The attribute
+ * > nodes of an element occur after the element and before its children. The
+ * > relative order of attribute nodes is implementation-dependent.
+ *
+ * Source:
+ * http://www.w3.org/TR/DOM-Level-3-Core/glossary.html#dt-document-order
+ *
+ * @category Helpers
+ * @param nodeA The first node to use in the comparison
+ * @param nodeB The second node to use in the comparison
+ * @returns A bitmask describing the input nodes' relative position.
+ *
+ * See http://dom.spec.whatwg.org/#dom-node-comparedocumentposition for
+ * a description of these values.
+ */
+function helpers_compareDocumentPosition(nodeA, nodeB) {
+    const aParents = [];
+    const bParents = [];
+    if (nodeA === nodeB) {
+        return 0;
+    }
+    let current = dist_node_hasChildren(nodeA) ? nodeA : nodeA.parent;
+    while (current) {
+        aParents.unshift(current);
+        current = current.parent;
+    }
+    current = dist_node_hasChildren(nodeB) ? nodeB : nodeB.parent;
+    while (current) {
+        bParents.unshift(current);
+        current = current.parent;
+    }
+    const maxIndex = Math.min(aParents.length, bParents.length);
+    let index = 0;
+    while (index < maxIndex && aParents[index] === bParents[index]) {
+        index++;
+    }
+    if (index === 0) {
+        return helpers_DocumentPosition.DISCONNECTED;
+    }
+    const sharedParent = aParents[index - 1];
+    const siblings = sharedParent.children;
+    const aSibling = aParents[index];
+    const bSibling = bParents[index];
+    if (siblings.indexOf(aSibling) > siblings.indexOf(bSibling)) {
+        if (sharedParent === nodeB) {
+            return helpers_DocumentPosition.FOLLOWING | helpers_DocumentPosition.CONTAINED_BY;
+        }
+        return helpers_DocumentPosition.FOLLOWING;
+    }
+    if (sharedParent === nodeA) {
+        return helpers_DocumentPosition.PRECEDING | helpers_DocumentPosition.CONTAINS;
+    }
+    return helpers_DocumentPosition.PRECEDING;
+}
+/**
+ * Sort an array of nodes based on their relative position in the document,
+ * removing any duplicate nodes. If the array contains nodes that do not belong
+ * to the same document, sort order is unspecified.
+ *
+ * @category Helpers
+ * @param nodes Array of DOM nodes.
+ * @returns Collection of unique nodes, sorted in document order.
+ */
+function helpers_uniqueSort(nodes) {
+    nodes = nodes.filter((node, index, array) => !array.includes(node, index + 1));
+    nodes.sort((a, b) => {
+        const relative = helpers_compareDocumentPosition(a, b);
+        if (relative & helpers_DocumentPosition.PRECEDING) {
+            return -1;
+        }
+        if (relative & helpers_DocumentPosition.FOLLOWING) {
+            return 1;
+        }
+        return 0;
+    });
+    return nodes;
+}
+//# sourceMappingURL=helpers.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/manipulation.js
+/**
+ * Remove an element from the dom
+ *
+ * @category Manipulation
+ * @param element The element to be removed.
+ */
+function removeElement(element) {
+    if (element.prev)
+        element.prev.next = element.next;
+    if (element.next)
+        element.next.prev = element.prev;
+    if (element.parent) {
+        const childs = element.parent.children;
+        const childsIndex = childs.lastIndexOf(element);
+        if (childsIndex !== -1) {
+            childs.splice(childsIndex, 1);
+        }
+    }
+    element.next = null;
+    element.prev = null;
+    element.parent = null;
+}
+/**
+ * Replace an element in the dom
+ *
+ * @category Manipulation
+ * @param element The element to be replaced.
+ * @param replacement The element to be added
+ */
+function replaceElement(element, replacement) {
+    replacement.prev = element.prev;
+    if (replacement.prev) {
+        replacement.prev.next = replacement;
+    }
+    replacement.next = element.next;
+    if (replacement.next) {
+        replacement.next.prev = replacement;
+    }
+    replacement.parent = element.parent;
+    if (replacement.parent) {
+        const { children } = replacement.parent;
+        const elementIndex = children.lastIndexOf(element);
+        if (elementIndex === -1) {
+            return;
+        }
+        children[elementIndex] = replacement;
+        element.parent = null;
+    }
+}
+/**
+ * Append a child to an element.
+ *
+ * @category Manipulation
+ * @param parent The element to append to.
+ * @param child The element to be added as a child.
+ */
+function appendChild(parent, child) {
+    removeElement(child);
+    child.next = null;
+    child.parent = parent;
+    if (parent.children.push(child) > 1) {
+        const sibling = parent.children[parent.children.length - 2];
+        sibling.next = child;
+        child.prev = sibling;
+    }
+    else {
+        child.prev = null;
+    }
+}
+/**
+ * Append an element after another.
+ *
+ * @category Manipulation
+ * @param element The element to append after.
+ * @param next The element be added.
+ */
+function manipulation_append(element, next) {
+    removeElement(next);
+    const { parent } = element;
+    const currentNext = element.next;
+    next.next = currentNext;
+    next.prev = element;
+    element.next = next;
+    next.parent = parent;
+    if (currentNext) {
+        currentNext.prev = next;
+        if (parent) {
+            const childs = parent.children;
+            childs.splice(childs.lastIndexOf(currentNext), 0, next);
+        }
+    }
+    else if (parent) {
+        parent.children.push(next);
+    }
+}
+/**
+ * Prepend a child to an element.
+ *
+ * @category Manipulation
+ * @param parent The element to prepend before.
+ * @param child The element to be added as a child.
+ */
+function prependChild(parent, child) {
+    removeElement(child);
+    child.parent = parent;
+    child.prev = null;
+    if (parent.children.unshift(child) === 1) {
+        child.next = null;
+    }
+    else {
+        const sibling = parent.children[1];
+        sibling.prev = child;
+        child.next = sibling;
+    }
+}
+/**
+ * Prepend an element before another.
+ *
+ * @category Manipulation
+ * @param element The element to prepend before.
+ * @param previous The element to be added.
+ */
+function prepend(element, previous) {
+    removeElement(previous);
+    const { parent } = element;
+    if (parent) {
+        const childs = parent.children;
+        childs.splice(childs.indexOf(element), 0, previous);
+    }
+    if (element.prev) {
+        element.prev.next = previous;
+    }
+    previous.parent = parent;
+    previous.prev = element.prev;
+    previous.next = element;
+    element.prev = previous;
+}
+//# sourceMappingURL=manipulation.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/traversal.js
+
+/**
+ * Get a node's children.
+ *
+ * @category Traversal
+ * @param element Node to get the children of.
+ * @returns `element`'s children, or an empty array.
+ */
+function traversal_getChildren(element) {
+    return dist_node_hasChildren(element) ? element.children : [];
+}
+function traversal_getParent(element) {
+    return element.parent || null;
+}
+/**
+ * Gets an elements siblings, including the element itself.
+ *
+ * Attempts to get the children through the element's parent first. If we don't
+ * have a parent (the element is a root node), we walk the element's `prev` &
+ * `next` to get all remaining nodes.
+ *
+ * @category Traversal
+ * @param element Element to get the siblings of.
+ * @returns `element`'s siblings, including `element`.
+ */
+function traversal_getSiblings(element) {
+    const parent = traversal_getParent(element);
+    if (parent != null)
+        return traversal_getChildren(parent);
+    const siblings = [element];
+    let { prev, next } = element;
+    while (prev != null) {
+        siblings.unshift(prev);
+        ({ prev } = prev);
+    }
+    while (next != null) {
+        siblings.push(next);
+        ({ next } = next);
+    }
+    return siblings;
+}
+/**
+ * Gets an attribute from an element.
+ *
+ * @category Traversal
+ * @param element Element to check.
+ * @param name Attribute name to retrieve.
+ * @returns The element's attribute value, or `undefined`.
+ */
+function traversal_getAttributeValue(element, name) {
+    const { attribs } = element;
+    return attribs?.[name];
+}
+/**
+ * Checks whether an element has an attribute.
+ *
+ * @category Traversal
+ * @param element Element to check.
+ * @param name Attribute name to look for.
+ * @returns Returns whether `element` has the attribute `name`.
+ */
+function traversal_hasAttrib(element, name) {
+    const { attribs } = element;
+    return (attribs != null && Object.hasOwn(attribs, name) && attribs[name] != null);
+}
+/**
+ * Get the tag name of an element.
+ *
+ * @category Traversal
+ * @param element The element to get the name for.
+ * @returns The tag name of `element`.
+ */
+function traversal_getName(element) {
+    return element.name;
+}
+/**
+ * Returns the next element sibling of a node.
+ *
+ * @category Traversal
+ * @param element The element to get the next sibling of.
+ * @returns `element`'s next sibling that is a tag, or `null` if there is no next
+ * sibling.
+ */
+function traversal_nextElementSibling(element) {
+    let { next } = element;
+    while (next !== null && !dist_node_isTag(next))
+        ({ next } = next);
+    return next;
+}
+/**
+ * Returns the previous element sibling of a node.
+ *
+ * @category Traversal
+ * @param element The element to get the previous sibling of.
+ * @returns `element`'s previous sibling that is a tag, or `null` if there is no
+ * previous sibling.
+ */
+// eslint-disable-next-line unicorn/prevent-abbreviations -- Keep public API name for backwards compatibility.
+function traversal_prevElementSibling(element) {
+    let { prev } = element;
+    while (prev !== null && !dist_node_isTag(prev))
+        ({ prev } = prev);
+    return prev;
+}
+//# sourceMappingURL=traversal.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/domutils@4.0.2/node_modules/domutils/dist/index.js
+
+
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/attributes.js
 
 /**
  * All reserved characters in a regex, used for escaping.
@@ -49028,13 +50354,12 @@ function getProcedure(token) {
  * https://github.com/slevithan/xregexp/blob/95eeebeb8fac8754d54eafe2b4743661ac1cf028/src/xregexp.js#L794
  */
 const reChars = /[-[\]{}()*+?.,\\^$|#\s]/g;
+const whitespaceRe = /\s/;
 function escapeRegex(value) {
     return value.replace(reChars, "\\$&");
 }
 /**
  * Attributes that are case-insensitive in HTML.
- *
- * @private
  * @see https://html.spec.whatwg.org/multipage/semantics-other.html#case-sensitivity-of-selectors
  */
 const caseInsensitiveAttributes = new Set([
@@ -49102,226 +50427,314 @@ const attributeRules = {
         let { value } = data;
         if (shouldIgnoreCase(data, options)) {
             value = value.toLowerCase();
-            return (elem) => {
-                const attr = adapter.getAttributeValue(elem, name);
-                return (attr != null &&
-                    attr.length === value.length &&
-                    attr.toLowerCase() === value &&
-                    next(elem));
+            return (element) => {
+                const attribute = adapter.getAttributeValue(element, name);
+                return (attribute != null &&
+                    attribute.length === value.length &&
+                    attribute.toLowerCase() === value &&
+                    next(element));
             };
         }
-        return (elem) => adapter.getAttributeValue(elem, name) === value && next(elem);
+        return (element) => adapter.getAttributeValue(element, name) === value && next(element);
     },
     hyphen(next, data, options) {
         const { adapter } = options;
         const { name } = data;
         let { value } = data;
-        const len = value.length;
+        const { length } = value;
         if (shouldIgnoreCase(data, options)) {
             value = value.toLowerCase();
-            return function hyphenIC(elem) {
-                const attr = adapter.getAttributeValue(elem, name);
-                return (attr != null &&
-                    (attr.length === len || attr.charAt(len) === "-") &&
-                    attr.substr(0, len).toLowerCase() === value &&
-                    next(elem));
+            return function hyphenIC(element) {
+                const attribute = adapter.getAttributeValue(element, name);
+                return (attribute != null &&
+                    (attribute.length === length ||
+                        attribute.charAt(length) === "-") &&
+                    attribute.substr(0, length).toLowerCase() === value &&
+                    next(element));
             };
         }
-        return function hyphen(elem) {
-            const attr = adapter.getAttributeValue(elem, name);
-            return (attr != null &&
-                (attr.length === len || attr.charAt(len) === "-") &&
-                attr.substr(0, len) === value &&
-                next(elem));
+        return function hyphen(element) {
+            const attribute = adapter.getAttributeValue(element, name);
+            return (attribute != null &&
+                (attribute.length === length ||
+                    attribute.charAt(length) === "-") &&
+                attribute.substr(0, length) === value &&
+                next(element));
         };
     },
     element(next, data, options) {
         const { adapter } = options;
         const { name, value } = data;
-        if (/\s/.test(value)) {
-            return boolbase.falseFunc;
+        if (whitespaceRe.test(value)) {
+            return falseFunc;
         }
         const regex = new RegExp(`(?:^|\\s)${escapeRegex(value)}(?:$|\\s)`, shouldIgnoreCase(data, options) ? "i" : "");
-        return function element(elem) {
-            const attr = adapter.getAttributeValue(elem, name);
-            return (attr != null &&
-                attr.length >= value.length &&
-                regex.test(attr) &&
-                next(elem));
+        return function element(node) {
+            const attribute = adapter.getAttributeValue(node, name);
+            return (attribute != null &&
+                attribute.length >= value.length &&
+                regex.test(attribute) &&
+                next(node));
         };
     },
     exists(next, { name }, { adapter }) {
-        return (elem) => adapter.hasAttrib(elem, name) && next(elem);
+        return (element) => adapter.hasAttrib(element, name) && next(element);
     },
     start(next, data, options) {
         const { adapter } = options;
         const { name } = data;
         let { value } = data;
-        const len = value.length;
-        if (len === 0) {
-            return boolbase.falseFunc;
+        const { length } = value;
+        if (length === 0) {
+            return falseFunc;
         }
         if (shouldIgnoreCase(data, options)) {
             value = value.toLowerCase();
-            return (elem) => {
-                const attr = adapter.getAttributeValue(elem, name);
-                return (attr != null &&
-                    attr.length >= len &&
-                    attr.substr(0, len).toLowerCase() === value &&
-                    next(elem));
+            return (element) => {
+                const attribute = adapter.getAttributeValue(element, name);
+                return (attribute != null &&
+                    attribute.length >= length &&
+                    attribute.substr(0, length).toLowerCase() === value &&
+                    next(element));
             };
         }
-        return (elem) => {
-            var _a;
-            return !!((_a = adapter.getAttributeValue(elem, name)) === null || _a === void 0 ? void 0 : _a.startsWith(value)) &&
-                next(elem);
-        };
+        return (element) => !!adapter.getAttributeValue(element, name)?.startsWith(value) &&
+            next(element);
     },
     end(next, data, options) {
         const { adapter } = options;
         const { name } = data;
         let { value } = data;
-        const len = -value.length;
-        if (len === 0) {
-            return boolbase.falseFunc;
+        const length = -value.length;
+        if (length === 0) {
+            return falseFunc;
         }
         if (shouldIgnoreCase(data, options)) {
             value = value.toLowerCase();
-            return (elem) => {
-                var _a;
-                return ((_a = adapter
-                    .getAttributeValue(elem, name)) === null || _a === void 0 ? void 0 : _a.substr(len).toLowerCase()) === value && next(elem);
-            };
+            return (element) => adapter
+                .getAttributeValue(element, name)
+                ?.substr(length)
+                .toLowerCase() === value && next(element);
         }
-        return (elem) => {
-            var _a;
-            return !!((_a = adapter.getAttributeValue(elem, name)) === null || _a === void 0 ? void 0 : _a.endsWith(value)) &&
-                next(elem);
-        };
+        return (element) => !!adapter.getAttributeValue(element, name)?.endsWith(value) &&
+            next(element);
     },
     any(next, data, options) {
         const { adapter } = options;
         const { name, value } = data;
         if (value === "") {
-            return boolbase.falseFunc;
+            return falseFunc;
         }
         if (shouldIgnoreCase(data, options)) {
             const regex = new RegExp(escapeRegex(value), "i");
-            return function anyIC(elem) {
-                const attr = adapter.getAttributeValue(elem, name);
-                return (attr != null &&
-                    attr.length >= value.length &&
-                    regex.test(attr) &&
-                    next(elem));
+            return function anyIC(element) {
+                const attribute = adapter.getAttributeValue(element, name);
+                return (attribute != null &&
+                    attribute.length >= value.length &&
+                    regex.test(attribute) &&
+                    next(element));
             };
         }
-        return (elem) => {
-            var _a;
-            return !!((_a = adapter.getAttributeValue(elem, name)) === null || _a === void 0 ? void 0 : _a.includes(value)) &&
-                next(elem);
-        };
+        return (element) => !!adapter.getAttributeValue(element, name)?.includes(value) &&
+            next(element);
     },
     not(next, data, options) {
         const { adapter } = options;
         const { name } = data;
         let { value } = data;
         if (value === "") {
-            return (elem) => !!adapter.getAttributeValue(elem, name) && next(elem);
+            return (element) => !!adapter.getAttributeValue(element, name) && next(element);
         }
-        else if (shouldIgnoreCase(data, options)) {
+        if (shouldIgnoreCase(data, options)) {
             value = value.toLowerCase();
-            return (elem) => {
-                const attr = adapter.getAttributeValue(elem, name);
-                return ((attr == null ||
-                    attr.length !== value.length ||
-                    attr.toLowerCase() !== value) &&
-                    next(elem));
+            return (element) => {
+                const attribute = adapter.getAttributeValue(element, name);
+                return ((attribute == null ||
+                    attribute.length !== value.length ||
+                    attribute.toLowerCase() !== value) &&
+                    next(element));
             };
         }
-        return (elem) => adapter.getAttributeValue(elem, name) !== value && next(elem);
+        return (element) => adapter.getAttributeValue(element, name) !== value && next(element);
     },
 };
 //# sourceMappingURL=attributes.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/nth-check@2.1.1/node_modules/nth-check/lib/esm/parse.js
-// Following http://www.w3.org/TR/css3-selectors/#nth-child-pseudo
-// Whitespace as per https://www.w3.org/TR/selectors-3/#lex is " \t\r\n\f"
-const whitespace = new Set([9, 10, 12, 13, 32]);
-const ZERO = "0".charCodeAt(0);
-const NINE = "9".charCodeAt(0);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/helpers/querying.js
 /**
- * Parses an expression.
- *
- * @throws An `Error` if parsing fails.
- * @returns An array containing the integer step size and the integer offset of the nth rule.
- * @example nthCheck.parse("2n+3"); // returns [2, 3]
+ * Find all elements matching the query. If not in XML mode, the query will ignore
+ * the contents of `<template>` elements.
+ * @param query - Function that returns true if the element matches the query.
+ * @param nodes - Nodes to query. If a node is an element, its children will be queried.
+ * @param options - Options for querying the document.
+ * @returns All matching elements.
  */
-function parse_parse(formula) {
-    formula = formula.trim().toLowerCase();
-    if (formula === "even") {
-        return [2, 0];
-    }
-    else if (formula === "odd") {
-        return [2, 1];
-    }
-    // Parse [ ['-'|'+']? INTEGER? {N} [ S* ['-'|'+'] S* INTEGER ]?
-    let idx = 0;
-    let a = 0;
-    let sign = readSign();
-    let number = readNumber();
-    if (idx < formula.length && formula.charAt(idx) === "n") {
-        idx++;
-        a = sign * (number !== null && number !== void 0 ? number : 1);
-        skipWhitespace();
-        if (idx < formula.length) {
-            sign = readSign();
-            skipWhitespace();
-            number = readNumber();
+function helpers_querying_findAll(query, nodes, options) {
+    const { adapter, xmlMode = false } = options;
+    const result = [];
+    /** Stack of the arrays we are looking at. */
+    const nodeStack = [nodes];
+    /** Stack of the indices within the arrays. */
+    const indexStack = [0];
+    for (;;) {
+        // First, check if the current array has any more elements to look at.
+        if (indexStack[0] >= nodeStack[0].length) {
+            // If we have no more arrays to look at, we are done.
+            if (nodeStack.length === 1) {
+                return result;
+            }
+            nodeStack.shift();
+            indexStack.shift();
+            // Loop back to the start to continue with the next array.
+            continue;
         }
-        else {
-            sign = number = 0;
+        const element = nodeStack[0][indexStack[0]++];
+        if (!adapter.isTag(element)) {
+            continue;
         }
-    }
-    // Throw if there is anything else
-    if (number === null || idx < formula.length) {
-        throw new Error(`n-th rule couldn't be parsed ('${formula}')`);
-    }
-    return [a, sign * number];
-    function readSign() {
-        if (formula.charAt(idx) === "-") {
-            idx++;
-            return -1;
+        if (query(element)) {
+            result.push(element);
         }
-        if (formula.charAt(idx) === "+") {
-            idx++;
-        }
-        return 1;
-    }
-    function readNumber() {
-        const start = idx;
-        let value = 0;
-        while (idx < formula.length &&
-            formula.charCodeAt(idx) >= ZERO &&
-            formula.charCodeAt(idx) <= NINE) {
-            value = value * 10 + (formula.charCodeAt(idx) - ZERO);
-            idx++;
-        }
-        // Return `null` if we didn't read anything.
-        return idx === start ? null : value;
-    }
-    function skipWhitespace() {
-        while (idx < formula.length &&
-            whitespace.has(formula.charCodeAt(idx))) {
-            idx++;
+        if (xmlMode || adapter.getName(element) !== "template") {
+            /*
+             * Add the children to the stack. We are depth-first, so this is
+             * the next array we look at.
+             */
+            const children = adapter.getChildren(element);
+            if (children.length > 0) {
+                nodeStack.unshift(children);
+                indexStack.unshift(0);
+            }
         }
     }
 }
-//# sourceMappingURL=parse.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/nth-check@2.1.1/node_modules/nth-check/lib/esm/compile.js
+/**
+ * Find the first element matching the query. If not in XML mode, the query will ignore
+ * the contents of `<template>` elements.
+ * @param query - Function that returns true if the element matches the query.
+ * @param nodes - Nodes to query. If a node is an element, its children will be queried.
+ * @param options - Options for querying the document.
+ * @returns The first matching element, or null if there was no match.
+ */
+function helpers_querying_findOne(query, nodes, options) {
+    const { adapter, xmlMode = false } = options;
+    /** Stack of the arrays we are looking at. */
+    const nodeStack = [nodes];
+    /** Stack of the indices within the arrays. */
+    const indexStack = [0];
+    for (;;) {
+        // First, check if the current array has any more elements to look at.
+        if (indexStack[0] >= nodeStack[0].length) {
+            // If we have no more arrays to look at, we are done.
+            if (nodeStack.length === 1) {
+                return null;
+            }
+            nodeStack.shift();
+            indexStack.shift();
+            // Loop back to the start to continue with the next array.
+            continue;
+        }
+        const element = nodeStack[0][indexStack[0]++];
+        if (!adapter.isTag(element)) {
+            continue;
+        }
+        if (query(element)) {
+            return element;
+        }
+        if (xmlMode || adapter.getName(element) !== "template") {
+            /*
+             * Add the children to the stack. We are depth-first, so this is
+             * the next array we look at.
+             */
+            const children = adapter.getChildren(element);
+            if (children.length > 0) {
+                nodeStack.unshift(children);
+                indexStack.unshift(0);
+            }
+        }
+    }
+}
+/**
+ * Get all element siblings after the provided node.
+ * @param element Element candidate being tested.
+ * @param adapter Adapter implementation used for DOM operations.
+ */
+function getNextSiblings(element, adapter) {
+    const siblings = adapter.getSiblings(element);
+    if (siblings.length <= 1) {
+        return [];
+    }
+    const elementIndex = siblings.indexOf(element);
+    if (elementIndex === -1 || elementIndex === siblings.length - 1) {
+        return [];
+    }
+    return siblings.slice(elementIndex + 1).filter(adapter.isTag);
+}
+/**
+ * Get the parent element of a node.
+ * @param node Node to inspect.
+ * @param adapter Adapter implementation used for DOM operations.
+ */
+function getElementParent(node, adapter) {
+    const parent = adapter.getParent(node);
+    return parent != null && adapter.isTag(parent) ? parent : null;
+}
+//# sourceMappingURL=querying.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/pseudo-selectors/aliases.js
+/**
+ * Only text controls can be made read-only, since for other controls (such
+ * as checkboxes and buttons) there is no useful distinction between being
+ * read-only and being disabled.
+ * @see {@link https://html.spec.whatwg.org/multipage/input.html#attr-input-readonly}
+ */
+const textControl = "input:is([type=text i],[type=search i],[type=url i],[type=tel i],[type=email i],[type=password i],[type=date i],[type=month i],[type=week i],[type=time i],[type=datetime-local i],[type=number i])";
+/**
+ * Aliases are pseudos that are expressed as selectors.
+ */
+const aliases = {
+    // Links
+    "any-link": ":is(a, area, link)[href]",
+    link: ":any-link:not(:visited)",
+    // Forms
+    // https://html.spec.whatwg.org/multipage/scripting.html#disabled-elements
+    disabled: `:is(
+        :is(button, input, select, textarea, optgroup, option)[disabled],
+        optgroup[disabled] > option,
+        fieldset[disabled]:not(fieldset[disabled] legend:first-of-type *)
+    )`,
+    enabled: ":is(button, input, select, textarea, optgroup, option, fieldset):not(:disabled)",
+    checked: ":is(:is(input[type=radio], input[type=checkbox])[checked], :selected)",
+    required: ":is(input, select, textarea)[required]",
+    optional: ":is(input, select, textarea):not([required])",
+    "read-only": `[readonly]:is(textarea, ${textControl})`,
+    "read-write": `:not([readonly]):is(textarea, ${textControl})`,
+    // JQuery extensions
+    /**
+     * `:selected` matches option elements that have the `selected` attribute,
+     * or are the first option element in a select element that does not have
+     * the `multiple` attribute and does not have any option elements with the
+     * `selected` attribute.
+     * @see https://html.spec.whatwg.org/multipage/form-elements.html#concept-option-selectedness
+     */
+    selected: "option:is([selected], select:not([multiple]):not(:has(> option[selected])) > :first-of-type)",
+    checkbox: "[type=checkbox]",
+    file: "[type=file]",
+    password: "[type=password]",
+    radio: "[type=radio]",
+    reset: "[type=reset]",
+    image: "[type=image]",
+    submit: "[type=submit]",
+    parent: ":not(:empty)",
+    header: ":is(h1, h2, h3, h4, h5, h6)",
+    button: ":is(button, input[type=button])",
+    input: ":is(input, textarea, select, button)",
+    text: "input:is(:not([type!='']), [type=text])",
+};
+//# sourceMappingURL=aliases.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/nth-check@3.0.1/node_modules/nth-check/dist/compile.js
 
 /**
  * Returns a function that checks if an elements index matches the given rule
  * highly optimized to return the fastest solution.
- *
  * @param parsed A tuple [a, b], as returned by `parse`.
  * @returns A highly optimized function that returns whether an index matches the nth-check.
  * @example
@@ -49350,7 +50763,7 @@ function compile(parsed) {
      * `b < 0` here as we subtracted 1 from `b` above.
      */
     if (b < 0 && a <= 0)
-        return boolbase.falseFunc;
+        return falseFunc;
     // When `a` is in the range -1..1, it matches any element (so only `b` is checked).
     if (a === -1)
         return (index) => index <= b;
@@ -49358,7 +50771,7 @@ function compile(parsed) {
         return (index) => index === b;
     // When `b <= 0` and `a === 1`, they match any element.
     if (a === 1)
-        return b < 0 ? boolbase.trueFunc : (index) => index >= b;
+        return b < 0 ? trueFunc : (index) => index >= b;
     /*
      * Otherwise, modulo can be used to check if there is a match.
      *
@@ -49366,17 +50779,16 @@ function compile(parsed) {
      */
     const absA = Math.abs(a);
     // Get `b mod a`, + a if this is negative.
-    const bMod = ((b % absA) + absA) % absA;
+    const bModulo = ((b % absA) + absA) % absA;
     return a > 1
-        ? (index) => index >= b && index % absA === bMod
-        : (index) => index <= b && index % absA === bMod;
+        ? (index) => index >= b && index % absA === bModulo
+        : (index) => index <= b && index % absA === bModulo;
 }
 /**
  * Returns a function that produces a monotonously increasing sequence of indices.
  *
  * If the sequence has an end, the returned function will return `null` after
  * the last index in the sequence.
- *
  * @param parsed A tuple [a, b], as returned by `parse`.
  * @returns A function that produces a sequence of indices.
  * @example <caption>Always increasing (2n+3)</caption>
@@ -49390,7 +50802,6 @@ function compile(parsed) {
  * gen() // `8`
  * gen() // `11`
  * ```
- *
  * @example <caption>With end value (-2n+10)</caption>
  *
  * ```js
@@ -49414,8 +50825,8 @@ function compile_generate(parsed) {
         // Get `b mod a`
         const minValue = ((b % aPos) + aPos) % aPos;
         return () => {
-            const val = minValue + aPos * n++;
-            return val > b ? null : val;
+            const value = minValue + aPos * n++;
+            return value > b ? null : value;
         };
     }
     if (a === 0)
@@ -49430,8 +50841,86 @@ function compile_generate(parsed) {
     return () => a * n++ + b;
 }
 //# sourceMappingURL=compile.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/nth-check@2.1.1/node_modules/nth-check/lib/esm/index.js
-
+;// CONCATENATED MODULE: ./node_modules/.pnpm/nth-check@3.0.1/node_modules/nth-check/dist/parse.js
+// Following http://www.w3.org/TR/css3-selectors/#nth-child-pseudo
+// Whitespace as per https://www.w3.org/TR/selectors-3/#lex is " \t\r\n\f"
+const whitespace = new Set([9, 10, 12, 13, 32]);
+const ZERO = "0".charCodeAt(0);
+const NINE = "9".charCodeAt(0);
+/**
+ * Parses an expression.
+ * @param formula CSS nth-formula to parse.
+ * @throws {Error} An `Error` if parsing fails.
+ * @returns An array containing the integer step size and the integer offset of the nth rule.
+ * @example nthCheck.parse("2n+3"); // returns [2, 3]
+ */
+function dist_parse_parse(formula) {
+    formula = formula.trim().toLowerCase();
+    switch (formula) {
+        case "even": {
+            return [2, 0];
+        }
+        case "odd": {
+            return [2, 1];
+        }
+    }
+    // Parse [ ['-'|'+']? INTEGER? {N} [ S* ['-'|'+'] S* INTEGER ]?
+    let index = 0;
+    let a = 0;
+    let sign = readSign();
+    let number = readNumber();
+    if (index < formula.length && formula.charAt(index) === "n") {
+        index++;
+        a = sign * (number ?? 1);
+        skipWhitespace();
+        if (index < formula.length) {
+            sign = readSign();
+            skipWhitespace();
+            number = readNumber();
+        }
+        else {
+            sign = number = 0;
+        }
+    }
+    // Throw if there is anything else
+    if (number === null || index < formula.length) {
+        throw new Error(`n-th rule couldn't be parsed ('${formula}')`);
+    }
+    return [a, sign * number];
+    function readSign() {
+        switch (formula.charAt(index)) {
+            case "-": {
+                index++;
+                return -1;
+            }
+            case "+": {
+                index++;
+                break;
+            }
+        }
+        return 1;
+    }
+    function readNumber() {
+        const start = index;
+        let value = 0;
+        while (index < formula.length &&
+            formula.charCodeAt(index) >= ZERO &&
+            formula.charCodeAt(index) <= NINE) {
+            value = value * 10 + (formula.charCodeAt(index) - ZERO);
+            index++;
+        }
+        // Return `null` if we didn't read anything.
+        return index === start ? null : value;
+    }
+    function skipWhitespace() {
+        while (index < formula.length &&
+            whitespace.has(formula.charCodeAt(index))) {
+            index++;
+        }
+    }
+}
+//# sourceMappingURL=parse.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/nth-check@3.0.1/node_modules/nth-check/dist/index.js
 
 
 /**
@@ -49444,7 +50933,6 @@ function compile_generate(parsed) {
  * whether or not the passed _index_ matches the formula.
  *
  * Note: The nth-rule starts counting at `1`, the returned function at `0`.
- *
  * @param formula The formula to compile.
  * @example
  * const check = nthCheck("2n+3");
@@ -49457,13 +50945,12 @@ function compile_generate(parsed) {
  * check(5); // `false`
  * check(6); // `true`
  */
-function nthCheck(formula) {
-    return compile(parse_parse(formula));
+function dist_nthCheck(formula) {
+    return compile(dist_parse_parse(formula));
 }
 /**
  * Parses and compiles a formula to a generator that produces a sequence of indices.
  * Combination of {@link parse} and {@link generate}.
- *
  * @param formula The formula to compile.
  * @returns A function that produces a sequence of indices.
  * @example <caption>Always increasing</caption>
@@ -49477,7 +50964,6 @@ function nthCheck(formula) {
  * gen() // `8`
  * gen() // `11`
  * ```
- *
  * @example <caption>With end value</caption>
  *
  * ```js
@@ -49493,116 +50979,174 @@ function nthCheck(formula) {
 function sequence(formula) {
     return generate(parse(formula));
 }
+
+
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/pseudo-selectors/filters.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/helpers/cache.js
 
-
-function getChildFunc(next, adapter) {
-    return (elem) => {
-        const parent = adapter.getParent(elem);
-        return parent != null && adapter.isTag(parent) && next(elem);
+/**
+ * Some selectors such as `:contains` and (non-relative) `:has` will only be
+ * able to match elements if their parents match the selector (as they contain
+ * a subset of the elements that the parent contains).
+ *
+ * This function wraps the given `matches` function in a function that caches
+ * the results of the parent elements, so that the `matches` function only
+ * needs to be called once for each subtree.
+ * @param next Matcher to run after this matcher succeeds.
+ * @param options Configuration object for cache behavior.
+ * @param options.adapter Adapter implementation used for DOM access.
+ * @param options.cacheResults Whether results should be memoized by input root.
+ * @param matches Compiled matcher function to wrap with caching.
+ */
+function cacheParentResults(next, { adapter, cacheResults }, matches) {
+    if (cacheResults === false || typeof WeakMap === "undefined") {
+        return (element) => next(element) && matches(element);
+    }
+    // Use a cache to avoid re-checking children of an element.
+    // @ts-expect-error `Node` is not extending object
+    const resultCache = new WeakMap();
+    function addResultToCache(element) {
+        const result = matches(element);
+        resultCache.set(element, result);
+        return result;
+    }
+    return function cachedMatcher(element) {
+        if (!next(element)) {
+            return false;
+        }
+        if (resultCache.has(element)) {
+            return resultCache.get(element) ?? false;
+        }
+        // Check all of the element's parents.
+        let node = element;
+        do {
+            const parent = getElementParent(node, adapter);
+            if (parent === null) {
+                return addResultToCache(element);
+            }
+            node = parent;
+        } while (!resultCache.has(node));
+        return resultCache.get(node) ? addResultToCache(element) : false;
     };
 }
+//# sourceMappingURL=cache.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/helpers/options.js
+/**
+ * Create a copy of options, omitting `context` and `rootFunc`.
+ *
+ * This is used when compiling nested selectors (e.g. inside `:is`, `:not`,
+ * `:nth-child(… of S)`) so that the parent compilation state doesn't leak.
+ */
+function copyOptions(options) {
+    // Omit context and rootFunc so parent compilation state doesn't leak.
+    const { context: _, rootFunc: __, ...copied } = options;
+    return copied;
+}
+//# sourceMappingURL=options.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/pseudo-selectors/filters.js
+
+
+
+
+
+
+/**
+ * RFC 4647 extended filtering with pre-split subtags.
+ * @param tag - Lowercased subtags of the element's language value.
+ * @param range - Lowercased subtags of the language range to match against.
+ */
+function extendedFilter(tag, range) {
+    if (range[0] !== "*" && range[0] !== tag[0])
+        return false;
+    let tagIndex = 1;
+    for (let rangeIndex = 1; rangeIndex < range.length; rangeIndex++) {
+        if (range[rangeIndex] === "*")
+            continue;
+        // Skip non-singleton tag subtags until we find a match.
+        while (tagIndex < tag.length && tag[tagIndex] !== range[rangeIndex]) {
+            if (tag[tagIndex++].length <= 1)
+                return false;
+        }
+        if (tagIndex >= tag.length)
+            return false;
+        tagIndex++;
+    }
+    return true;
+}
+/** @see {@link https://www.w3.org/TR/selectors-4/#the-nth-child-pseudo} */
+const nthOfRegex = /^(.+?)\s+of\s+(.+)$/is;
+function compileNth(reverse, ofType) {
+    return function nth(next, rule, options, context, compileToken) {
+        const { adapter, equals } = options;
+        const ofMatch = ofType ? null : rule.match(nthOfRegex);
+        const nthCheck = dist_nthCheck(ofMatch ? ofMatch[1].trim() : rule);
+        if (nthCheck === falseFunc)
+            return falseFunc;
+        const ofSelector = ofMatch && compileToken
+            ? compileToken(parse_parse(ofMatch[2].trim()), copyOptions(options), context)
+            : undefined;
+        if (ofSelector === falseFunc)
+            return falseFunc;
+        if (nthCheck === trueFunc && !ofSelector) {
+            return (element) => getElementParent(element, adapter) !== null && next(element);
+        }
+        const shouldCount = ofSelector
+            ? (_element, sibling) => ofSelector(sibling)
+            : ofType
+                ? (element, sibling) => adapter.getName(sibling) === adapter.getName(element)
+                : trueFunc;
+        if (reverse) {
+            return function nthLast(element) {
+                if (ofSelector && !ofSelector(element))
+                    return false;
+                const siblings = adapter.getSiblings(element);
+                let pos = 0;
+                for (let index = siblings.length - 1; index >= 0; index--) {
+                    const sibling = siblings[index];
+                    if (equals(element, sibling))
+                        break;
+                    if (adapter.isTag(sibling) && shouldCount(element, sibling))
+                        pos++;
+                }
+                return nthCheck(pos) && next(element);
+            };
+        }
+        return function nth(element) {
+            if (ofSelector && !ofSelector(element))
+                return false;
+            const siblings = adapter.getSiblings(element);
+            let pos = 0;
+            for (const sibling of siblings) {
+                if (equals(element, sibling))
+                    break;
+                if (adapter.isTag(sibling) && shouldCount(element, sibling))
+                    pos++;
+            }
+            return nthCheck(pos) && next(element);
+        };
+    };
+}
+/**
+ * Pre-compiled pseudo filters.
+ */
 const filters = {
-    contains(next, text, { adapter }) {
-        return function contains(elem) {
-            return next(elem) && adapter.getText(elem).includes(text);
-        };
+    contains(next, text, options) {
+        const { getText } = options.adapter;
+        return cacheParentResults(next, options, (element) => getText(element).includes(text));
     },
-    icontains(next, text, { adapter }) {
+    icontains(next, text, options) {
         const itext = text.toLowerCase();
-        return function icontains(elem) {
-            return (next(elem) &&
-                adapter.getText(elem).toLowerCase().includes(itext));
-        };
+        const { getText } = options.adapter;
+        return cacheParentResults(next, options, (element) => getText(element).toLowerCase().includes(itext));
     },
     // Location specific methods
-    "nth-child"(next, rule, { adapter, equals }) {
-        const func = nthCheck(rule);
-        if (func === boolbase.falseFunc)
-            return boolbase.falseFunc;
-        if (func === boolbase.trueFunc)
-            return getChildFunc(next, adapter);
-        return function nthChild(elem) {
-            const siblings = adapter.getSiblings(elem);
-            let pos = 0;
-            for (let i = 0; i < siblings.length; i++) {
-                if (equals(elem, siblings[i]))
-                    break;
-                if (adapter.isTag(siblings[i])) {
-                    pos++;
-                }
-            }
-            return func(pos) && next(elem);
-        };
-    },
-    "nth-last-child"(next, rule, { adapter, equals }) {
-        const func = nthCheck(rule);
-        if (func === boolbase.falseFunc)
-            return boolbase.falseFunc;
-        if (func === boolbase.trueFunc)
-            return getChildFunc(next, adapter);
-        return function nthLastChild(elem) {
-            const siblings = adapter.getSiblings(elem);
-            let pos = 0;
-            for (let i = siblings.length - 1; i >= 0; i--) {
-                if (equals(elem, siblings[i]))
-                    break;
-                if (adapter.isTag(siblings[i])) {
-                    pos++;
-                }
-            }
-            return func(pos) && next(elem);
-        };
-    },
-    "nth-of-type"(next, rule, { adapter, equals }) {
-        const func = nthCheck(rule);
-        if (func === boolbase.falseFunc)
-            return boolbase.falseFunc;
-        if (func === boolbase.trueFunc)
-            return getChildFunc(next, adapter);
-        return function nthOfType(elem) {
-            const siblings = adapter.getSiblings(elem);
-            let pos = 0;
-            for (let i = 0; i < siblings.length; i++) {
-                const currentSibling = siblings[i];
-                if (equals(elem, currentSibling))
-                    break;
-                if (adapter.isTag(currentSibling) &&
-                    adapter.getName(currentSibling) === adapter.getName(elem)) {
-                    pos++;
-                }
-            }
-            return func(pos) && next(elem);
-        };
-    },
-    "nth-last-of-type"(next, rule, { adapter, equals }) {
-        const func = nthCheck(rule);
-        if (func === boolbase.falseFunc)
-            return boolbase.falseFunc;
-        if (func === boolbase.trueFunc)
-            return getChildFunc(next, adapter);
-        return function nthLastOfType(elem) {
-            const siblings = adapter.getSiblings(elem);
-            let pos = 0;
-            for (let i = siblings.length - 1; i >= 0; i--) {
-                const currentSibling = siblings[i];
-                if (equals(elem, currentSibling))
-                    break;
-                if (adapter.isTag(currentSibling) &&
-                    adapter.getName(currentSibling) === adapter.getName(elem)) {
-                    pos++;
-                }
-            }
-            return func(pos) && next(elem);
-        };
-    },
+    "nth-child": compileNth(false, false),
+    "nth-last-child": compileNth(true, false),
+    "nth-of-type": compileNth(false, true),
+    "nth-last-of-type": compileNth(true, true),
     // TODO determine the actual root element
     root(next, _rule, { adapter }) {
-        return (elem) => {
-            const parent = adapter.getParent(elem);
-            return (parent == null || !adapter.isTag(parent)) && next(elem);
-        };
+        return (element) => getElementParent(element, adapter) === null && next(element);
     },
     scope(next, rule, options, context) {
         const { equals } = options;
@@ -49612,9 +51156,40 @@ const filters = {
         }
         if (context.length === 1) {
             // NOTE: can't be unpacked, as :has uses this for side-effects
-            return (elem) => equals(context[0], elem) && next(elem);
+            return (element) => equals(context[0], element) && next(element);
         }
-        return (elem) => context.includes(elem) && next(elem);
+        return (element) => context.includes(element) && next(element);
+    },
+    lang(next, code, { adapter }) {
+        const ranges = code
+            .split(",")
+            .map((r) => r.trim())
+            .filter((r) => r.length > 0)
+            .map((r) => r
+            .replace(/^['"]|['"]$/g, "")
+            .toLowerCase()
+            .split("-"));
+        return function lang(element) {
+            let node = element;
+            while (node != null) {
+                const value = adapter.getAttributeValue(node, "xml:lang") ??
+                    adapter.getAttributeValue(node, "lang");
+                if (value != null) {
+                    if (!value) {
+                        return ranges.some((r) => r[0] === "") && next(element);
+                    }
+                    const tag = value.toLowerCase().split("-");
+                    return (ranges.some((r) => extendedFilter(tag, r)) &&
+                        next(element));
+                }
+                const parent = adapter.getParent(node);
+                node =
+                    parent != null && adapter.isTag(parent)
+                        ? parent
+                        : null;
+            }
+            return ranges.some((r) => r[0] === "") && next(element);
+        };
     },
     hover: dynamicStatePseudo("isHovered"),
     visited: dynamicStatePseudo("isVisited"),
@@ -49622,183 +51197,269 @@ const filters = {
 };
 /**
  * Dynamic state pseudos. These depend on optional Adapter methods.
- *
  * @param name The name of the adapter method to call.
  * @returns Pseudo for the `filters` object.
  */
 function dynamicStatePseudo(name) {
     return function dynamicPseudo(next, _rule, { adapter }) {
-        const func = adapter[name];
-        if (typeof func !== "function") {
-            return boolbase.falseFunc;
+        const filterFunction = adapter[name];
+        if (typeof filterFunction !== "function") {
+            return falseFunc;
         }
-        return function active(elem) {
-            return func(elem) && next(elem);
+        return function active(element) {
+            return filterFunction(element) && next(element);
         };
     };
 }
 //# sourceMappingURL=filters.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/pseudo-selectors/pseudos.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/pseudo-selectors/pseudos.js
+/**
+ * CSS limits the characters considered as whitespace to space, tab & line
+ * feed. We add carriage returns as htmlparser2 doesn't normalize them to
+ * line feeds.
+ * @see {@link https://www.w3.org/TR/css-text-3/#white-space}
+ */
+const isDocumentWhiteSpace = /^[ \t\r\n]*$/;
 // While filters are precompiled, pseudos get called when they are needed
+/** Runtime pseudo selector implementations. */
 const pseudos = {
-    empty(elem, { adapter }) {
-        return !adapter.getChildren(elem).some((elem) => 
-        // FIXME: `getText` call is potentially expensive.
-        adapter.isTag(elem) || adapter.getText(elem) !== "");
+    empty(element, { adapter }) {
+        const children = adapter.getChildren(element);
+        return (
+        // First, make sure the tag does not have any element children.
+        children.every((element) => !adapter.isTag(element)) &&
+            // Then, check that the text content is only whitespace.
+            children.every((element) => 
+            // FIXME: `getText` call is potentially expensive.
+            isDocumentWhiteSpace.test(adapter.getText(element))));
     },
-    "first-child"(elem, { adapter, equals }) {
+    "first-child"(element, { adapter, equals }) {
         if (adapter.prevElementSibling) {
-            return adapter.prevElementSibling(elem) == null;
+            return adapter.prevElementSibling(element) == null;
         }
         const firstChild = adapter
-            .getSiblings(elem)
-            .find((elem) => adapter.isTag(elem));
-        return firstChild != null && equals(elem, firstChild);
+            .getSiblings(element)
+            .find((sibling) => adapter.isTag(sibling));
+        return firstChild != null && equals(element, firstChild);
     },
-    "last-child"(elem, { adapter, equals }) {
-        const siblings = adapter.getSiblings(elem);
-        for (let i = siblings.length - 1; i >= 0; i--) {
-            if (equals(elem, siblings[i]))
+    "last-child"(element, { adapter, equals }) {
+        const siblings = adapter.getSiblings(element);
+        for (let index = siblings.length - 1; index >= 0; index--) {
+            if (equals(element, siblings[index])) {
                 return true;
-            if (adapter.isTag(siblings[i]))
-                break;
-        }
-        return false;
-    },
-    "first-of-type"(elem, { adapter, equals }) {
-        const siblings = adapter.getSiblings(elem);
-        const elemName = adapter.getName(elem);
-        for (let i = 0; i < siblings.length; i++) {
-            const currentSibling = siblings[i];
-            if (equals(elem, currentSibling))
-                return true;
-            if (adapter.isTag(currentSibling) &&
-                adapter.getName(currentSibling) === elemName) {
+            }
+            if (adapter.isTag(siblings[index])) {
                 break;
             }
         }
         return false;
     },
-    "last-of-type"(elem, { adapter, equals }) {
-        const siblings = adapter.getSiblings(elem);
-        const elemName = adapter.getName(elem);
-        for (let i = siblings.length - 1; i >= 0; i--) {
-            const currentSibling = siblings[i];
-            if (equals(elem, currentSibling))
+    "first-of-type"(element, { adapter, equals }) {
+        const siblings = adapter.getSiblings(element);
+        const elementName = adapter.getName(element);
+        for (const currentSibling of siblings) {
+            if (equals(element, currentSibling)) {
                 return true;
+            }
             if (adapter.isTag(currentSibling) &&
-                adapter.getName(currentSibling) === elemName) {
+                adapter.getName(currentSibling) === elementName) {
                 break;
             }
         }
         return false;
     },
-    "only-of-type"(elem, { adapter, equals }) {
-        const elemName = adapter.getName(elem);
+    "last-of-type"(element, { adapter, equals }) {
+        const siblings = adapter.getSiblings(element);
+        const elementName = adapter.getName(element);
+        for (let index = siblings.length - 1; index >= 0; index--) {
+            const currentSibling = siblings[index];
+            if (equals(element, currentSibling)) {
+                return true;
+            }
+            if (adapter.isTag(currentSibling) &&
+                adapter.getName(currentSibling) === elementName) {
+                break;
+            }
+        }
+        return false;
+    },
+    "only-of-type"(element, { adapter, equals }) {
+        const elementName = adapter.getName(element);
         return adapter
-            .getSiblings(elem)
-            .every((sibling) => equals(elem, sibling) ||
+            .getSiblings(element)
+            .every((sibling) => equals(element, sibling) ||
             !adapter.isTag(sibling) ||
-            adapter.getName(sibling) !== elemName);
+            adapter.getName(sibling) !== elementName);
     },
-    "only-child"(elem, { adapter, equals }) {
+    "only-child"(element, { adapter, equals }) {
         return adapter
-            .getSiblings(elem)
-            .every((sibling) => equals(elem, sibling) || !adapter.isTag(sibling));
+            .getSiblings(element)
+            .every((sibling) => equals(element, sibling) || !adapter.isTag(sibling));
     },
 };
-function verifyPseudoArgs(func, name, subselect, argIndex) {
+/**
+ * Validate pseudo selector argument arity.
+ * @param pseudoClassCondition Pseudo-function implementation to wrap.
+ * @param name Name of the pseudo selector.
+ * @param subselect Subselector passed to the pseudo-function.
+ * @param argumentIndex Index of the argument parser to apply.
+ */
+function verifyPseudoArguments(pseudoClassCondition, name, subselect, argumentIndex) {
     if (subselect === null) {
-        if (func.length > argIndex) {
+        if (pseudoClassCondition.length > argumentIndex) {
             throw new Error(`Pseudo-class :${name} requires an argument`);
         }
     }
-    else if (func.length === argIndex) {
+    else if (pseudoClassCondition.length === argumentIndex) {
         throw new Error(`Pseudo-class :${name} doesn't have any arguments`);
     }
 }
 //# sourceMappingURL=pseudos.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/pseudo-selectors/aliases.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/helpers/selectors.js
+
 /**
- * Aliases are pseudos that are expressed as selectors.
+ * Check whether a selector token performs traversal.
+ * @param token Selector token(s) to compile.
  */
-const aliases = {
-    // Links
-    "any-link": ":is(a, area, link)[href]",
-    link: ":any-link:not(:visited)",
-    // Forms
-    // https://html.spec.whatwg.org/multipage/scripting.html#disabled-elements
-    disabled: `:is(
-        :is(button, input, select, textarea, optgroup, option)[disabled],
-        optgroup[disabled] > option,
-        fieldset[disabled]:not(fieldset[disabled] legend:first-of-type *)
-    )`,
-    enabled: ":not(:disabled)",
-    checked: ":is(:is(input[type=radio], input[type=checkbox])[checked], option:selected)",
-    required: ":is(input, select, textarea)[required]",
-    optional: ":is(input, select, textarea):not([required])",
-    // JQuery extensions
-    // https://html.spec.whatwg.org/multipage/form-elements.html#concept-option-selectedness
-    selected: "option:is([selected], select:not([multiple]):not(:has(> option[selected])) > :first-of-type)",
-    checkbox: "[type=checkbox]",
-    file: "[type=file]",
-    password: "[type=password]",
-    radio: "[type=radio]",
-    reset: "[type=reset]",
-    image: "[type=image]",
-    submit: "[type=submit]",
-    parent: ":not(:empty)",
-    header: ":is(h1, h2, h3, h4, h5, h6)",
-    button: ":is(button, input[type=button])",
-    input: ":is(input, textarea, select, button)",
-    text: "input:is(:not([type!='']), [type=text])",
-};
-//# sourceMappingURL=aliases.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/pseudo-selectors/subselects.js
+function selectors_isTraversal(token) {
+    return token.type === "_flexibleDescendant" || isTraversal(token);
+}
+/**
+ * Sort the parts of the passed selector, as there is potential for
+ * optimization (some types of selectors are faster than others).
+ * @param array Selector to sort
+ */
+function sortRules(array) {
+    const ratings = array.map(getQuality);
+    for (let index = 1; index < array.length; index++) {
+        const procNew = ratings[index];
+        if (procNew < 0) {
+            continue;
+        }
+        // Use insertion sort to move the token to the correct position.
+        for (let currentIndex = index; currentIndex > 0 && procNew < ratings[currentIndex - 1]; currentIndex--) {
+            const token = array[currentIndex];
+            array[currentIndex] = array[currentIndex - 1];
+            array[currentIndex - 1] = token;
+            ratings[currentIndex] = ratings[currentIndex - 1];
+            ratings[currentIndex - 1] = procNew;
+        }
+    }
+}
+function getAttributeQuality(token) {
+    switch (token.action) {
+        case AttributeAction.Exists: {
+            return 10;
+        }
+        case AttributeAction.Equals: {
+            // Prefer ID selectors (eg. #ID)
+            return token.name === "id" ? 9 : 8;
+        }
+        case AttributeAction.Not: {
+            return 7;
+        }
+        case AttributeAction.Start: {
+            return 6;
+        }
+        case AttributeAction.End: {
+            return 6;
+        }
+        case AttributeAction.Any: {
+            return 5;
+        }
+        case AttributeAction.Hyphen: {
+            return 4;
+        }
+        case AttributeAction.Element: {
+            return 3;
+        }
+    }
+}
+/**
+ * Determine the quality of the passed token. The higher the number, the
+ * faster the token is to execute.
+ * @param token Token to get the quality of.
+ * @returns The token's quality.
+ */
+function getQuality(token) {
+    switch (token.type) {
+        case SelectorType.Universal: {
+            return 50;
+        }
+        case SelectorType.Tag: {
+            return 30;
+        }
+        case SelectorType.Attribute: {
+            return Math.floor(getAttributeQuality(token) /
+                // `ignoreCase` adds some overhead, half the result if applicable.
+                (token.ignoreCase ? 2 : 1));
+        }
+        case SelectorType.Pseudo: {
+            return token.data
+                ? token.name === "has" ||
+                    token.name === "contains" ||
+                    token.name === "icontains"
+                    ? // Expensive in any case — run as late as possible.
+                        0
+                    : Array.isArray(token.data)
+                        ? // Eg. `:is`, `:not`
+                            Math.max(
+                            // If we have traversals, try to avoid executing this selector
+                            0, Math.min(...token.data.map((d) => Math.min(...d.map(getQuality)))))
+                        : 2
+                : 3;
+        }
+        default: {
+            return -1;
+        }
+    }
+}
+/**
+ * Check whether a token or nested token includes `:scope`.
+ * @param t Selector token under inspection.
+ */
+function includesScopePseudo(t) {
+    return (t.type === SelectorType.Pseudo &&
+        (t.name === "scope" ||
+            (Array.isArray(t.data) &&
+                t.data.some((data) => data.some(includesScopePseudo)))));
+}
+//# sourceMappingURL=selectors.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/pseudo-selectors/subselects.js
+
+
+
 
 
 /** Used as a placeholder for :has. Will be replaced with the actual element. */
 const PLACEHOLDER_ELEMENT = {};
-function ensureIsTag(next, adapter) {
-    if (next === boolbase.falseFunc)
-        return boolbase.falseFunc;
-    return (elem) => adapter.isTag(elem) && next(elem);
-}
-function getNextSiblings(elem, adapter) {
-    const siblings = adapter.getSiblings(elem);
-    if (siblings.length <= 1)
-        return [];
-    const elemIndex = siblings.indexOf(elem);
-    if (elemIndex < 0 || elemIndex === siblings.length - 1)
-        return [];
-    return siblings.slice(elemIndex + 1).filter(adapter.isTag);
-}
-function copyOptions(options) {
-    // Not copied: context, rootFunc
-    return {
-        xmlMode: !!options.xmlMode,
-        lowerCaseAttributeNames: !!options.lowerCaseAttributeNames,
-        lowerCaseTags: !!options.lowerCaseTags,
-        quirksMode: !!options.quirksMode,
-        cacheResults: !!options.cacheResults,
-        pseudos: options.pseudos,
-        adapter: options.adapter,
-        equals: options.equals,
-    };
+/**
+ * Check if the selector has any properties that rely on the current element.
+ * If not, we can cache the result of the selector.
+ *
+ * We can't cache selectors that start with a traversal (e.g. `>`, `+`, `~`),
+ * or include a `:scope`.
+ * @param selector - The selector to check.
+ * @returns Whether the selector has any properties that rely on the current element.
+ */
+function hasDependsOnCurrentElement(selector) {
+    return selector.some((sel) => sel.length > 0 &&
+        (selectors_isTraversal(sel[0]) || sel.some(includesScopePseudo)));
 }
 const is = (next, token, options, context, compileToken) => {
-    const func = compileToken(token, copyOptions(options), context);
-    return func === boolbase.trueFunc
+    const compiledToken = compileToken(token, copyOptions(options), context);
+    return compiledToken === trueFunc
         ? next
-        : func === boolbase.falseFunc
-            ? boolbase.falseFunc
-            : (elem) => func(elem) && next(elem);
+        : compiledToken === falseFunc
+            ? falseFunc
+            : (element) => compiledToken(element) && next(element);
 };
 /*
  * :not, :has, :is, :matches and :where have to compile selectors
  * doing this in src/pseudos.ts would lead to circular dependencies,
  * so we add them here
  */
+/** Pseudo selectors that compile nested selectors. */
 const subselects = {
     is,
     /**
@@ -49807,57 +51468,83 @@ const subselects = {
     matches: is,
     where: is,
     not(next, token, options, context, compileToken) {
-        const func = compileToken(token, copyOptions(options), context);
-        return func === boolbase.falseFunc
+        const compiledToken = compileToken(token, copyOptions(options), context);
+        return compiledToken === falseFunc
             ? next
-            : func === boolbase.trueFunc
-                ? boolbase.falseFunc
-                : (elem) => !func(elem) && next(elem);
+            : compiledToken === trueFunc
+                ? falseFunc
+                : (element) => !compiledToken(element) && next(element);
     },
     has(next, subselect, options, _context, compileToken) {
         const { adapter } = options;
-        const opts = copyOptions(options);
-        opts.relativeSelector = true;
-        const context = subselect.some((s) => s.some(isTraversal))
+        const copiedOptions = copyOptions(options);
+        copiedOptions.relativeSelector = true;
+        const context = subselect.some((s) => s.some(selectors_isTraversal))
             ? // Used as a placeholder. Will be replaced with the actual element.
                 [PLACEHOLDER_ELEMENT]
             : undefined;
-        const compiled = compileToken(subselect, opts, context);
-        if (compiled === boolbase.falseFunc)
-            return boolbase.falseFunc;
-        const hasElement = ensureIsTag(compiled, adapter);
-        // If `compiled` is `trueFunc`, we can skip this.
-        if (context && compiled !== boolbase.trueFunc) {
-            /*
-             * `shouldTestNextSiblings` will only be true if the query starts with
-             * a traversal (sibling or adjacent). That means we will always have a context.
-             */
-            const { shouldTestNextSiblings = false } = compiled;
-            return (elem) => {
-                if (!next(elem))
-                    return false;
-                context[0] = elem;
-                const childs = adapter.getChildren(elem);
-                const nextElements = shouldTestNextSiblings
-                    ? [...childs, ...getNextSiblings(elem, adapter)]
-                    : childs;
-                return adapter.existsOne(hasElement, nextElements);
-            };
+        const skipCache = hasDependsOnCurrentElement(subselect);
+        const compiled = compileToken(subselect, copiedOptions, context);
+        if (compiled === falseFunc) {
+            return falseFunc;
         }
-        return (elem) => next(elem) &&
-            adapter.existsOne(hasElement, adapter.getChildren(elem));
+        // If `compiled` is `trueFunc`, we can skip this.
+        if (context && compiled !== trueFunc) {
+            return skipCache
+                ? (element) => {
+                    if (!next(element)) {
+                        return false;
+                    }
+                    context[0] = element;
+                    const childs = adapter.getChildren(element);
+                    return (helpers_querying_findOne(compiled, compiled.shouldTestNextSiblings
+                        ? [
+                            ...childs,
+                            ...getNextSiblings(element, adapter),
+                        ]
+                        : childs, options) !== null);
+                }
+                : cacheParentResults(next, options, (element) => {
+                    context[0] = element;
+                    return (helpers_querying_findOne(compiled, adapter.getChildren(element), options) !== null);
+                });
+        }
+        const hasOne = (element) => helpers_querying_findOne(compiled, adapter.getChildren(element), options) !== null;
+        return skipCache
+            ? (element) => next(element) && hasOne(element)
+            : cacheParentResults(next, options, hasOne);
     },
 };
 //# sourceMappingURL=subselects.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/pseudo-selectors/index.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/pseudo-selectors/index.js
+/*
+ * Pseudo selectors
+ *
+ * Pseudo selectors are available in three forms:
+ *
+ * 1. Filters are called when the selector is compiled and return a function
+ *  that has to return either false, or the results of `next()`.
+ * 2. Pseudos are called on execution. They have to return a boolean.
+ * 3. Subselects work like filters, but have an embedded selector that will be run separately.
+ *
+ * Filters are great if you want to do some pre-processing, or change the call order
+ * of `next()` and your code.
+ * Pseudos should be used to implement simple checks.
+ */
 
 
 
 
 
-
+/**
+ * Compile a pseudo selector into an executable query function.
+ * @param next Matcher to run after this matcher succeeds.
+ * @param selector Selector used to match elements.
+ * @param options Options that control this operation.
+ * @param context Context nodes used to scope selector matching.
+ * @param compileToken Function used to compile nested selector tokens.
+ */
 function compilePseudoSelector(next, selector, options, context, compileToken) {
-    var _a;
     const { name, data } = selector;
     if (Array.isArray(data)) {
         if (!(name in subselects)) {
@@ -49865,55 +51552,61 @@ function compilePseudoSelector(next, selector, options, context, compileToken) {
         }
         return subselects[name](next, data, options, context, compileToken);
     }
-    const userPseudo = (_a = options.pseudos) === null || _a === void 0 ? void 0 : _a[name];
+    const userPseudo = options.pseudos?.[name];
     const stringPseudo = typeof userPseudo === "string" ? userPseudo : aliases[name];
     if (typeof stringPseudo === "string") {
         if (data != null) {
             throw new Error(`Pseudo ${name} doesn't have any arguments`);
         }
         // The alias has to be parsed here, to make sure options are respected.
-        const alias = (0,commonjs.parse)(stringPseudo);
+        const alias = parse_parse(stringPseudo);
         return subselects["is"](next, alias, options, context, compileToken);
     }
     if (typeof userPseudo === "function") {
-        verifyPseudoArgs(userPseudo, name, data, 1);
-        return (elem) => userPseudo(elem, data) && next(elem);
+        verifyPseudoArguments(userPseudo, name, data, 1);
+        return (element) => userPseudo(element, data) && next(element);
     }
     if (name in filters) {
-        return filters[name](next, data, options, context);
+        return filters[name](next, data, options, context, compileToken);
     }
     if (name in pseudos) {
         const pseudo = pseudos[name];
-        verifyPseudoArgs(pseudo, name, data, 2);
-        return (elem) => pseudo(elem, options, data) && next(elem);
+        verifyPseudoArguments(pseudo, name, data, 2);
+        return (element) => pseudo(element, options, data) && next(element);
     }
     throw new Error(`Unknown pseudo-class :${name}`);
 }
+
+
+
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/general.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/general.js
 
 
 
-function getElementParent(node, adapter) {
-    const parent = adapter.getParent(node);
-    if (parent && adapter.isTag(parent)) {
-        return parent;
-    }
-    return null;
-}
+
 /*
  * All available rules
  */
-function compileGeneralSelector(next, selector, options, context, compileToken) {
-    const { adapter, equals } = options;
+/**
+ * Compile a single selector token.
+ * @param next Matcher to run after this matcher succeeds.
+ * @param selector Selector used to match elements.
+ * @param options Options that control this operation.
+ * @param context Context nodes used to scope selector matching.
+ * @param compileToken Function used to compile nested selector tokens.
+ * @param hasExpensiveSubselector Whether the selector contains expensive subselectors.
+ */
+function compileGeneralSelector(next, selector, options, context, compileToken, hasExpensiveSubselector) {
+    const { adapter, equals, cacheResults } = options;
     switch (selector.type) {
-        case commonjs.SelectorType.PseudoElement: {
+        case SelectorType.PseudoElement: {
             throw new Error("Pseudo-elements are not supported by css-select");
         }
-        case commonjs.SelectorType.ColumnCombinator: {
+        case SelectorType.ColumnCombinator: {
             throw new Error("Column combinators are not yet supported by css-select");
         }
-        case commonjs.SelectorType.Attribute: {
+        case SelectorType.Attribute: {
             if (selector.namespace != null) {
                 throw new Error("Namespaced attributes are not yet supported by css-select");
             }
@@ -49922,11 +51615,11 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
             }
             return attributeRules[selector.action](next, selector, options);
         }
-        case commonjs.SelectorType.Pseudo: {
+        case SelectorType.Pseudo: {
             return compilePseudoSelector(next, selector, options, context, compileToken);
         }
         // Tags
-        case commonjs.SelectorType.Tag: {
+        case SelectorType.Tag: {
             if (selector.namespace != null) {
                 throw new Error("Namespaced tag names are not yet supported by css-select");
             }
@@ -49934,16 +51627,17 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
             if (!options.xmlMode || options.lowerCaseTags) {
                 name = name.toLowerCase();
             }
-            return function tag(elem) {
-                return adapter.getName(elem) === name && next(elem);
+            return function tag(element) {
+                return adapter.getName(element) === name && next(element);
             };
         }
         // Traversal
-        case commonjs.SelectorType.Descendant: {
-            if (options.cacheResults === false ||
-                typeof WeakSet === "undefined") {
-                return function descendant(elem) {
-                    let current = elem;
+        case SelectorType.Descendant: {
+            if (!hasExpensiveSubselector ||
+                cacheResults === false ||
+                typeof WeakMap === "undefined") {
+                return function descendant(element) {
+                    let current = element;
                     while ((current = getElementParent(current, adapter))) {
                         if (next(current)) {
                             return true;
@@ -49952,16 +51646,25 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
                     return false;
                 };
             }
-            // @ts-expect-error `ElementNode` is not extending object
-            const isFalseCache = new WeakSet();
-            return function cachedDescendant(elem) {
-                let current = elem;
+            const resultCache = new WeakMap();
+            return function cachedDescendant(element) {
+                let current = element;
+                let result;
                 while ((current = getElementParent(current, adapter))) {
-                    if (!isFalseCache.has(current)) {
-                        if (adapter.isTag(current) && next(current)) {
+                    const cached = resultCache.get(current);
+                    if (cached === undefined) {
+                        result ??= { matches: false };
+                        result.matches = next(current);
+                        resultCache.set(current, result);
+                        if (result.matches) {
                             return true;
                         }
-                        isFalseCache.add(current);
+                    }
+                    else {
+                        if (result) {
+                            result.matches = cached.matches;
+                        }
+                        return cached.matches;
                     }
                 }
                 return false;
@@ -49969,35 +51672,37 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
         }
         case "_flexibleDescendant": {
             // Include element itself, only used while querying an array
-            return function flexibleDescendant(elem) {
-                let current = elem;
+            return function flexibleDescendant(element) {
+                let current = element;
                 do {
-                    if (next(current))
+                    if (next(current)) {
                         return true;
-                } while ((current = getElementParent(current, adapter)));
+                    }
+                    current = getElementParent(current, adapter);
+                } while (current);
                 return false;
             };
         }
-        case commonjs.SelectorType.Parent: {
-            return function parent(elem) {
+        case SelectorType.Parent: {
+            return function parent(element) {
                 return adapter
-                    .getChildren(elem)
-                    .some((elem) => adapter.isTag(elem) && next(elem));
+                    .getChildren(element)
+                    .some((element) => adapter.isTag(element) && next(element));
             };
         }
-        case commonjs.SelectorType.Child: {
-            return function child(elem) {
-                const parent = adapter.getParent(elem);
-                return parent != null && adapter.isTag(parent) && next(parent);
+        case SelectorType.Child: {
+            return function child(element) {
+                const parent = getElementParent(element, adapter);
+                return parent !== null && next(parent);
             };
         }
-        case commonjs.SelectorType.Sibling: {
-            return function sibling(elem) {
-                const siblings = adapter.getSiblings(elem);
-                for (let i = 0; i < siblings.length; i++) {
-                    const currentSibling = siblings[i];
-                    if (equals(elem, currentSibling))
+        case SelectorType.Sibling: {
+            return function sibling(element) {
+                const siblings = adapter.getSiblings(element);
+                for (const currentSibling of siblings) {
+                    if (equals(element, currentSibling)) {
                         break;
+                    }
                     if (adapter.isTag(currentSibling) && next(currentSibling)) {
                         return true;
                     }
@@ -50005,20 +51710,21 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
                 return false;
             };
         }
-        case commonjs.SelectorType.Adjacent: {
+        case SelectorType.Adjacent: {
             if (adapter.prevElementSibling) {
-                return function adjacent(elem) {
-                    const previous = adapter.prevElementSibling(elem);
+                return function adjacent(element) {
+                    // biome-ignore lint/style/noNonNullAssertion: checked by if statement
+                    const previous = adapter.prevElementSibling(element);
                     return previous != null && next(previous);
                 };
             }
-            return function adjacent(elem) {
-                const siblings = adapter.getSiblings(elem);
+            return function adjacent(element) {
+                const siblings = adapter.getSiblings(element);
                 let lastElement;
-                for (let i = 0; i < siblings.length; i++) {
-                    const currentSibling = siblings[i];
-                    if (equals(elem, currentSibling))
+                for (const currentSibling of siblings) {
+                    if (equals(element, currentSibling)) {
                         break;
+                    }
                     if (adapter.isTag(currentSibling)) {
                         lastElement = currentSibling;
                     }
@@ -50026,7 +51732,7 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
                 return !!lastElement && next(lastElement);
             };
         }
-        case commonjs.SelectorType.Universal: {
+        case SelectorType.Universal: {
             if (selector.namespace != null && selector.namespace !== "*") {
                 throw new Error("Namespaced universal selectors are not yet supported by css-select");
             }
@@ -50035,39 +51741,19 @@ function compileGeneralSelector(next, selector, options, context, compileToken) 
     }
 }
 //# sourceMappingURL=general.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/compile.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/compile.js
 
 
 
 
 
-/**
- * Compiles a selector to an executable function.
- *
- * @param selector Selector to compile.
- * @param options Compilation options.
- * @param context Optional context for the selector.
- */
-function compile_compile(selector, options, context) {
-    const next = compileUnsafe(selector, options, context);
-    return ensureIsTag(next, options.adapter);
-}
-function compileUnsafe(selector, options, context) {
-    const token = typeof selector === "string" ? (0,commonjs.parse)(selector) : selector;
-    return compileToken(token, options, context);
-}
-function includesScopePseudo(t) {
-    return (t.type === commonjs.SelectorType.Pseudo &&
-        (t.name === "scope" ||
-            (Array.isArray(t.data) &&
-                t.data.some((data) => data.some(includesScopePseudo)))));
-}
-const DESCENDANT_TOKEN = { type: commonjs.SelectorType.Descendant };
+
+const DESCENDANT_TOKEN = { type: SelectorType.Descendant };
 const FLEXIBLE_DESCENDANT_TOKEN = {
     type: "_flexibleDescendant",
 };
 const SCOPE_TOKEN = {
-    type: commonjs.SelectorType.Pseudo,
+    type: SelectorType.Pseudo,
     name: "scope",
     data: null,
 };
@@ -50077,14 +51763,13 @@ const SCOPE_TOKEN = {
  */
 function absolutize(token, { adapter }, context) {
     // TODO Use better check if the context is a document
-    const hasContext = !!(context === null || context === void 0 ? void 0 : context.every((e) => {
-        const parent = adapter.isTag(e) && adapter.getParent(e);
-        return e === PLACEHOLDER_ELEMENT || (parent && adapter.isTag(parent));
-    }));
+    const hasContext = !!context?.every((element) => element === PLACEHOLDER_ELEMENT ||
+        (adapter.isTag(element) &&
+            getElementParent(element, adapter) !== null));
     for (const t of token) {
         if (t.length > 0 &&
-            isTraversal(t[0]) &&
-            t[0].type !== commonjs.SelectorType.Descendant) {
+            selectors_isTraversal(t[0]) &&
+            t[0].type !== SelectorType.Descendant) {
             // Don't continue in else branch
         }
         else if (hasContext && !t.some(includesScopePseudo)) {
@@ -50096,178 +51781,200 @@ function absolutize(token, { adapter }, context) {
         t.unshift(SCOPE_TOKEN);
     }
 }
-function compileToken(token, options, context) {
-    var _a;
-    token.forEach(sortByProcedure);
-    context = (_a = options.context) !== null && _a !== void 0 ? _a : context;
+/**
+ * Compile a parsed selector token into an executable query function.
+ * @param token Selector token(s) to compile.
+ * @param options Options that control this operation.
+ * @param compilationContext Compilation context for relative selector handling.
+ */
+function compileToken(token, options, compilationContext) {
+    for (const rules of token) {
+        sortRules(rules);
+    }
+    const { context = compilationContext, rootFunc: rootFunction = trueFunc, } = options;
     const isArrayContext = Array.isArray(context);
     const finalContext = context && (Array.isArray(context) ? context : [context]);
     // Check if the selector is relative
     if (options.relativeSelector !== false) {
         absolutize(token, options, finalContext);
     }
-    else if (token.some((t) => t.length > 0 && isTraversal(t[0]))) {
+    else if (token.some((t) => t.length > 0 && selectors_isTraversal(t[0]))) {
         throw new Error("Relative selectors are not allowed when the `relativeSelector` option is disabled");
     }
     let shouldTestNextSiblings = false;
-    const query = token
-        .map((rules) => {
+    let query = falseFunc;
+    combineLoop: for (const rules of token) {
         if (rules.length >= 2) {
             const [first, second] = rules;
-            if (first.type !== commonjs.SelectorType.Pseudo ||
-                first.name !== "scope") {
+            if (first.type !== SelectorType.Pseudo || first.name !== "scope") {
                 // Ignore
             }
             else if (isArrayContext &&
-                second.type === commonjs.SelectorType.Descendant) {
+                second.type === SelectorType.Descendant) {
                 rules[1] = FLEXIBLE_DESCENDANT_TOKEN;
             }
-            else if (second.type === commonjs.SelectorType.Adjacent ||
-                second.type === commonjs.SelectorType.Sibling) {
+            else if (second.type === SelectorType.Adjacent ||
+                second.type === SelectorType.Sibling) {
                 shouldTestNextSiblings = true;
             }
         }
-        return compileRules(rules, options, finalContext);
-    })
-        .reduce(reduceRules, boolbase.falseFunc);
+        let next = rootFunction;
+        let hasExpensiveSubselector = false;
+        for (const rule of rules) {
+            next = compileGeneralSelector(next, rule, options, finalContext, compileToken, hasExpensiveSubselector);
+            const quality = getQuality(rule);
+            if (quality === 0) {
+                hasExpensiveSubselector = true;
+            }
+            // If the sub-selector won't match any elements, skip it.
+            if (next === falseFunc) {
+                continue combineLoop;
+            }
+        }
+        // If we have a function that always returns true, we can stop here.
+        if (next === rootFunction) {
+            return rootFunction;
+        }
+        query = query === falseFunc ? next : or(query, next);
+    }
     query.shouldTestNextSiblings = shouldTestNextSiblings;
     return query;
 }
-function compileRules(rules, options, context) {
-    var _a;
-    return rules.reduce((previous, rule) => previous === boolbase.falseFunc
-        ? boolbase.falseFunc
-        : compileGeneralSelector(previous, rule, options, context, compileToken), (_a = options.rootFunc) !== null && _a !== void 0 ? _a : boolbase.trueFunc);
-}
-function reduceRules(a, b) {
-    if (b === boolbase.falseFunc || a === boolbase.trueFunc) {
-        return a;
-    }
-    if (a === boolbase.falseFunc || b === boolbase.trueFunc) {
-        return b;
-    }
-    return function combine(elem) {
-        return a(elem) || b(elem);
-    };
+function or(a, b) {
+    return (element) => a(element) || b(element);
 }
 //# sourceMappingURL=compile.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@5.2.2/node_modules/css-select/lib/esm/index.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/css-select@7.0.0/node_modules/css-select/dist/index.js
+
+
 
 
 
 
 const defaultEquals = (a, b) => a === b;
 const defaultOptions = {
-    adapter: domutils_lib_esm_namespaceObject,
+    adapter: { ...domutils_dist_namespaceObject, isTag: dist_node_isTag },
     equals: defaultEquals,
 };
 function convertOptionFormats(options) {
-    var _a, _b, _c, _d;
     /*
      * We force one format of options to the other one.
      */
     // @ts-expect-error Default options may have incompatible `Node` / `ElementNode`.
-    const opts = options !== null && options !== void 0 ? options : defaultOptions;
+    const finalOptions = options ?? defaultOptions;
     // @ts-expect-error Same as above.
-    (_a = opts.adapter) !== null && _a !== void 0 ? _a : (opts.adapter = domutils_lib_esm_namespaceObject);
+    finalOptions.adapter ??= defaultOptions.adapter;
     // @ts-expect-error `equals` does not exist on `Options`
-    (_b = opts.equals) !== null && _b !== void 0 ? _b : (opts.equals = (_d = (_c = opts.adapter) === null || _c === void 0 ? void 0 : _c.equals) !== null && _d !== void 0 ? _d : defaultEquals);
-    return opts;
+    finalOptions.equals ??= finalOptions.adapter?.equals ?? defaultEquals;
+    return finalOptions;
 }
-function wrapCompile(func) {
-    return function addAdapter(selector, options, context) {
-        const opts = convertOptionFormats(options);
-        return func(selector, opts, context);
+/**
+ * Compiles a selector to an executable function.
+ *
+ * The returned function checks if each passed node is an element. Use
+ * `_compileUnsafe` to skip this check.
+ * @param selector Selector to compile.
+ * @param options Compilation options.
+ * @param context Optional context for the selector.
+ */
+function dist_compile(selector, options, context) {
+    const convertedOptions = convertOptionFormats(options);
+    const next = _compileUnsafe(selector, convertedOptions, context);
+    return next === falseFunc
+        ? falseFunc
+        : (element) => convertedOptions.adapter.isTag(element) && next(element);
+}
+/**
+ * Like `compile`, but does not add a check if elements are tags.
+ * @param selector Selector used to match elements.
+ * @param options Options that control this operation.
+ * @param context Context nodes used to scope selector matching.
+ */
+function _compileUnsafe(selector, options, context) {
+    return compileToken(typeof selector === "string" ? parse_parse(selector) : selector, convertOptionFormats(options), context);
+}
+function getSelectorFunction(searchFunction) {
+    return function select(query, elements, options) {
+        const convertedOptions = convertOptionFormats(options);
+        if (typeof query !== "function") {
+            query = _compileUnsafe(query, convertedOptions, elements);
+        }
+        const filteredElements = prepareContext(elements, convertedOptions.adapter, query.shouldTestNextSiblings);
+        return searchFunction(query, filteredElements, convertedOptions);
     };
 }
 /**
- * Compiles the query, returns a function.
+ * Normalize a query context and optionally include next siblings.
+ * @param elements Elements to test against sibling-dependent selectors.
+ * @param adapter Adapter implementation used for DOM operations.
+ * @param shouldTestNextSiblings Whether sibling combinators should include following siblings.
  */
-const esm_compile = wrapCompile(compile_compile);
-const _compileUnsafe = wrapCompile(compileUnsafe);
-const _compileToken = wrapCompile(compileToken);
-function getSelectorFunc(searchFunc) {
-    return function select(query, elements, options) {
-        const opts = convertOptionFormats(options);
-        if (typeof query !== "function") {
-            query = compileUnsafe(query, opts, elements);
-        }
-        const filteredElements = prepareContext(elements, opts.adapter, query.shouldTestNextSiblings);
-        return searchFunc(query, filteredElements, opts);
-    };
-}
-function prepareContext(elems, adapter, shouldTestNextSiblings = false) {
+function prepareContext(elements, adapter, shouldTestNextSiblings = false) {
     /*
      * Add siblings if the query requires them.
      * See https://github.com/fb55/css-select/pull/43#issuecomment-225414692
      */
     if (shouldTestNextSiblings) {
-        elems = appendNextSiblings(elems, adapter);
+        elements = appendNextSiblings(elements, adapter);
     }
-    return Array.isArray(elems)
-        ? adapter.removeSubsets(elems)
-        : adapter.getChildren(elems);
+    return Array.isArray(elements)
+        ? adapter.removeSubsets(elements)
+        : adapter.getChildren(elements);
 }
-function appendNextSiblings(elem, adapter) {
+function appendNextSiblings(element, adapter) {
     // Order matters because jQuery seems to check the children before the siblings
-    const elems = Array.isArray(elem) ? elem.slice(0) : [elem];
-    const elemsLength = elems.length;
-    for (let i = 0; i < elemsLength; i++) {
-        const nextSiblings = getNextSiblings(elems[i], adapter);
-        elems.push(...nextSiblings);
+    const elements = Array.isArray(element) ? [...element] : [element];
+    const elementsLength = elements.length;
+    for (let index = 0; index < elementsLength; index++) {
+        const nextSiblings = getNextSiblings(elements[index], adapter);
+        elements.push(...nextSiblings);
     }
-    return elems;
+    return elements;
 }
 /**
  * @template Node The generic Node type for the DOM adapter being used.
  * @template ElementNode The Node type for elements for the DOM adapter being used.
- * @param elems Elements to query. If it is an element, its children will be queried..
+ * @param elems Elements to query. If it is an element, its children will be queried.
  * @param query can be either a CSS selector string or a compiled query function.
  * @param [options] options for querying the document.
  * @see compile for supported selector queries.
  * @returns All matching elements.
- *
  */
-const esm_selectAll = getSelectorFunc((query, elems, options) => query === boolbase.falseFunc || !elems || elems.length === 0
+const dist_selectAll = getSelectorFunction((query, elements, options) => query === falseFunc || !elements || elements.length === 0
     ? []
-    : options.adapter.findAll(query, elems));
+    : helpers_querying_findAll(query, elements, options));
 /**
  * @template Node The generic Node type for the DOM adapter being used.
  * @template ElementNode The Node type for elements for the DOM adapter being used.
- * @param elems Elements to query. If it is an element, its children will be queried..
+ * @param elems Elements to query. If it is an element, its children will be queried.
  * @param query can be either a CSS selector string or a compiled query function.
  * @param [options] options for querying the document.
  * @see compile for supported selector queries.
  * @returns the first match, or null if there was no match.
  */
-const selectOne = getSelectorFunc((query, elems, options) => query === boolbase.falseFunc || !elems || elems.length === 0
+const selectOne = getSelectorFunction((query, elements, options) => query === falseFunc || !elements || elements.length === 0
     ? null
-    : options.adapter.findOne(query, elems));
+    : helpers_querying_findOne(query, elements, options));
 /**
  * Tests whether or not an element is matched by query.
- *
  * @template Node The generic Node type for the DOM adapter being used.
  * @template ElementNode The Node type for elements for the DOM adapter being used.
- * @param elem The element to test if it matches the query.
+ * @param element The element to test if it matches the query.
  * @param query can be either a CSS selector string or a compiled query function.
  * @param [options] options for querying the document.
  * @see compile for supported selector queries.
- * @returns
+ * @returns Whether the element matches the query.
  */
-function esm_is(elem, query, options) {
-    const opts = convertOptionFormats(options);
-    return (typeof query === "function" ? query : compile_compile(query, opts))(elem);
+function dist_is(element, query, options) {
+    return (typeof query === "function" ? query : dist_compile(query, options))(element);
 }
 /**
  * Alias for selectAll(query, elems, options).
  * @see [compile] for supported selector queries.
  */
-/* harmony default export */ const css_select_lib_esm = ((/* unused pure expression or super */ null && (esm_selectAll)));
-// Export filters, pseudos and aliases to allow users to supply their own.
-/** @deprecated Use the `pseudos` option instead. */
-
+/* harmony default export */ const css_select_dist = ((/* unused pure expression or super */ null && (dist_selectAll)));
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/matches.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/matches.js
 
 
 
@@ -50367,7 +52074,7 @@ const adapter = {
   findOne: matches_findOne
 };
 
-const prepareMatch = (element, selectors) => esm_compile(
+const prepareMatch = (element, selectors) => dist_compile(
   selectors,
   {
     context: selectors.includes(':scope') ? element : void 0,
@@ -50376,7 +52083,7 @@ const prepareMatch = (element, selectors) => esm_compile(
   }
 );
 
-const matches = (element, selectors) => esm_is(
+const matches = (element, selectors) => dist_is(
   element,
   selectors,
   {
@@ -50387,7 +52094,7 @@ const matches = (element, selectors) => esm_is(
   }
 );
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/text.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/text.js
 
 
 
@@ -50431,7 +52138,7 @@ class text_Text extends CharacterData {
   toString() { return text_escaper_escape(this[VALUE]); }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/mixin/parent-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/mixin/parent-node.js
 // https://dom.spec.whatwg.org/#interface-parentnode
 // Document, DocumentFragment, Element
 
@@ -50718,7 +52425,7 @@ class ParentNode extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/mixin/non-element-parent-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/mixin/non-element-parent-node.js
 // https://dom.spec.whatwg.org/#interface-nonelementparentnode
 // Document, DocumentFragment
 
@@ -50762,7 +52469,7 @@ class NonElementParentNode extends ParentNode {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/document-fragment.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/document-fragment.js
 
 
 
@@ -50775,7 +52482,7 @@ class DocumentFragment extends NonElementParentNode {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/document-type.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/document-type.js
 
 
 
@@ -50818,7 +52525,7 @@ class document_type_DocumentType extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/mixin/inner-html.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/mixin/inner-html.js
 
 
 
@@ -50860,7 +52567,7 @@ function setOwnerDocument(node) {
 /* harmony default export */ const uhyphen_esm = (camel => camel.replace(/(([A-Z0-9])([A-Z0-9][a-z]))|(([a-z0-9]+)([A-Z]))/g, '$2$5-$3$6')
                              .toLowerCase());
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/dom/string-map.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/dom/string-map.js
 
 
 
@@ -50907,7 +52614,7 @@ class DOMStringMap {
 
 setPrototypeOf(DOMStringMap.prototype, null);
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/dom/token-list.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/dom/token-list.js
 
 
 
@@ -51010,7 +52717,7 @@ class DOMTokenList extends Set {
   supports() { return true; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/css-style-declaration.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/css-style-declaration.js
 
 
 
@@ -51048,7 +52755,7 @@ const css_style_declaration_handler = {
       return getKeys(style).length;
     if (/^\d+$/.test(name))
       return getKeys(style)[name];
-    return style.get(uhyphen_esm(name));
+    return style.get(uhyphen_esm(name)) ?? '';
   },
 
   set(style, name, value) {
@@ -51140,7 +52847,7 @@ function push(value, key) {
     this.push(`${key}:${value}`);
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/event.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/event.js
 // https://dom.spec.whatwg.org/#interface-event
 
 /* c8 ignore start */
@@ -51206,7 +52913,7 @@ class GlobalEvent {
 
 /* c8 ignore stop */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/named-node-map.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/named-node-map.js
 /**
  * @implements globalThis.NamedNodeMap
  */
@@ -51250,7 +52957,7 @@ class NamedNodeMap extends Array {
   /* c8 ignore stop */
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/shadow-root.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/shadow-root.js
 
 
 
@@ -51272,7 +52979,7 @@ class ShadowRoot extends NonElementParentNode {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/element.js
 // https://dom.spec.whatwg.org/#interface-element
 
 
@@ -51766,7 +53473,7 @@ class element_Element extends ParentNode {
   /* c8 ignore stop */
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/svg/element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/svg/element.js
 
 
 
@@ -51826,7 +53533,7 @@ class element_SVGElement extends element_Element {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/facades.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/facades.js
 
 
 
@@ -51905,7 +53612,7 @@ const Facades = {
   SVGElement: facades_SVGElement
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/element.js
 
 
 
@@ -52226,7 +53933,7 @@ class element_HTMLElement extends element_Element {
 
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/template-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/template-element.js
 
 
 
@@ -52258,7 +53965,7 @@ registerHTMLClass(tagName, HTMLTemplateElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/html-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/html-element.js
 
 
 /**
@@ -52270,7 +53977,7 @@ class HTMLHtmlElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/text-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/text-element.js
 
 
 const {toString: text_element_toString} = element_HTMLElement.prototype;
@@ -52286,7 +53993,7 @@ class TextElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/script-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/script-element.js
 
 
 
@@ -52367,7 +54074,7 @@ registerHTMLClass(script_element_tagName, HTMLScriptElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/frame-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/frame-element.js
 
 
 /**
@@ -52379,7 +54086,7 @@ class HTMLFrameElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/i-frame-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/i-frame-element.js
 
 
 
@@ -52423,7 +54130,7 @@ registerHTMLClass(i_frame_element_tagName, HTMLIFrameElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/object-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/object-element.js
 
 
 /**
@@ -52435,7 +54142,7 @@ class HTMLObjectElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/head-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/head-element.js
 
 
 /**
@@ -52447,7 +54154,7 @@ class HTMLHeadElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/body-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/body-element.js
 
 
 /**
@@ -52461,7 +54168,7 @@ class HTMLBodyElement extends element_HTMLElement {
 
 // EXTERNAL MODULE: ./node_modules/.pnpm/cssom@0.5.0/node_modules/cssom/lib/index.js
 var cssom_lib = __nccwpck_require__(2556);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/style-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/style-element.js
 
 
 
@@ -52515,7 +54222,7 @@ registerHTMLClass(style_element_tagName, HTMLStyleElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/time-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/time-element.js
 
 
 
@@ -52540,7 +54247,7 @@ registerHTMLClass('time', HTMLTimeElement)
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/field-set-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/field-set-element.js
 
 
 /**
@@ -52552,7 +54259,7 @@ class HTMLFieldSetElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/embed-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/embed-element.js
 
 
 /**
@@ -52564,7 +54271,7 @@ class HTMLEmbedElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/hr-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/hr-element.js
 
 
 /**
@@ -52576,7 +54283,7 @@ class HTMLHRElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/progress-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/progress-element.js
 
 
 /**
@@ -52588,7 +54295,7 @@ class HTMLProgressElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/paragraph-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/paragraph-element.js
 
 
 /**
@@ -52600,7 +54307,7 @@ class HTMLParagraphElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/table-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/table-element.js
 
 
 /**
@@ -52612,7 +54319,7 @@ class HTMLTableElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/frame-set-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/frame-set-element.js
 
 
 /**
@@ -52624,7 +54331,7 @@ class HTMLFrameSetElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/li-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/li-element.js
 
 
 /**
@@ -52636,7 +54343,7 @@ class HTMLLIElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/base-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/base-element.js
 
 
 /**
@@ -52648,7 +54355,7 @@ class HTMLBaseElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/data-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/data-list-element.js
 
 
 /**
@@ -52660,7 +54367,7 @@ class HTMLDataListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/input-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/input-element.js
 
 
 
@@ -52701,7 +54408,7 @@ registerHTMLClass(input_element_tagName, HTMLInputElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/param-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/param-element.js
 
 
 /**
@@ -52713,7 +54420,7 @@ class HTMLParamElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/media-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/media-element.js
 
 
 /**
@@ -52725,7 +54432,7 @@ class HTMLMediaElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/audio-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/audio-element.js
 
 
 /**
@@ -52737,7 +54444,7 @@ class HTMLAudioElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/heading-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/heading-element.js
 
 
 
@@ -52757,7 +54464,7 @@ registerHTMLClass([heading_element_tagName, 'h2', 'h3', 'h4', 'h5', 'h6'], HTMLH
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/directory-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/directory-element.js
 
 
 /**
@@ -52769,7 +54476,7 @@ class HTMLDirectoryElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/quote-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/quote-element.js
 
 
 /**
@@ -52781,9 +54488,9 @@ class HTMLQuoteElement extends element_HTMLElement {
   }
 }
 
-// EXTERNAL MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/commonjs/canvas.cjs
-var canvas = __nccwpck_require__(1279);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/canvas-element.js
+// EXTERNAL MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/commonjs/canvas.cjs
+var canvas = __nccwpck_require__(3254);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/canvas-element.js
 
 
 
@@ -52837,7 +54544,7 @@ registerHTMLClass(canvas_element_tagName, HTMLCanvasElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/legend-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/legend-element.js
 
 
 /**
@@ -52849,7 +54556,7 @@ class HTMLLegendElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/option-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/option-element.js
 
 
 
@@ -52882,7 +54589,7 @@ registerHTMLClass(option_element_tagName, HTMLOptionElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/span-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/span-element.js
 
 
 /**
@@ -52894,7 +54601,7 @@ class HTMLSpanElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/meter-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/meter-element.js
 
 
 /**
@@ -52906,7 +54613,7 @@ class HTMLMeterElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/video-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/video-element.js
 
 
 /**
@@ -52918,7 +54625,7 @@ class HTMLVideoElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/table-cell-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/table-cell-element.js
 
 
 /**
@@ -52930,7 +54637,7 @@ class HTMLTableCellElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/title-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/title-element.js
 
 
 
@@ -52950,7 +54657,7 @@ registerHTMLClass(title_element_tagName, HTMLTitleElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/output-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/output-element.js
 
 
 /**
@@ -52962,7 +54669,7 @@ class HTMLOutputElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/table-row-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/table-row-element.js
 
 
 /**
@@ -52974,7 +54681,7 @@ class HTMLTableRowElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/data-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/data-element.js
 
 
 /**
@@ -52986,7 +54693,7 @@ class HTMLDataElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/menu-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/menu-element.js
 
 
 /**
@@ -52998,7 +54705,7 @@ class HTMLMenuElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/select-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/select-element.js
 
 
 
@@ -53044,7 +54751,7 @@ registerHTMLClass(select_element_tagName, HTMLSelectElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/br-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/br-element.js
 
 
 /**
@@ -53056,7 +54763,7 @@ class HTMLBRElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/button-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/button-element.js
 
 
 
@@ -53088,7 +54795,7 @@ registerHTMLClass(button_element_tagName, HTMLButtonElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/map-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/map-element.js
 
 
 /**
@@ -53100,7 +54807,7 @@ class HTMLMapElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/opt-group-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/opt-group-element.js
 
 
 /**
@@ -53112,7 +54819,7 @@ class HTMLOptGroupElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/d-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/d-list-element.js
 
 
 /**
@@ -53124,7 +54831,7 @@ class HTMLDListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/text-area-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/text-area-element.js
 
 
 
@@ -53162,7 +54869,7 @@ registerHTMLClass(text_area_element_tagName, HTMLTextAreaElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/font-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/font-element.js
 
 
 /**
@@ -53174,7 +54881,7 @@ class HTMLFontElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/div-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/div-element.js
 
 
 /**
@@ -53186,7 +54893,7 @@ class HTMLDivElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/link-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/link-element.js
 
 
 
@@ -53228,7 +54935,7 @@ registerHTMLClass(link_element_tagName, HTMLLinkElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/slot-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/slot-element.js
 
 
 
@@ -53291,7 +54998,7 @@ registerHTMLClass(slot_element_tagName, HTMLSlotElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/form-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/form-element.js
 
 
 /**
@@ -53303,7 +55010,7 @@ class HTMLFormElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/image-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/image-element.js
 
 
 
@@ -53347,7 +55054,7 @@ registerHTMLClass(image_element_tagName, HTMLImageElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/pre-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/pre-element.js
 
 
 /**
@@ -53359,7 +55066,7 @@ class HTMLPreElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/u-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/u-list-element.js
 
 
 /**
@@ -53371,7 +55078,7 @@ class HTMLUListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/meta-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/meta-element.js
 
 
 
@@ -53407,7 +55114,7 @@ class HTMLMetaElement extends element_HTMLElement {
 registerHTMLClass(meta_element_tagName, HTMLMetaElement);
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/picture-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/picture-element.js
 
 
 /**
@@ -53419,7 +55126,7 @@ class HTMLPictureElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/area-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/area-element.js
 
 
 /**
@@ -53431,7 +55138,7 @@ class HTMLAreaElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/o-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/o-list-element.js
 
 
 /**
@@ -53443,7 +55150,7 @@ class HTMLOListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/table-caption-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/table-caption-element.js
 
 
 /**
@@ -53455,7 +55162,7 @@ class HTMLTableCaptionElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/anchor-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/anchor-element.js
 
 
 
@@ -53494,7 +55201,7 @@ registerHTMLClass(anchor_element_tagName, HTMLAnchorElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/label-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/label-element.js
 
 
 /**
@@ -53506,7 +55213,7 @@ class HTMLLabelElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/unknown-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/unknown-element.js
 
 
 /**
@@ -53518,7 +55225,7 @@ class HTMLUnknownElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/mod-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/mod-element.js
 
 
 /**
@@ -53530,7 +55237,7 @@ class HTMLModElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/details-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/details-element.js
 
 
 /**
@@ -53542,7 +55249,7 @@ class HTMLDetailsElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/source-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/source-element.js
 
 
 
@@ -53577,7 +55284,7 @@ registerHTMLClass(source_element_tagName, HTMLSourceElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/track-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/track-element.js
 
 
 /**
@@ -53589,7 +55296,7 @@ class HTMLTrackElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/marquee-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/marquee-element.js
 
 
 /**
@@ -53601,7 +55308,7 @@ class HTMLMarqueeElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/html-classes.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/html-classes.js
 
 
 
@@ -53744,7 +55451,7 @@ const HTMLClasses = {
   HTMLMarqueeElement: HTMLMarqueeElement
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/mime.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/mime.js
 // TODO: ensure all these are text only
 // /^(?:plaintext|script|style|textarea|title|xmp)$/i
 
@@ -53777,7 +55484,7 @@ const Mime = {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/custom-event.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/custom-event.js
 // https://dom.spec.whatwg.org/#interface-customevent
 
 /* c8 ignore start */
@@ -53798,7 +55505,7 @@ class CustomEvent extends GlobalEvent {
 
 /* c8 ignore stop */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/input-event.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/input-event.js
 // https://dom.spec.whatwg.org/#interface-customevent
 
 /* c8 ignore start */
@@ -53822,7 +55529,7 @@ class InputEvent extends GlobalEvent {
 }
 /* c8 ignore stop */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/image.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/image.js
 
 
 const ImageClass = ownerDocument =>
@@ -53845,7 +55552,7 @@ class Image extends HTMLImageElement {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/range.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/range.js
 // https://dom.spec.whatwg.org/#concept-live-range
 
 
@@ -53974,7 +55681,7 @@ class Range {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/tree-walker.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/tree-walker.js
 
 
 
@@ -54023,7 +55730,7 @@ class TreeWalker {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/document.js
 
 
 
@@ -54309,7 +56016,7 @@ setPrototypeOf(
   document_Document
 ).prototype = document_Document.prototype;
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/html/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/html/document.js
 
 
 
@@ -54414,7 +56121,7 @@ class document_HTMLDocument extends document_Document {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/svg/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/svg/document.js
 
 
 
@@ -54428,7 +56135,7 @@ class SVGDocument extends document_Document {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/xml/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/xml/document.js
 
 
 
@@ -54442,7 +56149,7 @@ class XMLDocument extends document_Document {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/dom/parser.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/dom/parser.js
 
 
 
@@ -54483,7 +56190,7 @@ class DOMParser {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/shared/parse-json.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/shared/parse-json.js
 
 
 
@@ -54606,7 +56313,7 @@ const parseJSON = value => {
  */
 const toJSON = node => node.toJSON();
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/interface/node-filter.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/interface/node-filter.js
 
 
 class NodeFilter {
@@ -54617,7 +56324,7 @@ class NodeFilter {
   static get SHOW_TEXT() { return SHOW_TEXT; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.12/node_modules/linkedom/esm/index.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.13/node_modules/linkedom/esm/index.js
 
 
 
@@ -55128,7 +56835,7 @@ function qstring(str) {
 
 /***/ }),
 
-/***/ 5355:
+/***/ 8408:
 /***/ ((module) => {
 
 class Canvas {
@@ -55151,14 +56858,14 @@ module.exports = {
 
 /***/ }),
 
-/***/ 1279:
+/***/ 3254:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 /* c8 ignore start */
 try {
   module.exports = __nccwpck_require__(7730);
 } catch (fallback) {
-  module.exports = __nccwpck_require__(5355);
+  module.exports = __nccwpck_require__(8408);
 }
 /* c8 ignore stop */
 
