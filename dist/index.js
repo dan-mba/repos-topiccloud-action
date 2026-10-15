@@ -1,259 +1,10 @@
 import './sourcemap-register.cjs';import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 /******/ var __webpack_modules__ = ({
 
-/***/ 1803:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ 1623:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.req = exports.json = exports.toBuffer = void 0;
-const http = __importStar(__nccwpck_require__(8611));
-const https = __importStar(__nccwpck_require__(5692));
-async function toBuffer(stream) {
-    let length = 0;
-    const chunks = [];
-    for await (const chunk of stream) {
-        length += chunk.length;
-        chunks.push(chunk);
-    }
-    return Buffer.concat(chunks, length);
-}
-exports.toBuffer = toBuffer;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function json(stream) {
-    const buf = await toBuffer(stream);
-    const str = buf.toString('utf8');
-    try {
-        return JSON.parse(str);
-    }
-    catch (_err) {
-        const err = _err;
-        err.message += ` (input: ${str})`;
-        throw err;
-    }
-}
-exports.json = json;
-function req(url, opts = {}) {
-    const href = typeof url === 'string' ? url : url.href;
-    const req = (href.startsWith('https:') ? https : http).request(url, opts);
-    const promise = new Promise((resolve, reject) => {
-        req
-            .once('response', resolve)
-            .once('error', reject)
-            .end();
-    });
-    req.then = promise.then.bind(promise);
-    return req;
-}
-exports.req = req;
-//# sourceMappingURL=helpers.js.map
-
-/***/ }),
-
-/***/ 8394:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Agent = void 0;
-const net = __importStar(__nccwpck_require__(9278));
-const http = __importStar(__nccwpck_require__(8611));
-const https_1 = __nccwpck_require__(5692);
-__exportStar(__nccwpck_require__(1803), exports);
-const INTERNAL = Symbol('AgentBaseInternalState');
-class Agent extends http.Agent {
-    constructor(opts) {
-        super(opts);
-        this[INTERNAL] = {};
-    }
-    /**
-     * Determine whether this is an `http` or `https` request.
-     */
-    isSecureEndpoint(options) {
-        if (options) {
-            // First check the `secureEndpoint` property explicitly, since this
-            // means that a parent `Agent` is "passing through" to this instance.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if (typeof options.secureEndpoint === 'boolean') {
-                return options.secureEndpoint;
-            }
-            // If no explicit `secure` endpoint, check if `protocol` property is
-            // set. This will usually be the case since using a full string URL
-            // or `URL` instance should be the most common usage.
-            if (typeof options.protocol === 'string') {
-                return options.protocol === 'https:';
-            }
-        }
-        // Finally, if no `protocol` property was set, then fall back to
-        // checking the stack trace of the current call stack, and try to
-        // detect the "https" module.
-        const { stack } = new Error();
-        if (typeof stack !== 'string')
-            return false;
-        return stack
-            .split('\n')
-            .some((l) => l.indexOf('(https.js:') !== -1 ||
-            l.indexOf('node:https:') !== -1);
-    }
-    // In order to support async signatures in `connect()` and Node's native
-    // connection pooling in `http.Agent`, the array of sockets for each origin
-    // has to be updated synchronously. This is so the length of the array is
-    // accurate when `addRequest()` is next called. We achieve this by creating a
-    // fake socket and adding it to `sockets[origin]` and incrementing
-    // `totalSocketCount`.
-    incrementSockets(name) {
-        // If `maxSockets` and `maxTotalSockets` are both Infinity then there is no
-        // need to create a fake socket because Node.js native connection pooling
-        // will never be invoked.
-        if (this.maxSockets === Infinity && this.maxTotalSockets === Infinity) {
-            return null;
-        }
-        // All instances of `sockets` are expected TypeScript errors. The
-        // alternative is to add it as a private property of this class but that
-        // will break TypeScript subclassing.
-        if (!this.sockets[name]) {
-            // @ts-expect-error `sockets` is readonly in `@types/node`
-            this.sockets[name] = [];
-        }
-        const fakeSocket = new net.Socket({ writable: false });
-        this.sockets[name].push(fakeSocket);
-        // @ts-expect-error `totalSocketCount` isn't defined in `@types/node`
-        this.totalSocketCount++;
-        return fakeSocket;
-    }
-    decrementSockets(name, socket) {
-        if (!this.sockets[name] || socket === null) {
-            return;
-        }
-        const sockets = this.sockets[name];
-        const index = sockets.indexOf(socket);
-        if (index !== -1) {
-            sockets.splice(index, 1);
-            // @ts-expect-error  `totalSocketCount` isn't defined in `@types/node`
-            this.totalSocketCount--;
-            if (sockets.length === 0) {
-                // @ts-expect-error `sockets` is readonly in `@types/node`
-                delete this.sockets[name];
-            }
-        }
-    }
-    // In order to properly update the socket pool, we need to call `getName()` on
-    // the core `https.Agent` if it is a secureEndpoint.
-    getName(options) {
-        const secureEndpoint = this.isSecureEndpoint(options);
-        if (secureEndpoint) {
-            // @ts-expect-error `getName()` isn't defined in `@types/node`
-            return https_1.Agent.prototype.getName.call(this, options);
-        }
-        // @ts-expect-error `getName()` isn't defined in `@types/node`
-        return super.getName(options);
-    }
-    createSocket(req, options, cb) {
-        const connectOpts = {
-            ...options,
-            secureEndpoint: this.isSecureEndpoint(options),
-        };
-        const name = this.getName(connectOpts);
-        const fakeSocket = this.incrementSockets(name);
-        Promise.resolve()
-            .then(() => this.connect(req, connectOpts))
-            .then((socket) => {
-            this.decrementSockets(name, fakeSocket);
-            if (socket instanceof http.Agent) {
-                try {
-                    // @ts-expect-error `addRequest()` isn't defined in `@types/node`
-                    return socket.addRequest(req, connectOpts);
-                }
-                catch (err) {
-                    return cb(err);
-                }
-            }
-            this[INTERNAL].currentSocket = socket;
-            // @ts-expect-error `createSocket()` isn't defined in `@types/node`
-            super.createSocket(req, options, cb);
-        }, (err) => {
-            this.decrementSockets(name, fakeSocket);
-            cb(err);
-        });
-    }
-    createConnection() {
-        const socket = this[INTERNAL].currentSocket;
-        this[INTERNAL].currentSocket = undefined;
-        if (!socket) {
-            throw new Error('No socket was returned in the `connect()` function');
-        }
-        return socket;
-    }
-    get defaultPort() {
-        return (this[INTERNAL].defaultPort ??
-            (this.protocol === 'https:' ? 443 : 80));
-    }
-    set defaultPort(v) {
-        if (this[INTERNAL]) {
-            this[INTERNAL].defaultPort = v;
-        }
-    }
-    get protocol() {
-        return (this[INTERNAL].protocol ??
-            (this.isSecureEndpoint() ? 'https:' : 'http:'));
-    }
-    set protocol(v) {
-        if (this[INTERNAL]) {
-            this[INTERNAL].protocol = v;
-        }
-    }
-}
-exports.Agent = Agent;
-//# sourceMappingURL=index.js.map
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(__nccwpck_require__.ab + "skia.node")
 
 /***/ }),
 
@@ -3845,6 +3596,461 @@ formatters.O = function (v) {
 
 /***/ }),
 
+/***/ 1196:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+// Copyright 2017 Lovell Fuller and others.
+// SPDX-License-Identifier: Apache-2.0
+
+
+
+const childProcess = __nccwpck_require__(5317);
+const { isLinux, getReport } = __nccwpck_require__(6075);
+const { LDD_PATH, SELF_PATH, readFile, readFileSync } = __nccwpck_require__(7503);
+const { interpreterPath } = __nccwpck_require__(1855);
+
+let cachedFamilyInterpreter;
+let cachedFamilyFilesystem;
+let cachedVersionFilesystem;
+
+const command = 'getconf GNU_LIBC_VERSION 2>&1 || true; ldd --version 2>&1 || true';
+let commandOut = '';
+
+const safeCommand = () => {
+  if (!commandOut) {
+    return new Promise((resolve) => {
+      childProcess.exec(command, (err, out) => {
+        commandOut = err ? ' ' : out;
+        resolve(commandOut);
+      });
+    });
+  }
+  return commandOut;
+};
+
+const safeCommandSync = () => {
+  if (!commandOut) {
+    try {
+      commandOut = childProcess.execSync(command, { encoding: 'utf8' });
+    } catch (_err) {
+      commandOut = ' ';
+    }
+  }
+  return commandOut;
+};
+
+/**
+ * A String constant containing the value `glibc`.
+ * @type {string}
+ * @public
+ */
+const GLIBC = 'glibc';
+
+/**
+ * A Regexp constant to get the GLIBC Version.
+ * @type {string}
+ */
+const RE_GLIBC_VERSION = /LIBC[a-z0-9 \-).]*?(\d+\.\d+)/i;
+
+/**
+ * A String constant containing the value `musl`.
+ * @type {string}
+ * @public
+ */
+const MUSL = 'musl';
+
+const isFileMusl = (f) => f.includes('libc.musl-') || f.includes('ld-musl-');
+
+const familyFromReport = () => {
+  const report = getReport();
+  if (report.header && report.header.glibcVersionRuntime) {
+    return GLIBC;
+  }
+  if (Array.isArray(report.sharedObjects)) {
+    if (report.sharedObjects.some(isFileMusl)) {
+      return MUSL;
+    }
+  }
+  return null;
+};
+
+const familyFromCommand = (out) => {
+  const [getconf, ldd1] = out.split(/[\r\n]+/);
+  if (getconf && getconf.includes(GLIBC)) {
+    return GLIBC;
+  }
+  if (ldd1 && ldd1.includes(MUSL)) {
+    return MUSL;
+  }
+  return null;
+};
+
+const familyFromInterpreterPath = (path) => {
+  if (path) {
+    if (path.includes('/ld-musl-')) {
+      return MUSL;
+    } else if (path.includes('/ld-linux-')) {
+      return GLIBC;
+    }
+  }
+  return null;
+};
+
+const getFamilyFromLddContent = (content) => {
+  content = content.toString();
+  if (content.includes('musl')) {
+    return MUSL;
+  }
+  if (content.includes('GNU C Library')) {
+    return GLIBC;
+  }
+  return null;
+};
+
+const familyFromFilesystem = async () => {
+  if (cachedFamilyFilesystem !== undefined) {
+    return cachedFamilyFilesystem;
+  }
+  cachedFamilyFilesystem = null;
+  try {
+    const lddContent = await readFile(LDD_PATH);
+    cachedFamilyFilesystem = getFamilyFromLddContent(lddContent);
+  } catch (e) {}
+  return cachedFamilyFilesystem;
+};
+
+const familyFromFilesystemSync = () => {
+  if (cachedFamilyFilesystem !== undefined) {
+    return cachedFamilyFilesystem;
+  }
+  cachedFamilyFilesystem = null;
+  try {
+    const lddContent = readFileSync(LDD_PATH);
+    cachedFamilyFilesystem = getFamilyFromLddContent(lddContent);
+  } catch (e) {}
+  return cachedFamilyFilesystem;
+};
+
+const familyFromInterpreter = async () => {
+  if (cachedFamilyInterpreter !== undefined) {
+    return cachedFamilyInterpreter;
+  }
+  cachedFamilyInterpreter = null;
+  try {
+    const selfContent = await readFile(SELF_PATH);
+    const path = interpreterPath(selfContent);
+    cachedFamilyInterpreter = familyFromInterpreterPath(path);
+  } catch (e) {}
+  return cachedFamilyInterpreter;
+};
+
+const familyFromInterpreterSync = () => {
+  if (cachedFamilyInterpreter !== undefined) {
+    return cachedFamilyInterpreter;
+  }
+  cachedFamilyInterpreter = null;
+  try {
+    const selfContent = readFileSync(SELF_PATH);
+    const path = interpreterPath(selfContent);
+    cachedFamilyInterpreter = familyFromInterpreterPath(path);
+  } catch (e) {}
+  return cachedFamilyInterpreter;
+};
+
+/**
+ * Resolves with the libc family when it can be determined, `null` otherwise.
+ * @returns {Promise<?string>}
+ */
+const family = async () => {
+  let family = null;
+  if (isLinux()) {
+    family = await familyFromInterpreter();
+    if (!family) {
+      family = await familyFromFilesystem();
+      if (!family) {
+        family = familyFromReport();
+      }
+      if (!family) {
+        const out = await safeCommand();
+        family = familyFromCommand(out);
+      }
+    }
+  }
+  return family;
+};
+
+/**
+ * Returns the libc family when it can be determined, `null` otherwise.
+ * @returns {?string}
+ */
+const familySync = () => {
+  let family = null;
+  if (isLinux()) {
+    family = familyFromInterpreterSync();
+    if (!family) {
+      family = familyFromFilesystemSync();
+      if (!family) {
+        family = familyFromReport();
+      }
+      if (!family) {
+        const out = safeCommandSync();
+        family = familyFromCommand(out);
+      }
+    }
+  }
+  return family;
+};
+
+/**
+ * Resolves `true` only when the platform is Linux and the libc family is not `glibc`.
+ * @returns {Promise<boolean>}
+ */
+const isNonGlibcLinux = async () => isLinux() && await family() !== GLIBC;
+
+/**
+ * Returns `true` only when the platform is Linux and the libc family is not `glibc`.
+ * @returns {boolean}
+ */
+const isNonGlibcLinuxSync = () => isLinux() && familySync() !== GLIBC;
+
+const versionFromFilesystem = async () => {
+  if (cachedVersionFilesystem !== undefined) {
+    return cachedVersionFilesystem;
+  }
+  cachedVersionFilesystem = null;
+  try {
+    const lddContent = await readFile(LDD_PATH);
+    const versionMatch = lddContent.match(RE_GLIBC_VERSION);
+    if (versionMatch) {
+      cachedVersionFilesystem = versionMatch[1];
+    }
+  } catch (e) {}
+  return cachedVersionFilesystem;
+};
+
+const versionFromFilesystemSync = () => {
+  if (cachedVersionFilesystem !== undefined) {
+    return cachedVersionFilesystem;
+  }
+  cachedVersionFilesystem = null;
+  try {
+    const lddContent = readFileSync(LDD_PATH);
+    const versionMatch = lddContent.match(RE_GLIBC_VERSION);
+    if (versionMatch) {
+      cachedVersionFilesystem = versionMatch[1];
+    }
+  } catch (e) {}
+  return cachedVersionFilesystem;
+};
+
+const versionFromReport = () => {
+  const report = getReport();
+  if (report.header && report.header.glibcVersionRuntime) {
+    return report.header.glibcVersionRuntime;
+  }
+  return null;
+};
+
+const versionSuffix = (s) => s.trim().split(/\s+/)[1];
+
+const versionFromCommand = (out) => {
+  const [getconf, ldd1, ldd2] = out.split(/[\r\n]+/);
+  if (getconf && getconf.includes(GLIBC)) {
+    return versionSuffix(getconf);
+  }
+  if (ldd1 && ldd2 && ldd1.includes(MUSL)) {
+    return versionSuffix(ldd2);
+  }
+  return null;
+};
+
+/**
+ * Resolves with the libc version when it can be determined, `null` otherwise.
+ * @returns {Promise<?string>}
+ */
+const version = async () => {
+  let version = null;
+  if (isLinux()) {
+    version = await versionFromFilesystem();
+    if (!version) {
+      version = versionFromReport();
+    }
+    if (!version) {
+      const out = await safeCommand();
+      version = versionFromCommand(out);
+    }
+  }
+  return version;
+};
+
+/**
+ * Returns the libc version when it can be determined, `null` otherwise.
+ * @returns {?string}
+ */
+const versionSync = () => {
+  let version = null;
+  if (isLinux()) {
+    version = versionFromFilesystemSync();
+    if (!version) {
+      version = versionFromReport();
+    }
+    if (!version) {
+      const out = safeCommandSync();
+      version = versionFromCommand(out);
+    }
+  }
+  return version;
+};
+
+module.exports = {
+  GLIBC,
+  MUSL,
+  family,
+  familySync,
+  isNonGlibcLinux,
+  isNonGlibcLinuxSync,
+  version,
+  versionSync
+};
+
+
+/***/ }),
+
+/***/ 1855:
+/***/ ((module) => {
+
+// Copyright 2017 Lovell Fuller and others.
+// SPDX-License-Identifier: Apache-2.0
+
+
+
+const interpreterPath = (elf) => {
+  if (elf.length < 64) {
+    return null;
+  }
+  if (elf.readUInt32BE(0) !== 0x7F454C46) {
+    // Unexpected magic bytes
+    return null;
+  }
+  if (elf.readUInt8(4) !== 2) {
+    // Not a 64-bit ELF
+    return null;
+  }
+  if (elf.readUInt8(5) !== 1) {
+    // Not little-endian
+    return null;
+  }
+  const offset = elf.readUInt32LE(32);
+  const size = elf.readUInt16LE(54);
+  const count = elf.readUInt16LE(56);
+  for (let i = 0; i < count; i++) {
+    const headerOffset = offset + (i * size);
+    const type = elf.readUInt32LE(headerOffset);
+    if (type === 3) {
+      const fileOffset = elf.readUInt32LE(headerOffset + 8);
+      const fileSize = elf.readUInt32LE(headerOffset + 32);
+      return elf.subarray(fileOffset, fileOffset + fileSize).toString().replace(/\0.*$/g, '');
+    }
+  }
+  return null;
+};
+
+module.exports = {
+  interpreterPath
+};
+
+
+/***/ }),
+
+/***/ 7503:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+// Copyright 2017 Lovell Fuller and others.
+// SPDX-License-Identifier: Apache-2.0
+
+
+
+const fs = __nccwpck_require__(9896);
+
+const LDD_PATH = '/usr/bin/ldd';
+const SELF_PATH = '/proc/self/exe';
+const MAX_LENGTH = 2048;
+
+/**
+ * Read the content of a file synchronous
+ *
+ * @param {string} path
+ * @returns {Buffer}
+ */
+const readFileSync = (path) => {
+  const fd = fs.openSync(path, 'r');
+  const buffer = Buffer.alloc(MAX_LENGTH);
+  const bytesRead = fs.readSync(fd, buffer, 0, MAX_LENGTH, 0);
+  fs.close(fd, () => {});
+  return buffer.subarray(0, bytesRead);
+};
+
+/**
+ * Read the content of a file
+ *
+ * @param {string} path
+ * @returns {Promise<Buffer>}
+ */
+const readFile = (path) => new Promise((resolve, reject) => {
+  fs.open(path, 'r', (err, fd) => {
+    if (err) {
+      reject(err);
+    } else {
+      const buffer = Buffer.alloc(MAX_LENGTH);
+      fs.read(fd, buffer, 0, MAX_LENGTH, 0, (_, bytesRead) => {
+        resolve(buffer.subarray(0, bytesRead));
+        fs.close(fd, () => {});
+      });
+    }
+  });
+});
+
+module.exports = {
+  LDD_PATH,
+  SELF_PATH,
+  readFileSync,
+  readFile
+};
+
+
+/***/ }),
+
+/***/ 6075:
+/***/ ((module) => {
+
+// Copyright 2017 Lovell Fuller and others.
+// SPDX-License-Identifier: Apache-2.0
+
+
+
+const isLinux = () => process.platform === 'linux';
+
+let report = null;
+const getReport = () => {
+  if (!report) {
+    /* istanbul ignore next */
+    if (isLinux() && process.report) {
+      const orig = process.report.excludeNetwork;
+      process.report.excludeNetwork = true;
+      report = process.report.getReport();
+      process.report.excludeNetwork = orig;
+    } else {
+      report = {};
+    }
+  }
+  return report;
+};
+
+module.exports = { isLinux, getReport };
+
+
+/***/ }),
+
 /***/ 9636:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -4592,299 +4798,6 @@ module.exports.wrap = wrap;
 
 /***/ }),
 
-/***/ 2807:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HttpsProxyAgent = void 0;
-const net = __importStar(__nccwpck_require__(9278));
-const tls = __importStar(__nccwpck_require__(4756));
-const assert_1 = __importDefault(__nccwpck_require__(2613));
-const debug_1 = __importDefault(__nccwpck_require__(6835));
-const agent_base_1 = __nccwpck_require__(8394);
-const url_1 = __nccwpck_require__(7016);
-const parse_proxy_response_1 = __nccwpck_require__(4469);
-const debug = (0, debug_1.default)('https-proxy-agent');
-const setServernameFromNonIpHost = (options) => {
-    if (options.servername === undefined &&
-        options.host &&
-        !net.isIP(options.host)) {
-        return {
-            ...options,
-            servername: options.host,
-        };
-    }
-    return options;
-};
-/**
- * The `HttpsProxyAgent` implements an HTTP Agent subclass that connects to
- * the specified "HTTP(s) proxy server" in order to proxy HTTPS requests.
- *
- * Outgoing HTTP requests are first tunneled through the proxy server using the
- * `CONNECT` HTTP request method to establish a connection to the proxy server,
- * and then the proxy server connects to the destination target and issues the
- * HTTP request from the proxy server.
- *
- * `https:` requests have their socket connection upgraded to TLS once
- * the connection to the proxy server has been established.
- */
-class HttpsProxyAgent extends agent_base_1.Agent {
-    constructor(proxy, opts) {
-        super(opts);
-        this.options = { path: undefined };
-        this.proxy = typeof proxy === 'string' ? new url_1.URL(proxy) : proxy;
-        this.proxyHeaders = opts?.headers ?? {};
-        debug('Creating new HttpsProxyAgent instance: %o', this.proxy.href);
-        // Trim off the brackets from IPv6 addresses
-        const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, '');
-        const port = this.proxy.port
-            ? parseInt(this.proxy.port, 10)
-            : this.proxy.protocol === 'https:'
-                ? 443
-                : 80;
-        this.connectOpts = {
-            // Attempt to negotiate http/1.1 for proxy servers that support http/2
-            ALPNProtocols: ['http/1.1'],
-            ...(opts ? omit(opts, 'headers') : null),
-            host,
-            port,
-        };
-    }
-    /**
-     * Called when the node-core HTTP client library is creating a
-     * new HTTP request.
-     */
-    async connect(req, opts) {
-        const { proxy } = this;
-        if (!opts.host) {
-            throw new TypeError('No "host" provided');
-        }
-        // Create a socket connection to the proxy server.
-        let socket;
-        if (proxy.protocol === 'https:') {
-            debug('Creating `tls.Socket`: %o', this.connectOpts);
-            socket = tls.connect(setServernameFromNonIpHost(this.connectOpts));
-        }
-        else {
-            debug('Creating `net.Socket`: %o', this.connectOpts);
-            socket = net.connect(this.connectOpts);
-        }
-        const headers = typeof this.proxyHeaders === 'function'
-            ? this.proxyHeaders()
-            : { ...this.proxyHeaders };
-        const host = net.isIPv6(opts.host) ? `[${opts.host}]` : opts.host;
-        let payload = `CONNECT ${host}:${opts.port} HTTP/1.1\r\n`;
-        // Inject the `Proxy-Authorization` header if necessary.
-        if (proxy.username || proxy.password) {
-            const auth = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
-            headers['Proxy-Authorization'] = `Basic ${Buffer.from(auth).toString('base64')}`;
-        }
-        headers.Host = `${host}:${opts.port}`;
-        if (!headers['Proxy-Connection']) {
-            headers['Proxy-Connection'] = this.keepAlive
-                ? 'Keep-Alive'
-                : 'close';
-        }
-        for (const name of Object.keys(headers)) {
-            payload += `${name}: ${headers[name]}\r\n`;
-        }
-        const proxyResponsePromise = (0, parse_proxy_response_1.parseProxyResponse)(socket);
-        socket.write(`${payload}\r\n`);
-        const { connect, buffered } = await proxyResponsePromise;
-        req.emit('proxyConnect', connect);
-        this.emit('proxyConnect', connect, req);
-        if (connect.statusCode === 200) {
-            req.once('socket', resume);
-            if (opts.secureEndpoint) {
-                // The proxy is connecting to a TLS server, so upgrade
-                // this socket connection to a TLS connection.
-                debug('Upgrading socket connection to TLS');
-                return tls.connect({
-                    ...omit(setServernameFromNonIpHost(opts), 'host', 'path', 'port'),
-                    socket,
-                });
-            }
-            return socket;
-        }
-        // Some other status code that's not 200... need to re-play the HTTP
-        // header "data" events onto the socket once the HTTP machinery is
-        // attached so that the node core `http` can parse and handle the
-        // error status code.
-        // Close the original socket, and a new "fake" socket is returned
-        // instead, so that the proxy doesn't get the HTTP request
-        // written to it (which may contain `Authorization` headers or other
-        // sensitive data).
-        //
-        // See: https://hackerone.com/reports/541502
-        socket.destroy();
-        const fakeSocket = new net.Socket({ writable: false });
-        fakeSocket.readable = true;
-        // Need to wait for the "socket" event to re-play the "data" events.
-        req.once('socket', (s) => {
-            debug('Replaying proxy buffer for failed request');
-            (0, assert_1.default)(s.listenerCount('data') > 0);
-            // Replay the "buffered" Buffer onto the fake `socket`, since at
-            // this point the HTTP module machinery has been hooked up for
-            // the user.
-            s.push(buffered);
-            s.push(null);
-        });
-        return fakeSocket;
-    }
-}
-HttpsProxyAgent.protocols = ['http', 'https'];
-exports.HttpsProxyAgent = HttpsProxyAgent;
-function resume(socket) {
-    socket.resume();
-}
-function omit(obj, ...keys) {
-    const ret = {};
-    let key;
-    for (key in obj) {
-        if (!keys.includes(key)) {
-            ret[key] = obj[key];
-        }
-    }
-    return ret;
-}
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 4469:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parseProxyResponse = void 0;
-const debug_1 = __importDefault(__nccwpck_require__(6835));
-const debug = (0, debug_1.default)('https-proxy-agent:parse-proxy-response');
-function parseProxyResponse(socket) {
-    return new Promise((resolve, reject) => {
-        // we need to buffer any HTTP traffic that happens with the proxy before we get
-        // the CONNECT response, so that if the response is anything other than an "200"
-        // response code, then we can re-play the "data" events on the socket once the
-        // HTTP parser is hooked up...
-        let buffersLength = 0;
-        const buffers = [];
-        function read() {
-            const b = socket.read();
-            if (b)
-                ondata(b);
-            else
-                socket.once('readable', read);
-        }
-        function cleanup() {
-            socket.removeListener('end', onend);
-            socket.removeListener('error', onerror);
-            socket.removeListener('readable', read);
-        }
-        function onend() {
-            cleanup();
-            debug('onend');
-            reject(new Error('Proxy connection ended before receiving CONNECT response'));
-        }
-        function onerror(err) {
-            cleanup();
-            debug('onerror %o', err);
-            reject(err);
-        }
-        function ondata(b) {
-            buffers.push(b);
-            buffersLength += b.length;
-            const buffered = Buffer.concat(buffers, buffersLength);
-            const endOfHeaders = buffered.indexOf('\r\n\r\n');
-            if (endOfHeaders === -1) {
-                // keep buffering
-                debug('have not received end of HTTP headers yet...');
-                read();
-                return;
-            }
-            const headerParts = buffered
-                .slice(0, endOfHeaders)
-                .toString('ascii')
-                .split('\r\n');
-            const firstLine = headerParts.shift();
-            if (!firstLine) {
-                socket.destroy();
-                return reject(new Error('No header received from proxy CONNECT response'));
-            }
-            const firstLineParts = firstLine.split(' ');
-            const statusCode = +firstLineParts[1];
-            const statusText = firstLineParts.slice(2).join(' ');
-            const headers = {};
-            for (const header of headerParts) {
-                if (!header)
-                    continue;
-                const firstColon = header.indexOf(':');
-                if (firstColon === -1) {
-                    socket.destroy();
-                    return reject(new Error(`Invalid header from proxy CONNECT response: "${header}"`));
-                }
-                const key = header.slice(0, firstColon).toLowerCase();
-                const value = header.slice(firstColon + 1).trimStart();
-                const current = headers[key];
-                if (typeof current === 'string') {
-                    headers[key] = [current, value];
-                }
-                else if (Array.isArray(current)) {
-                    current.push(value);
-                }
-                else {
-                    headers[key] = value;
-                }
-            }
-            debug('got proxy server response: %o %o', firstLine, headers);
-            cleanup();
-            resolve({
-                connect: {
-                    statusCode,
-                    statusText,
-                    headers,
-                },
-                buffered,
-            });
-        }
-        socket.on('error', onerror);
-        socket.on('end', onend);
-        read();
-    });
-}
-exports.parseProxyResponse = parseProxyResponse;
-//# sourceMappingURL=parse-proxy-response.js.map
-
-/***/ }),
-
 /***/ 4523:
 /***/ ((module) => {
 
@@ -5050,148 +4963,6 @@ function plural(ms, msAbs, n, name) {
   var isPlural = msAbs >= n * 1.5;
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
-
-
-/***/ }),
-
-/***/ 9349:
-/***/ ((module) => {
-
-
-
-/**
- * @module parenthesis
- */
-
-function parse (str, opts) {
-	// pretend non-string parsed per-se
-	if (typeof str !== 'string') return [str]
-
-	var res = [str]
-
-	if (typeof opts === 'string' || Array.isArray(opts)) {
-		opts = {brackets: opts}
-	}
-	else if (!opts) opts = {}
-
-	var brackets = opts.brackets ? (Array.isArray(opts.brackets) ? opts.brackets : [opts.brackets]) : ['{}', '[]', '()']
-
-	var escape = opts.escape || '___'
-
-	var flat = !!opts.flat
-
-	brackets.forEach(function (bracket) {
-		// create parenthesis regex
-		var pRE = new RegExp(['\\', bracket[0], '[^\\', bracket[0], '\\', bracket[1], ']*\\', bracket[1]].join(''))
-
-		var ids = []
-
-		function replaceToken(token, idx, str){
-			// save token to res
-			var refId = res.push(token.slice(bracket[0].length, -bracket[1].length)) - 1
-
-			ids.push(refId)
-
-			return escape + refId + escape
-		}
-
-		res.forEach(function (str, i) {
-			var prevStr
-
-			// replace paren tokens till there’s none
-			var a = 0
-			while (str != prevStr) {
-				prevStr = str
-				str = str.replace(pRE, replaceToken)
-				if (a++ > 10e3) throw Error('References have circular dependency. Please, check them.')
-			}
-
-			res[i] = str
-		})
-
-		// wrap found refs to brackets
-		ids = ids.reverse()
-		res = res.map(function (str) {
-			ids.forEach(function (id) {
-				str = str.replace(new RegExp('(\\' + escape + id + '\\' + escape + ')', 'g'), bracket[0] + '$1' + bracket[1])
-			})
-			return str
-		})
-	})
-
-	var re = new RegExp('\\' + escape + '([0-9]+)' + '\\' + escape)
-
-	// transform references to tree
-	function nest (str, refs, escape) {
-		var res = [], match
-
-		var a = 0
-		while (match = re.exec(str)) {
-			if (a++ > 10e3) throw Error('Circular references in parenthesis')
-
-			res.push(str.slice(0, match.index))
-
-			res.push(nest(refs[match[1]], refs))
-
-			str = str.slice(match.index + match[0].length)
-		}
-
-		res.push(str)
-
-		return res
-	}
-
-	return flat ? res : nest(res[0], res)
-}
-
-function stringify (arg, opts) {
-	if (opts && opts.flat) {
-		var escape = opts && opts.escape || '___'
-
-		var str = arg[0], prevStr
-
-		// pretend bad string stringified with no parentheses
-		if (!str) return ''
-
-
-		var re = new RegExp('\\' + escape + '([0-9]+)' + '\\' + escape)
-
-		var a = 0
-		while (str != prevStr) {
-			if (a++ > 10e3) throw Error('Circular references in ' + arg)
-			prevStr = str
-			str = str.replace(re, replaceRef)
-		}
-
-		return str
-	}
-
-	return arg.reduce(function f (prev, curr) {
-		if (Array.isArray(curr)) {
-			curr = curr.reduce(f, '')
-		}
-		return prev + curr
-	}, '')
-
-	function replaceRef(match, idx){
-		if (arg[idx] == null) throw Error('Reference ' + idx + 'is undefined')
-		return arg[idx]
-	}
-}
-
-function parenthesis (arg, opts) {
-	if (Array.isArray(arg)) {
-		return stringify(arg, opts)
-	}
-	else {
-		return parse(arg, opts)
-	}
-}
-
-parenthesis.parse = parse
-parenthesis.stringify = stringify
-
-module.exports = parenthesis
 
 
 /***/ }),
@@ -5718,7 +5489,7 @@ module.exports = parenthesis
 
 /***/ }),
 
-/***/ 9756:
+/***/ 861:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -5727,11 +5498,11 @@ module.exports = parenthesis
 
 
 
-const {fileURLToPath} = __nccwpck_require__(7016),
-      {RustClass, core, inspect, argc, REPR} = __nccwpck_require__(9020),
-      {Image, ImageData, pixelSize, getSharp} = __nccwpck_require__(6854),
-      {Path2D} = __nccwpck_require__(5523),
-      {toSkMatrix} = __nccwpck_require__(2880)
+const {filePath} = __nccwpck_require__(5026),
+      {RustClass, core, inspect, argc, REPR, neon} = __nccwpck_require__(789),
+      {Image, ImageData, validColorType, validImage, validColorSpace, getSharp, withDensity} = __nccwpck_require__(2001),
+      {Path2D} = __nccwpck_require__(2406),
+      {toSkMatrix} = __nccwpck_require__(5213)
 
 class Canvas extends RustClass{
   #contexts
@@ -5742,8 +5513,9 @@ class Canvas extends RustClass{
     Object.assign(this, {width, height})
   }
 
-  getContext(kind){
-    return (kind=="2d") ? this.#contexts[0] || this.newPage() : null
+  getContext(kind, settings){
+    if (kind!="2d") return null
+    return this.#contexts[0] || this.newPage(settings)
   }
 
   get gpu(){ return this.prop('engine')=='gpu' }
@@ -5754,28 +5526,66 @@ class Canvas extends RustClass{
   get width(){ return this.prop('width') }
   set width(w){
     this.prop('width', !Number.isNaN(+w) && +w>=0 ? w : 300)
-    if (this.#contexts[0]) this.getContext("2d").ƒ('resetSize', core(this))
+    if (this.#contexts[0]) this.#contexts[0].ƒ('resetSize', core(this))
   }
 
   get height(){ return this.prop('height') }
   set height(h){
     this.prop('height', !Number.isNaN(+h) && +h>=0 ? h : 150)
-    if (this.#contexts[0]) this.getContext("2d").ƒ('resetSize', core(this))
+    if (this.#contexts[0]) this.#contexts[0].ƒ('resetSize', core(this))
   }
 
-  newPage(width, height){
-    const {CanvasRenderingContext2D} = __nccwpck_require__(2061)
-    let ctx = new CanvasRenderingContext2D(this)
+  newPage(...args){
+    const {CanvasRenderingContext2D} = __nccwpck_require__(4730)
+
+    // accept newPage(settings), newPage(width, height), or newPage(width, height, settings)
+    let isSettings = args[0]!==null && typeof args[0]=='object',
+        [width, height, settings] = isSettings ? [undefined, undefined, args[0]] : args,
+        resize = !isSettings && args.length>=2
+
+    // merge incuded options with canvas-wide defaults
+    let {colorSpace, willReadFrequently} = settings || {}
+    colorSpace = validColorSpace(colorSpace ?? this.ref('colorSpace') ?? 'srgb')
+    willReadFrequently = !!(willReadFrequently ?? this.ref('willReadFrequently') ?? false)
+
+    // preserve the first page's settings as the default for subsequent pages
+    if (this.ref('colorSpace') === undefined) this.ref('colorSpace', colorSpace)
+    if (this.ref('willReadFrequently') === undefined) this.ref('willReadFrequently', willReadFrequently)
+
+    let ctx = new CanvasRenderingContext2D(this, colorSpace)
+    ctx.ref('colorSpace', colorSpace)
+    ctx.ref('willReadFrequently', willReadFrequently)
+
     this.#contexts.unshift(ctx)
-    if (arguments.length==2){
-      Object.assign(this, {width, height})
-    }
+    if (resize) Object.assign(this, {width, height})
     return ctx
   }
 
   get pages(){
     return this.#contexts.slice().reverse()
   }
+
+  // release native state synchronously rather than waiting for the GC's deferred finalizers.
+  // canvas may no longer be used after disposal. can also be triggered via `using`
+  dispose(){
+    if (this.ref('disposed')) return
+    for (const ctx of this.#contexts){
+      ctx.ƒ('dispose')
+      ctx.ref('disposed', true)
+    }
+    this.#contexts = []
+    this.ƒ('dispose')
+    this.ref('disposed', true)
+  }
+  [Symbol.dispose](){ this.dispose() }
+
+  // release state for this canvas then yield until the next event loop tick so other deferrred
+  // finalizers can be run. Can also be trggered via `await using`
+  async release(){
+    this.dispose()
+    await new Promise(resolve => setImmediate(resolve))
+  }
+  [Symbol.asyncDispose](){ return this.release() }
 
   get raw(){ return this.toBuffer("raw") }
   get png(){ return this.toBuffer("png") }
@@ -5785,9 +5595,9 @@ class Canvas extends RustClass{
   get webp(){ return this.toBuffer("webp") }
 
   // Warn about renamed methods but map them to the new names (for now)
-  saveAs(){ _deprecated('Canvas.saveAs()'); this.toFile(...arguments) }
-  saveAsSync(){ _deprecated('Canvas.saveAsSync()'); this.toFileSync(...arguments) }
-  toDataURLSync(){ _deprecated('Canvas.toDataURLSync()'); this.toURLSync(...arguments) }
+  saveAs(){ _deprecated('Canvas.saveAs()'); return this.toFile(...arguments) }
+  saveAsSync(){ _deprecated('Canvas.saveAsSync()'); return this.toFileSync(...arguments) }
+  toDataURLSync(){ _deprecated('Canvas.toDataURLSync()'); return this.toURLSync(...arguments) }
 
   toFile(filename, opts={}){
     let {pages, padding, pattern, ...rest} = exportOptions(this, {filename}, opts),
@@ -5833,16 +5643,25 @@ class Canvas extends RustClass{
   toSharp({page, matte, msaa, density=1}={}){
     const {Readable} = __nccwpck_require__(7075),
           sharp = getSharp(),
-          buffer = this.toBuffer("raw", {page, matte, density, msaa})
+          colorSpace = this.ref('colorSpace') || 'srgb',
+          [width, height] = [this.width*density, this.height*density]
 
-    return Readable.from(
-      (async function * (){ yield buffer })()
-    ).pipe(sharp({
-      raw: {width:this.width*density, height:this.height*density, channels:4}
-    }).withMetadata({density:density * 72}))
+    if (!width || !height) throw new Error("Width and height must be non-zero")
+
+    // Sharp can only read wide-gamut colors when wrapped in a file container, so convert display-p3 to TIFF
+    let buffer = this.toBuffer("raw", {page, matte, density, msaa}),
+        config = {width, height, colorType:'rgba', colorSpace},
+        [contents, sharpImage] = colorSpace != 'srgb'
+          ? [buffer.then(data => neon.ImageData.toTiff({...config, data})), sharp()]
+          : [buffer, sharp({raw:{width, height, channels:4}})]
+
+    return Readable.from([contents]).pipe(
+      withDensity(sharpImage, density * 72)
+    )
   }
 
   [REPR](depth, options) {
+    if (this.ref('disposed')) return `Canvas (disposed)`
     let {width, height, gpu, engine, pages} = this
     return `Canvas ${inspect({width, height, gpu, engine, pages}, options)}`
   }
@@ -5860,6 +5679,13 @@ class CanvasGradient extends RustClass{
     this.ƒ('addColorStop', ...arguments)
   }
 
+  get colorInterpolationMethod(){ return this.prop('colorInterpolationMethod') }
+  set colorInterpolationMethod(space){ this.prop('colorInterpolationMethod', space) }
+  get hueInterpolationMethod(){ return this.prop('hueInterpolationMethod') }
+  set hueInterpolationMethod(method){ this.prop('hueInterpolationMethod', method) }
+  get premultipliedAlpha(){ return this.prop('premultipliedAlpha') }
+  set premultipliedAlpha(flag){ this.prop('premultipliedAlpha', !!flag) }
+
   [REPR](depth, options) {
     return `CanvasGradient (${this.ƒ("repr")})`
   }
@@ -5868,17 +5694,23 @@ class CanvasGradient extends RustClass{
 class CanvasPattern extends RustClass{
   constructor(canvas, src, repeat){
     repeat = [...arguments].slice(2)
+    if (repeat.length && repeat[0] !== null && !['', 'repeat', 'repeat-x', 'repeat-y', 'no-repeat'].includes(`${repeat[0]}`.toLowerCase())){
+      throw new DOMException('Expected `repetition` to be "repeat", "repeat-x", "repeat-y", or "no-repeat"', 'SyntaxError')
+    }
     super(CanvasPattern)
+    const {CanvasRenderingContext2D} = __nccwpck_require__(4730) // deferred: context.js requires this module in turn
     if (src instanceof Image){
       let {width, height} = canvas
-      this.init('from_image', core(src), width, height, ...repeat)
+      this.init('from_image', core(validImage(src)), width, height, ...repeat)
     }else if (src instanceof ImageData){
       this.init('from_image_data', src, ...repeat)
     }else if (src instanceof Canvas){
       let ctx = src.getContext('2d')
       this.init('from_canvas', core(ctx), ...repeat)
+    }else if (src instanceof CanvasRenderingContext2D){
+      this.init('from_canvas', core(src), ...repeat)
     }else{
-      throw new Error("CanvasPatterns require a source Image or a Canvas")
+      throw new Error("CanvasPatterns require a source Image, Canvas, or CanvasRenderingContext2D")
     }
   }
 
@@ -5953,15 +5785,13 @@ function exportOptions(canvas, {filename='', extension=''}, opts){
   if (typeof opts=='number') opts = {quality:opts}
 
   // unpack common export options
-  let {page, quality, matte, density, msaa, outline, downsample, colorType} = opts
+  let {page, quality, matte, density, msaa, outline, downsample, filters, colorType, premultiplied} = opts
+
+  filename = `${filePath(filename)}`
 
   // only allow format overrides in toFile()
-  let imageFormat = !!filename ? opts.format : undefined
-
-  if (filename instanceof URL){
-    if (filename.protocol=='file:') filename = fileURLToPath(filename)
-    else throw Error(`URLs must use 'file' protocol (got '${filename.protocol.replace(':', '')}')`)
-  }
+  let imageFormat = !!filename && opts.format != null ? `${opts.format}` : undefined
+  extension = `${extension}`
 
   // ensure the canvas has a context (so it can at least generate an empty image)
   if (!canvas.pages.length) canvas.getContext("2d")
@@ -5998,7 +5828,7 @@ function exportOptions(canvas, {filename='', extension=''}, opts){
         : pages.slice(-1) // default to the 'current' context
 
   // inherit text settings from the canvas (since they can't be changed on a per-render basis due to glyph caching)
-  const {textContrast, textGamma} = canvas.engine
+  const {textContrast, textGamma, renderer, msaa:validMsaa} = canvas.engine
 
   if (quality===undefined){
     quality = 0.92
@@ -6017,21 +5847,34 @@ function exportOptions(canvas, {filename='', extension=''}, opts){
 
   if (msaa===undefined || msaa===true) {
     msaa = undefined // use the default 4x msaa
-  }else if (!isFinite(+msaa) || +msaa<0){
-    throw new TypeError("The number of MSAA samples must be an integer ≥0")
+  }else{
+    msaa = msaa===false ? 0 : msaa
+    if (typeof msaa!='number' || !Number.isInteger(msaa) || msaa<0){
+      throw new TypeError("Expected a non-negative integer for `msaa`")
+    }
+    // only reject unsupported MSAA if it's actually headed to the GPU rasterizer
+    if (renderer=='GPU' && !['pdf', 'svg'].includes(format) && !validMsaa.includes(msaa)){
+      throw new TypeError(`${msaa}x MSAA not supported by this GPU (options: [${validMsaa.join(', ')}])`)
+    }
   }
 
   if (colorType!==undefined){
-    pixelSize(colorType) // throw an error if invalid
+    colorType = validColorType(colorType) // throw an error if invalid
+  }
+
+  filters = filters===undefined ? 'none' : `${filters}`
+  if (!['none', 'all', 'auto'].includes(filters)){
+    throw new TypeError('Expected "none", "all", or "auto" for `filters`')
   }
 
   // default to false, otherwise detect truthy
   downsample = !!downsample
   outline = !!outline
+  premultiplied = !!premultiplied
 
   return {
-    filename, pattern, format, mime, pages, padding, quality, matte,
-    density, msaa, outline, textContrast, textGamma, downsample, colorType
+    filename, pattern, format, mime, pages, padding, quality, matte, density,
+    msaa, outline, textContrast, textGamma, downsample, filters, colorType, premultiplied
   }
 }
 
@@ -6052,7 +5895,7 @@ module.exports = {Canvas, CanvasGradient, CanvasPattern, CanvasTexture, getSharp
 
 /***/ }),
 
-/***/ 2061:
+/***/ 4730:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -6061,87 +5904,53 @@ module.exports = {Canvas, CanvasGradient, CanvasPattern, CanvasTexture, getSharp
 
 
 
-const {RustClass, core, wrap, inspect, argc, REPR} = __nccwpck_require__(9020),
-      {Canvas, CanvasGradient, CanvasPattern, CanvasTexture} = __nccwpck_require__(9756),
-      {fromSkMatrix, toSkMatrix} = __nccwpck_require__(2880),
-      {Image, ImageData} = __nccwpck_require__(6854),
-      {TextMetrics} = __nccwpck_require__(5817),
-      {Path2D} = __nccwpck_require__(5523),
-      css = __nccwpck_require__(3729)
+const {RustClass, core, wrap, inspect, argc, REPR} = __nccwpck_require__(789),
+      {Canvas, CanvasGradient, CanvasPattern, CanvasTexture} = __nccwpck_require__(861),
+      {fromSkMatrix} = __nccwpck_require__(5213),
+      {Image, ImageData, validImage, validColorType, validColorSpace} = __nccwpck_require__(2001),
+      {TextMetrics} = __nccwpck_require__(9204),
+      {Path2D, DrawList} = __nccwpck_require__(2406),
+      css = __nccwpck_require__(830)
 
 const toString = val => typeof val=='string' ? val : new String(val).toString()
 
 class CanvasRenderingContext2D extends RustClass{
   #canvas
 
-  constructor(canvas){
+  constructor(canvas, colorSpace='srgb'){
     try{
-      super(CanvasRenderingContext2D).alloc(core(canvas))
-      this.#canvas = new WeakRef(canvas)
+      super(CanvasRenderingContext2D).alloc(core(canvas), colorSpace)
+      this.#canvas = canvas
     }catch(e){
-      throw new TypeError(`Function is not a constructor (use Canvas's "getContext" method instead)`)
+      throw new TypeError(`Function is not a constructor (use Canvas's "getContext" method instead)`, {cause:e})
     }
   }
 
-  get canvas(){ return this.#canvas.deref() }
+  get canvas(){ return this.#canvas }
+
+  getContextAttributes(){
+    // colorSpace & willReadFrequently are captured when the page is created & fixed for the life
+    // of the context (see Canvas.newPage); the size is the page's own, and only tracks the
+    // canvas's dimensions while it's the current page
+    let colorSpace = this.ref('colorSpace') ?? 'srgb',
+        willReadFrequently = this.ref('willReadFrequently') ?? false,
+        [width, height] = this.prop('size')
+    return {alpha:true, colorSpace, desynchronized:false, willReadFrequently, width, height}
+  }
 
   // -- global state & content reset ------------------------------------------
   reset(){ this.ƒ('reset') }
 
   // -- grid state ------------------------------------------------------------
-  save(){ this.ƒ('save') }
-  restore(){ this.ƒ('restore') }
-
   get currentTransform(){ return fromSkMatrix( this.prop('currentTransform') ) }
   set currentTransform(matrix){ this.setTransform(matrix) }
-
-  resetTransform(){ this.ƒ('resetTransform')}
   getTransform(){ return this.currentTransform }
-  setTransform(matrix){ this.prop('currentTransform', toSkMatrix.apply(null, arguments)) }
-
-  transform(matrix) { this.ƒ('transform', toSkMatrix.apply(null, arguments)) }
-  translate(x, y){ this.ƒ('translate', ...arguments)}
-  scale(x, y){ this.ƒ('scale', ...arguments)}
-  rotate(angle){ this.ƒ('rotate', ...arguments)}
 
   createProjection(quad, basis){
     return fromSkMatrix(this.ƒ("createProjection", [quad].flat(), [basis].flat()))
   }
 
-  // -- bézier paths ----------------------------------------------------------
-  beginPath(){ this.ƒ('beginPath') }
-  rect(x, y, width, height){ this.ƒ('rect', ...arguments) }
-  arc(x, y, radius, startAngle, endAngle, isCCW){ this.ƒ('arc', ...arguments) }
-  ellipse(x, y, xRadius, yRadius, rotation, startAngle, endAngle, isCCW){ this.ƒ('ellipse', ...arguments) }
-  moveTo(x, y){ this.ƒ('moveTo', ...arguments) }
-  lineTo(x, y){ this.ƒ('lineTo', ...arguments) }
-  arcTo(x1, y1, x2, y2, radius){ this.ƒ('arcTo', ...arguments) }
-  bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y){ this.ƒ('bezierCurveTo', ...arguments) }
-  quadraticCurveTo(cpx, cpy, x, y){ this.ƒ('quadraticCurveTo', ...arguments) }
-  conicCurveTo(cpx, cpy, x, y, weight){ this.ƒ("conicCurveTo", ...arguments) }
-  closePath(){ this.ƒ('closePath') }
-  roundRect(x, y, w, h, r=0){
-    argc(arguments, 4, 5)
-    let radii = css.radii(r)
-    if (radii){
-      if (w < 0) radii = [radii[1], radii[0], radii[3], radii[2]]
-      if (h < 0) radii = [radii[3], radii[2], radii[1], radii[0]]
-      this.ƒ("roundRect", x, y, w, h, ...radii.map(({x, y}) => [x, y]).flat())
-    }
-  }
-
-
   // -- using paths -----------------------------------------------------------
-  fill(path, rule){
-    if (path instanceof Path2D) arguments[0] = core(path)
-    return this.ƒ('fill', ...arguments)
-  }
-
-  stroke(path){
-    if (path instanceof Path2D) arguments[0] = core(path)
-    return this.ƒ('stroke', ...arguments)
-  }
-
   clip(path, rule){
     if (path instanceof Path2D) arguments[0] = core(path)
     return this.ƒ('clip', ...arguments)
@@ -6159,14 +5968,14 @@ class CanvasRenderingContext2D extends RustClass{
 
   // -- shaders ---------------------------------------------------------------
   createPattern(image, repetition){ return new CanvasPattern(this.canvas, ...arguments) }
-  createLinearGradient(x0, y0, x1, y1){
-    return new CanvasGradient("Linear", ...arguments)
+  createLinearGradient(...args){
+    return new CanvasGradient("Linear", ...args)
   }
-  createRadialGradient(x0, y0, r0, x1, y1, r1){
-    return new CanvasGradient("Radial", ...arguments)
+  createRadialGradient(...args){
+    return new CanvasGradient("Radial", ...args)
   }
-  createConicGradient(startAngle, x, y){
-    return new CanvasGradient("Conic", ...arguments)
+  createConicGradient(...args){
+    return new CanvasGradient("Conic", ...args)
   }
 
   createTexture(spacing, options){
@@ -6174,10 +5983,6 @@ class CanvasRenderingContext2D extends RustClass{
   }
 
   // -- fill & stroke ---------------------------------------------------------
-  fillRect(x, y, width, height){ this.ƒ('fillRect', ...arguments) }
-  strokeRect(x, y, width, height){ this.ƒ('strokeRect', ...arguments) }
-  clearRect(x, y, width, height){ this.ƒ('clearRect', ...arguments) }
-
   set fillStyle(style){
     let isShader = style instanceof CanvasPattern || style instanceof CanvasGradient || style instanceof CanvasTexture,
         [ref, val] = isShader ? [style, core(style)] : [null, style]
@@ -6206,15 +6011,15 @@ class CanvasRenderingContext2D extends RustClass{
   getLineDash(){        return this.ƒ("getLineDash") }
   setLineDash(segments){       this.ƒ("setLineDash", ...arguments) }
   get lineCap(){        return this.prop("lineCap") }
-  set lineCap(style){          this.prop("lineCap", style) }
+  set lineCap(style){          this.prop("lineCap", `${style}`) }
   get lineDashFit(){    return this.prop("lineDashFit") }
-  set lineDashFit(style){      this.prop("lineDashFit", style) }
+  set lineDashFit(style){      this.prop("lineDashFit", `${style}`) }
   get lineDashMarker(){ return wrap(Path2D, this.prop("lineDashMarker")) }
   set lineDashMarker(path){    this.prop("lineDashMarker", path instanceof Path2D ? core(path) : path) }
   get lineDashOffset(){ return this.prop("lineDashOffset") }
   set lineDashOffset(offset){  this.prop("lineDashOffset", offset) }
   get lineJoin(){       return this.prop("lineJoin") }
-  set lineJoin(style){         this.prop("lineJoin", style) }
+  set lineJoin(style){         this.prop("lineJoin", `${style}`) }
   get lineWidth(){      return this.prop("lineWidth") }
   set lineWidth(width){        this.prop("lineWidth", width) }
   get miterLimit(){     return this.prop("miterLimit") }
@@ -6224,15 +6029,21 @@ class CanvasRenderingContext2D extends RustClass{
   get imageSmoothingEnabled(){ return this.prop("imageSmoothingEnabled")}
   set imageSmoothingEnabled(flag){    this.prop("imageSmoothingEnabled", !!flag)}
   get imageSmoothingQuality(){ return this.prop("imageSmoothingQuality")}
-  set imageSmoothingQuality(level){   this.prop("imageSmoothingQuality", level)}
+  set imageSmoothingQuality(level){   this.prop("imageSmoothingQuality", `${level}`)}
 
   createImageData(width, height, settings){
     argc(arguments, 2, 3)
-    return new ImageData(width, height, settings)
+    let {colorSpace, ...opts} = settings || {}
+    if (colorSpace===undefined) ({colorSpace} = this.getContextAttributes())
+    return new ImageData(width, height, {colorSpace, ...opts})
   }
 
-  getImageData(x, y, width, height, {colorType='rgba', colorSpace='srgb', density=1, matte, msaa}={}){
+  getImageData(x, y, width, height, {colorType='rgba', colorSpace, density=1, matte, msaa}={}){
     argc(arguments, 4, 5)
+
+    if (colorSpace===undefined) ({colorSpace} = this.getContextAttributes())
+    colorType = validColorType(colorType)
+    colorSpace = validColorSpace(colorSpace) // normalized before reading pixels, so they match the ImageData's label
 
     if (typeof density!='number' || !Number.isInteger(density) || density<1){
       throw new TypeError("Expected a non-negative integer for `density`")
@@ -6240,13 +6051,21 @@ class CanvasRenderingContext2D extends RustClass{
 
     if (msaa===undefined || msaa===true) {
       msaa = undefined // use the default 4x msaa
-    }else if (!isFinite(+msaa) || +msaa<0){
-      throw new TypeError("The number of MSAA samples must be an integer ≥0")
+    }else{
+      msaa = msaa===false ? 0 : msaa
+      if (typeof msaa!='number' || !Number.isInteger(msaa) || msaa<0){
+        throw new TypeError("Expected a non-negative integer for `msaa`")
+      }
+      // only reject unsupported MSAA if it's actually headed to the GPU rasterizer
+      let {renderer, msaa:validMsaa} = this.canvas.engine
+      if (renderer=='GPU' && !validMsaa.includes(msaa)){
+        throw new TypeError(`${msaa}x MSAA not supported by this GPU (options: [${validMsaa.join(', ')}])`)
+      }
     }
 
     let opts = {colorType, colorSpace, density, matte, msaa},
-        buffer = this.ƒ('getImageData', x, y, width, height, opts, core(this.canvas));
-    return new ImageData(buffer, width*density, height*density, {colorType, colorSpace})
+        pixels = this.ƒ('getImageData', x, y, width, height, opts, core(this.canvas), this.ref('willReadFrequently'));
+    return new ImageData(pixels.data, pixels.width, pixels.height, {colorType, colorSpace})
   }
 
   putImageData(imageData, ...coords){
@@ -6258,22 +6077,25 @@ class CanvasRenderingContext2D extends RustClass{
   drawImage(image, ...coords){
     if (image instanceof Canvas){
       this.ƒ('drawImage', core(image.getContext('2d')), ...coords)
+    }else if (image instanceof CanvasRenderingContext2D){
+      this.ƒ('drawImage', core(image), ...coords)
     }else if (image instanceof Image){
-      if (image.complete) this.ƒ('drawImage', core(image), ...coords)
-      else throw Error("Image has not completed loading: listen for `load` event or await `decode()` first")
+      this.ƒ('drawImage', core(validImage(image)), ...coords)
     }else if (image instanceof ImageData){
       this.ƒ('drawImage', image, ...coords)
     }else if (image instanceof Promise) {
       throw Error("Promise has not yet resolved: `await` image loading before drawing")
     }else{
       let nonimage = inspect(image, {depth:1})
-      throw Error(`Expected an Image or a Canvas argument (got: ${nonimage})`)
+      throw Error(`Expected an Image, Canvas, or CanvasRenderingContext2D argument (got: ${nonimage})`)
     }
   }
 
   drawCanvas(image, ...coords){
     if (image instanceof Canvas){
       this.ƒ('drawCanvas', core(image.getContext('2d')), ...coords)
+    }else if (image instanceof CanvasRenderingContext2D){
+      this.ƒ('drawCanvas', core(image), ...coords)
     }else{
       this.drawImage(image, ...coords)
     }
@@ -6281,23 +6103,26 @@ class CanvasRenderingContext2D extends RustClass{
 
   // -- typography ------------------------------------------------------------
   get font(){          return this.prop('font') }
-  set font(str){              this.prop('font', css.font(str)) }
+  set font(str){              this.prop('font', css.font(`${str}`)) }
   get textAlign(){     return this.prop("textAlign") }
-  set textAlign(mode){        this.prop("textAlign", mode) }
+  set textAlign(mode){        this.prop("textAlign", `${mode}`) }
   get textBaseline(){  return this.prop("textBaseline") }
-  set textBaseline(mode ){    this.prop("textBaseline", mode) }
+  set textBaseline(mode ){    this.prop("textBaseline", `${mode}`) }
+  get textRendering(){ return this.prop("textRendering") }
+  set textRendering(mode){    this.prop("textRendering", `${mode}`) }
   get direction(){     return this.prop("direction") }
-  set direction(mode){        this.prop("direction", mode) }
+  set direction(mode){        this.prop("direction", `${mode}`) }
   get fontStretch(){   return this.prop('fontStretch') }
-  set fontStretch(str){       this.prop('fontStretch', css.stretch(str)) }
+  set fontStretch(str){       this.prop('fontStretch', css.stretch(`${str}`)) }
+  get fontKerning(){   return this.prop('fontKerning') }
+  set fontKerning(str){       this.prop('fontKerning', css.kerning(`${str}`)) }
   get letterSpacing(){ return this.prop('letterSpacing') }
-  set letterSpacing(str){     this.prop('letterSpacing', css.spacing(str)) }
+  set letterSpacing(str){     this.prop('letterSpacing', css.spacing(`${str}`)) }
   get wordSpacing(){   return this.prop('wordSpacing') }
-  set wordSpacing(str){       this.prop('wordSpacing', css.spacing(str)) }
+  set wordSpacing(str){       this.prop('wordSpacing', css.spacing(`${str}`)) }
 
   measureText(text, maxWidth){
-    let metrics = JSON.parse(this.ƒ('measureText', toString(text), maxWidth))
-    return new TextMetrics(metrics)
+    return new TextMetrics(this.ƒ('measureText', toString(text), maxWidth))
   }
 
   fillText(text, ...geom){
@@ -6308,27 +6133,37 @@ class CanvasRenderingContext2D extends RustClass{
     this.ƒ('strokeText', toString(text), ...geom)
   }
 
-  outlineText(text, ...geom){
-    let path = this.ƒ('outlineText', toString(text), ...geom)
+  outlineText(text, maxWidth){
+    let path = this.ƒ('outlineText', toString(text), maxWidth)
     return path ? wrap(Path2D, path) : null
   }
 
   // -- non-standard typography extensions --------------------------------------------
   get fontHinting(){    return this.prop("fontHinting") }
   set fontHinting(flag){       this.prop("fontHinting", !!flag) }
+  get fontSmoothing(){  return this.prop("fontSmoothing") }
+  set fontSmoothing(flag){     this.prop("fontSmoothing", !!flag) }
   get fontVariant(){    return this.prop('fontVariant') }
-  set fontVariant(str){        this.prop('fontVariant', css.variant(str)) }
+  set fontVariant(str){        this.prop('fontVariant', css.variant(`${str}`)) }
+  get fontVariationSettings(){ return this.prop('fontVariationSettings') }
+  set fontVariationSettings(cfg){ this.prop('fontVariationSettings', css.variationSettings(cfg)) }
+  get fontFeatureSettings(){ return this.prop('fontFeatureSettings') }
+  set fontFeatureSettings(cfg){ this.prop('fontFeatureSettings', css.featureSettings(cfg)) }
+  get fontInstance(){ return this.prop('fontInstance') }
+  set fontInstance(name){ this.prop('fontInstance', `${name}`) }
+  get fontSynthesis(){  return this.prop("fontSynthesis") }
+  set fontSynthesis(flag){     this.prop("fontSynthesis", !!flag) }
   get textWrap(){       return this.prop("textWrap") }
   set textWrap(flag){          this.prop("textWrap", !!flag) }
   get textDecoration(){ return this.prop("textDecoration") }
-  set textDecoration(str){     this.prop("textDecoration", css.decoration(str)) }
+  set textDecoration(str){     this.prop("textDecoration", css.decoration(`${str}`)) }
   set textTracking(_){
     process.emitWarning("The .textTracking property has been removed; use the .letterSpacing property instead", "PropertyRemoved")
   }
 
   // -- effects ---------------------------------------------------------------
   get globalCompositeOperation(){ return this.prop("globalCompositeOperation") }
-  set globalCompositeOperation(blend){   this.prop("globalCompositeOperation", blend) }
+  set globalCompositeOperation(blend){   this.prop("globalCompositeOperation", `${blend}`) }
   get globalAlpha(){   return this.prop("globalAlpha") }
   set globalAlpha(alpha){     this.prop("globalAlpha", alpha) }
   get shadowBlur(){    return this.prop("shadowBlur") }
@@ -6340,11 +6175,12 @@ class CanvasRenderingContext2D extends RustClass{
   get shadowOffsetY(){ return this.prop("shadowOffsetY") }
   set shadowOffsetY(y){       this.prop("shadowOffsetY", y) }
   get filter(){        return this.prop('filter') }
-  set filter(str){            this.prop('filter', css.filter(str)) }
+  set filter(str){            this.prop('filter', css.filter(`${str}`, css.font(this.font).size)) }
 
   [REPR](depth, options) {
-    let props = [ "canvas", "currentTransform", "fillStyle", "strokeStyle", "font", "fontStretch", "fontVariant",
-                  "direction", "textAlign", "textBaseline", "textWrap", "letterSpacing", "wordSpacing", "globalAlpha",
+    if (this.ref('disposed')) return `CanvasRenderingContext2D (disposed)`
+    let props = [ "canvas", "currentTransform", "fillStyle", "strokeStyle", "font", "fontStretch", "fontKerning", "fontVariant", "fontVariationSettings", "fontFeatureSettings", "fontInstance",
+                  "direction", "textAlign", "textBaseline", "textRendering", "textWrap", "fontSynthesis", "fontHinting", "fontSmoothing", "letterSpacing", "wordSpacing", "globalAlpha",
                   "globalCompositeOperation", "imageSmoothingEnabled", "imageSmoothingQuality", "filter",
                   "shadowBlur", "shadowColor", "shadowOffsetX", "shadowOffsetY", "lineCap", "lineDashOffset",
                   "lineJoin", "lineWidth", "miterLimit" ]
@@ -6359,12 +6195,15 @@ class CanvasRenderingContext2D extends RustClass{
   }
 }
 
+// install the path verbs + Context2D extras (transforms, state stack, draw verbs) onto the prototype
+DrawList.install(CanvasRenderingContext2D)
+
 module.exports = {CanvasRenderingContext2D}
 
 
 /***/ }),
 
-/***/ 3729:
+/***/ 830:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -6373,38 +6212,79 @@ module.exports = {CanvasRenderingContext2D}
 
 
 
+const {STRICT} = __nccwpck_require__(789)
+
+// -- Strict Mode -----------------------------------------------------------------------
+
+// silently ignore arg-validation errors unless SKIA_CANVAS_STRICT is enabled
+function parsed(value, label, raw){
+  if (value == null && STRICT){
+    let error = new TypeError(`Invalid ${label}: ${JSON.stringify(raw)}`)
+    Error.captureStackTrace(error, parsed)
+    throw error
+  }
+  return value
+}
+
 // -- Font & Variant --------------------------------------------------------------------
 //    https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant
 //    https://www.w3.org/TR/css-fonts-3/#font-size-prop
 
-var splitBy = __nccwpck_require__(1846),
-    m, cache = {font:{}, variant:{}};
+var m, cache = {font:{}, variant:{}};
 
 const styleRE = /^(normal|italic|oblique)$/,
+      angleRE = /^[+-]?\d+(?:\.\d+)?deg$/, // oblique slant angle (deg only)
       smallcapsRE = /^(normal|small-caps)$/,
       stretchRE = /^(normal|(semi-|extra-|ultra-)?(condensed|expanded))$/,
-      namedSizeRE = /(?:xx?-)?small|smaller|medium|larger|(?:xx?-)?large|normal/,
-      numSizeRE = /^(\-?[\d\.]+)(px|pt|pc|in|cm|mm|%|em|ex|ch|rem|q)/,
+      kerningRE = /^(auto|normal|none)$/,
+      openTypeTagRE = /^[\x20-\x7e]{4}$/, // opentype 4-char tag (in printable-ascii range)
+      genericFamilyRE = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(serif|sans-serif|monospace|rounded)|math|emoji|fangsong)$/i,
+      namedSizeRE = /^((?:xx?-)?small|smaller|medium|larger|(?:xx?-)?large|normal)$/,
+      numSizeRE = /^([+-]?(?:\d+(?:\.\d+)?|\.\d+))(px|pt|pc|in|cm|mm|%|em|rem|q)$/, // omit `ex` & `ch`
+      zeroValueRE = /^[+-]?(?:0+(?:\.0+)?|\.0+)$/, // a unitless zero is a valid <length>/<angle>
+      lengthValueRE = /^[+-]?(?:(?:\d+(?:\.\d+)?|\.\d+)(?:px|pt|pc|in|cm|mm|q|r?em)|0+(?:\.0+)?|\.0+)$/, // <length>: like numSizeRE but no `%`, plus unitless 0
       namedWeightRE = /^(normal|bold(er)?|lighter)$/,
       numWeightRE = /^(1000|\d{1,3})$/,
       parameterizedRE = /([\w\-]+)\((.*?)\)/,
+      percentRE = /^\d+(\.\d+)?%$/,
       unquote = s => s.replace(/^(['"])(.*?)\1$/, "$2"),
-      isSize = s => namedSizeRE.test(s) || numSizeRE.test(s),
-      isWeight = s => namedWeightRE.test(s) || numWeightRE.test(s);
+      isSize = s => { let [size] = s.split('/'); return namedSizeRE.test(size) || numSizeRE.test(size) },
+      isWeight = s => namedWeightRE.test(s) || numWeightRE.test(s),
+      splitBy = (str, sep) => {
+        // split on `sep`, but not when the separator is nested within (), "", or ''
+        let re = new RegExp(`\\s*${sep.replace(' ', '\\s')}\\s*`, 'y'),
+            parts = [], start = 0, depth = 0, quote = null, i = 0
+        while (i < str.length){
+          let ch = str[i]
+          if (quote){ if (ch === quote) quote = null; i++ }
+          else if (ch === '"' || ch === "'"){ quote = ch; i++ }
+          else if (ch === '('){ depth++; i++ }
+          else if (ch === ')'){ if (depth > 0) depth--; i++ }
+          else if (depth === 0 && (re.lastIndex = i, re.test(str)) && re.lastIndex > i){
+            parts.push(str.slice(start, i)); start = i = re.lastIndex
+          }
+          else i++
+        }
+        parts.push(str.slice(start))
+        return parts.filter(Boolean)
+      }
 
 function parseFont(str){
   if (cache.font[str]===undefined){
     try{
-      if (typeof str !== 'string') throw new Error('Font specification must be a string')
       if (!str) throw new Error('Font specification cannot be an empty string')
 
       let font = {style:'normal', variant:'normal', weight:'normal', stretch:'normal'},
           value = str.replace(/\s*\/\*s/, "/"),
-          tokens = splitBy(value, /\s+/),
+          tokens = splitBy(value, ' '),
           token;
 
-      while (token = tokens.shift()) {
+      // keywords & units are case-insensitive (but font family names preserve their case)
+      while (token = tokens.shift()?.toLowerCase()) {
+        if (token === 'normal') continue; // ignore normal (just reaffirms the default value)
+
         let match = styleRE.test(token) ? 'style'
+                  : angleRE.test(token) && font.style === 'oblique' && font.obliqueAngle === undefined ? 'angle'
                   : smallcapsRE.test(token) ? 'variant'
                   : stretchRE.test(token) ? 'stretch'
                   : isWeight(token) ? 'weight'
@@ -6419,16 +6299,21 @@ function parseFont(str){
             font[match] = token
             break;
 
+          case "angle":
+            // clamp `oblique <angle>` to CSS's ±90° range
+            font.obliqueAngle = Math.max(-90, Math.min(90, parseFloat(token)))
+            break;
+
           case "size":
             // size is the pivot point between the style fields and the family name stack,
             // so start processing what's been collected
-            let [emSize, leading] = splitBy(token, '/'),
+            let [emSize, leading] = token.split('/'),
                 size = parseSize(emSize),
                 lineHeight = leading ? parseSize(leading.replace(/(\d)$/, '$1em'), size) : undefined,
                 weight = parseWeight(font.weight),
-                family = splitBy(tokens.join(' '), /\s*,\s*/).map(unquote),
+                family = splitBy(tokens.join(' '), ',').map(nm => genericFamilyRE.test(nm) ? nm.toLowerCase() : unquote(nm)),
                 features = font.variant=='small-caps' ? {on:['smcp', 'onum']} : {},
-                {style, stretch, variant} = font;
+                {style, stretch, variant, obliqueAngle} = font;
 
             // make sure all the numeric fields have legitimate values
             let invalid = !isFinite(size) ? `font size "${emSize}"`
@@ -6442,10 +6327,10 @@ function parseFont(str){
               return cache.font[str] = Object.assign(font, {
                 size, lineHeight, weight, family, features,
                 canonical:[
-                  style,
+                  obliqueAngle!==undefined ? `${style} ${obliqueAngle}deg` : style,
                   (variant !== style) && variant,
-                  ([variant, style].indexOf(weight) == -1) && weight,
-                  ([variant, style, weight].indexOf(stretch) == -1) && stretch,
+                  ![variant, style].includes(weight) && weight,
+                  ![variant, style, weight].includes(stretch) && stretch,
                   `${size}px${isFinite(lineHeight) ? `/${lineHeight}px`: ''}`,
                   family.map(nm => nm.match(/\s/) ? `"${nm}"` : nm).join(", ")
                 ].filter(Boolean).join(' ')
@@ -6467,6 +6352,8 @@ function parseFont(str){
 }
 
 function parseSize(str, emSize=16){
+  str = `${str}`.trim().toLowerCase()
+
   if (m = numSizeRE.exec(str)){
     let [size, unit] = [parseFloat(m[1]), m[2]]
     return size * (unit == 'px' ? 1
@@ -6481,6 +6368,8 @@ function parseSize(str, emSize=16){
                 :  NaN )
   }
 
+  if (zeroValueRE.test(str)) return 0
+
   if (m = namedSizeRE.exec(str)){
     return emSize * (sizeMap[m[0]] || 1.0)
   }
@@ -6489,9 +6378,16 @@ function parseSize(str, emSize=16){
 }
 
 function parseFlexibleSize(str){
+  str = `${str}`.trim().toLowerCase()
+
   if (m = numSizeRE.exec(str)){
-    let [size, unit] = [parseFloat(m[1]), m[2]],
-        px = size * (unit == 'px' ? 1
+    let [size, unit] = [parseFloat(m[1]), m[2]]
+
+    // em & rem are converted in rust (em vs font size, rem vs 16px), so bail with a placeholder px value
+    if (unit == 'em' || unit == 'rem') return {size, unit, px:0}
+
+    // everything else can convert to px here, or get passed to rust as `null` indicating an invalid arg
+    let px = size * (unit == 'px' ? 1
           :  unit == 'pt' ? 1 / 0.75
           :  unit == 'pc' ? 16
           :  unit == 'in' ? 96
@@ -6499,13 +6395,85 @@ function parseFlexibleSize(str){
           :  unit == 'mm' ? 96.0 / 25.4
           :  unit == 'q' ? 96 / 25.4 / 4
           :  NaN )
-    return {size, unit, px}
+    return isNaN(px) ? null : {size, unit, px}
   }
+
+  if (zeroValueRE.test(str)) return {size:0, unit:'px', px:0}
+
   return null
 }
 
 function parseStretch(str){
-  return (m = stretchRE.exec(str)) ? m[0] : undefined
+  str = str.trim()
+  if (stretchRE.test(str)) return str
+  else if (percentRE.test(str)) return +(str.slice(0,-1))
+}
+
+function parseKerning(str){
+  str = str.trim()
+  if (kerningRE.test(str)) return str
+}
+
+// parse a CSS tag-list (fontVariationSettings or fontFeatureSettings) into a dict.
+function parseTagList(str, parseValue){
+  if (typeof str != 'string') return null
+  str = str.trim()
+  if (str == '' || str.toLowerCase() == 'normal') return {}
+
+  let tags = new Map()
+  for (let entry of splitBy(str, ',')){
+    let parts = splitBy(entry.trim(), ' ')
+    if (!parts.length) return null
+
+    let tag = unquote(parts[0])
+    if (parts[0] == tag || !openTypeTagRE.test(tag)) return null // reject unquoted / non-4-char tags
+
+    let value = parseValue(parts)
+    if (value == null) return null // reject the whole string on a malformed value
+
+    tags.set(tag, value)
+  }
+
+  return Object.fromEntries(tags)
+}
+
+// parse a {tag: value} object into a dict, rejecting it entirely if any tag or value is invalid
+function parseTagDict(obj, parseValue){
+  let proto = obj ? Object.getPrototypeOf(obj) : undefined
+  if (proto !== null && proto !== Object.prototype) return null // plain objects only (not Maps, Arrays, etc.)
+
+  let tags = {}
+  for (let [tag, raw] of Object.entries(obj)){
+    let value = parseValue(raw)
+    if (!openTypeTagRE.test(tag) || value == null) return null
+    tags[tag] = value
+  }
+  return tags
+}
+
+function parseVariationSettings(spec){
+  // values are mandatory and must be finite numbers
+  if (spec instanceof Object && spec.toString !== Object.prototype.toString) spec = `${spec}`
+  if (typeof spec == 'object') return parseTagDict(spec, value => Number.isFinite(value) ? value : null)
+  return parseTagList(spec, parts => {
+    if (parts.length != 2) return null
+    let value = Number(parts[1])
+    return isFinite(value) ? value : null
+  })
+}
+
+function parseFeatureSettings(spec){
+  // values are optional and must be non-negative integers or `on`/`off` keywords (or boolean, in object form)
+  if (spec instanceof Object && spec.toString !== Object.prototype.toString) spec = `${spec}`
+  if (typeof spec == 'object') return parseTagDict(spec, value =>
+    typeof value == 'boolean' ? +value : Number.isInteger(value) && value >= 0 ? value : null
+  )
+  return parseTagList(spec, parts => {
+    if (parts.length > 2) return null
+    let raw = parts.length == 2 ? parts[1].toLowerCase() : 'on'
+    let value = raw == 'on' ? 1 : raw == 'off' ? 0 : parseInt(raw, 10)
+    return Number.isInteger(value) && value >= 0 ? value : null
+  })
 }
 
 function parseWeight(str){
@@ -6519,9 +6487,9 @@ function parseVariant(str){
     let variants = [],
         features = {on:[], off:[]};
 
-    for (let token of splitBy(str, /\s+/)){
+    for (let token of splitBy(str.toLowerCase(), ' ')){
       if (token == 'normal'){
-        return {variants:[token], features:{on:[], off:[]}}
+        return {variant:token, features:{on:[], off:[]}}
       }else if (token in featureMap){
         featureMap[token].forEach(feat => {
           if (feat[0] == '-') features.off.push(feat.slice(1))
@@ -6537,7 +6505,7 @@ function parseVariant(str){
         else features[feat] = parseInt(val, 10)
         variants.push(`${m[1]}(${subValue})`)
       }else{
-        throw new Error(`Invalid font variant "${token}"`)
+        return null // reject the whole string if any token is inrecognized
       }
     }
 
@@ -6556,15 +6524,18 @@ function parseTextDecoration(str){
       thickness,
       _val
 
-  str =  (typeof str=='string' ? str : '').trim().replace(/\s+/, ' ')
-  for (const token of str.split(' ')){
+  str = str.trim().replace(/\s+/g, ' ').toLowerCase()
+  let colors = 0
+  for (const token of splitBy(str, ' ')){
     if (token.match(/solid|double|dotted|dashed|wavy/)) style = token
     else if (token.match(/none|initial|revert(-layer)?|unset/)) line = "none"
     else if (token.match(/underline|overline|line-through/)) line = token
     else if (_val = parseFlexibleSize(token)) thickness = _val
     else if (token.match(/auto|from-font/)) inherit = token
-    else color = token
+    else { color = token; colors++ }
   }
+
+  if (colors > 1) return null // non-matched strings are presumed to be colors (so >1 is invalid)
 
   return { style, line, color, thickness, inherit, str }
 }
@@ -6581,11 +6552,13 @@ let cursorTypes = [
 ]
 
 function parseCursor(str){
-  return cursorTypes.includes(str)
+  str = `${str}`.toLowerCase()
+  return cursorTypes.includes(str) && str
 }
 
 function parseFit(mode){
-  return ["none", "contain-x", "contain-y", "contain", "cover", "fill", "scale-down", "resize"].includes(mode)
+  mode = `${mode}`.toLowerCase()
+  return ["none", "contain-x", "contain-y", "contain", "cover", "fill", "scale-down", "resize"].includes(mode) && mode
 }
 
 // -- Corner Rounding
@@ -6612,51 +6585,74 @@ function parseCornerRadii(r){
 // -- Image Filters -----------------------------------------------------------------------
 //    https://developer.mozilla.org/en-US/docs/Web/CSS/filter
 
-var plainFilterRE = /(blur|hue-rotate|brightness|contrast|grayscale|invert|opacity|saturate|sepia)\((.*?)\)/,
-    shadowFilterRE = /drop-shadow\((.*)\)/,
-    percentValueRE = /^(\+|-)?\d+%$/,
-    angleValueRE = /([\d\.]+)(deg|g?rad|turn)/;
+var plainFilterRE = /^(blur|hue-rotate|brightness|contrast|grayscale|invert|opacity|saturate|sepia)\((.*?)\)$/s,
+    shadowFilterRE = /^drop-shadow\((.*)\)$/s,
+    percentValueRE = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)%$/,
+    numberValueRE = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/,
+    angleValueRE = /^([+-]?(?:\d+(?:\.\d+)?|\.\d+))(deg|g?rad|turn)$/;
 
-function parseFilter(str){
+function parseFilter(str, emSize){
+  str = str.toLowerCase() // function names, units, & colors are case-insensitive
+  if (str.trim() == 'none') return {canonical:'none', filters:{}}
+
   let filters = {}
   let canonical = []
 
-  for (var spec of splitBy(str, /\s+/) || []){
+  for (var spec of splitBy(str, ' ')){
     if (m = shadowFilterRE.exec(spec)){
+      // grammar is `<color>? && <length>{2,3}`, so the color can lead or trail, the blur radius is optional,
+      // and an omitted color means opaque black
       let kind = 'drop-shadow',
-          args = m[1].trim().split(/\s+/),
-          lengths = args.slice(0,3),
-          color = args.slice(3).join(' '),
-          dims = lengths.map(s => parseSize(s)).filter(isFinite);
-      if (dims.length==3 && !!color){
-        filters[kind] = [...dims, color]
-        canonical.push(`${kind}(${lengths.join(' ')} ${color.replace(/ /g,'')})`)
+          args = splitBy(m[1], ' '),
+          dims = [], spots = [], color = null, surplus = false;
+
+      args.forEach((arg, i) => {
+        // resolve `em` units against current font size but reject `%` or named relative sizes
+        let size = lengthValueRE.test(arg) ? parseSize(arg, emSize) : NaN
+        if (isFinite(size)) { dims.push(size); spots.push(i) }
+        else if (color === null) color = arg
+        else surplus = true
+      })
+
+      // the offsets may be negative, but not the blur radius
+      let contiguous = spots.length && spots[spots.length-1] - spots[0] == spots.length - 1
+      if (!surplus && contiguous && dims.length >= 2 && dims.length <= 3 && !(dims[2] < 0)){
+        filters[kind] = [dims[0], dims[1], dims[2] ?? 0, color ?? 'black']
+        canonical.push(`${kind}(${args.join(' ')})`)
+        continue
       }
     }else if (m = plainFilterRE.exec(spec)){
-      let [kind, arg] = m.slice(1)
-      let val = kind=='blur' ? parseSize(arg)
+      let [kind, arg] = m.slice(1).map(s => s.trim())
+      let val = kind=='blur' ? (lengthValueRE.test(arg) ? parseSize(arg, emSize) : NaN)
               : kind=='hue-rotate' ? parseAngle(arg)
               : parsePercentage(arg);
-      if (isFinite(val)){
+      // only the hue-rotate angle can be negative
+      if (isFinite(val) && (kind=='hue-rotate' || val >= 0)){
         filters[kind] = val
-        canonical.push(`${kind}(${arg.trim()})`)
+        canonical.push(`${kind}(${arg})`)
+        continue
       }
     }
+
+    // any token that didn't match invalidates the whole value
+    return null
   }
 
-  return str.trim() == 'none' ? {canonical:'none', filters}
-       : canonical.length ? {canonical:canonical.join(' '), filters}
-       : null
+  return canonical.length ? {canonical:canonical.join(' '), filters} : null
 }
 
 function parsePercentage(str){
-  return percentValueRE.test(str.trim()) ? parseInt(str, 10) / 100
-       : !isNaN(str) ? parseFloat(str)
+  return percentValueRE.test(str.trim()) ? parseFloat(str) / 100
+       : numberValueRE.test(str.trim()) ? parseFloat(str)
        : NaN
 }
 
 function parseAngle(str){
-  if (m = angleValueRE.exec(str.trim())){
+  str = `${str}`.trim().toLowerCase()
+
+  if (zeroValueRE.test(str)) return 0
+
+  if (m = angleValueRE.exec(str)){
     let [amt, unit] = [parseFloat(m[1]), m[2]]
     return unit== 'deg' ? amt
          : unit== 'rad' ? 360 * amt / (2 * Math.PI)
@@ -6749,14 +6745,20 @@ const alternatesMap = {
 }
 
 module.exports = {
-  // used by context
-  font:parseFont,
-  variant:parseVariant,
+  // parsed in js (w/ strict-mode checking)
+  font:              str => parsed(parseFont(str),              'font',            str),
+  spacing:           str => parsed(parseFlexibleSize(str),      'spacing',         str),
+  stretch:           str => parsed(parseStretch(str),           'font stretch',    str),
+  kerning:           str => parsed(parseKerning(str),           'font kerning',    str),
+  decoration:        str => parsed(parseTextDecoration(str),    'text decoration', str),
+  filter:            (str, em) => parsed(parseFilter(str, em),  'filter',          str),
+  variant:           str => parsed(parseVariant(str),           'font variant',    str),
+  variationSettings: str => parsed(parseVariationSettings(str), 'font variation settings', str),
+  featureSettings:   str => parsed(parseFeatureSettings(str),   'font feature settings', str),
+  instance: str => parsed(typeof str == 'string' ? str : null, 'font instance', str),
+
+  // parsed by rust
   size:parseSize,
-  spacing:parseFlexibleSize,
-  stretch:parseStretch,
-  decoration:parseTextDecoration,
-  filter:parseFilter,
 
   // path & context
   radii:parseCornerRadii,
@@ -6769,7 +6771,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 2880:
+/***/ 5213:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -6809,7 +6811,7 @@ class DOMPoint {
     this.w = w;
   }
 
-  static fromPoint(otherPoint) {
+  static fromPoint(otherPoint = {}) {
     return new DOMPoint(
       otherPoint.x,
       otherPoint.y,
@@ -6818,24 +6820,27 @@ class DOMPoint {
     );
   }
 
-  matrixTransform(matrix) {
+  matrixTransform(matrix = {}) {
+    // the arg is a DOMMatrixInit so normalize before reading it
+    let m = DOMMatrix.fromMatrix(matrix);
+
     if (
-      matrix.is2D &&
+      m.is2D &&
       this.z === 0 &&
       this.w === 1
     ) {
       return new DOMPoint(
-        this.x * matrix.a + this.y * matrix.c + matrix.e,
-        this.x * matrix.b + this.y * matrix.d + matrix.f,
+        this.x * m.a + this.y * m.c + m.e,
+        this.x * m.b + this.y * m.d + m.f,
         0, 1
       );
     }
     else {
       return new DOMPoint(
-        this.x * matrix.m11 + this.y * matrix.m21 + this.z * matrix.m31 + this.w * matrix.m41,
-        this.x * matrix.m12 + this.y * matrix.m22 + this.z * matrix.m32 + this.w * matrix.m42,
-        this.x * matrix.m13 + this.y * matrix.m23 + this.z * matrix.m33 + this.w * matrix.m43,
-        this.x * matrix.m14 + this.y * matrix.m24 + this.z * matrix.m34 + this.w * matrix.m44
+        this.x * m.m11 + this.y * m.m21 + this.z * m.m31 + this.w * m.m41,
+        this.x * m.m12 + this.y * m.m22 + this.z * m.m32 + this.w * m.m42,
+        this.x * m.m13 + this.y * m.m23 + this.z * m.m33 + this.w * m.m43,
+        this.x * m.m14 + this.y * m.m24 + this.z * m.m34 + this.w * m.m44
       );
     }
   }
@@ -6869,20 +6874,21 @@ class DOMRect {
     return new DOMRect(otherRect.x, otherRect.y, otherRect.width, otherRect.height);
   }
 
+  // Per the WHATWG Geometry spec these normalize negative width/height rather than returning x/y as-is
   get top() {
-    return this.y;
+    return Math.min(this.y, this.y + this.height);
   }
 
   get left() {
-    return this.x;
+    return Math.min(this.x, this.x + this.width);
   }
 
   get right() {
-    return this.x + this.width;
+    return Math.max(this.x, this.x + this.width);
   }
 
   get bottom() {
-    return this.y + this.height;
+    return Math.max(this.y, this.y + this.height);
   }
 
   toJSON() {
@@ -7161,6 +7167,11 @@ class DOMMatrix {
   // @type
   // (Float64Array) => void
   constructor(init) {
+
+    // like browsers, parse objects with their own toString() as CSS transforms rather than
+    // reading them as a {a, b, c, …} dictionary (String objects included)
+    if (isPlainObject(init) && typeof init.toString == 'function' && init.toString !== Object.prototype.toString)
+      init = `${init}`
 
     if (init instanceof DOMMatrix || isPlainObject(init))
       return DOMMatrix.fromMatrix(init);
@@ -7562,11 +7573,9 @@ class DOMMatrix {
     return this;
   }
 
-  transformPoint(point) {
-    let x = point.x;
-    let y = point.y;
-    let z = point.z;
-    let w = point.w;
+  transformPoint(point = {}) {
+    // the arg is a DOMPointInit so fill in any omitted members before using them
+    let {x, y, z, w} = DOMPoint.fromPoint(point);
 
     let values = this[$values];
 
@@ -7652,7 +7661,7 @@ function toSkMatrix() {
     const m = new DOMMatrix(...arguments);
     return [m.a, m.c, m.e, m.b, m.d, m.f, m.m14, m.m24, m.m44];
   }catch(e){
-    throw new TypeError(`Invalid transform matrix argument(s): `+e);
+    throw new TypeError(`Invalid transform matrix argument(s)`, {cause:e});
   }
 }
 
@@ -7671,7 +7680,7 @@ module.exports = {DOMPoint, DOMMatrix, DOMRect, toSkMatrix, fromSkMatrix}
 
 /***/ }),
 
-/***/ 6825:
+/***/ 7106:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -7681,9 +7690,9 @@ module.exports = {DOMPoint, DOMMatrix, DOMRect, toSkMatrix, fromSkMatrix}
 
 
 const {EventEmitter} = __nccwpck_require__(4434),
-      {RustClass, core, inspect, neon, REPR} = __nccwpck_require__(9020),
-      {Canvas} = __nccwpck_require__(9756),
-      css = __nccwpck_require__(3729)
+      {RustClass, core, inspect, neon, REPR} = __nccwpck_require__(789),
+      {Canvas} = __nccwpck_require__(861),
+      css = __nccwpck_require__(830)
 
 const checkSupport = () => {
   if (!neon.App) throw new Error("Skia Canvas was compiled without window support")
@@ -7691,8 +7700,6 @@ const checkSupport = () => {
 
 class App extends RustClass{
   static #locale = process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || process.env.LANGUAGE
-  #events = 'native' // `native` for an OS event loop or `node` to poll for ui-events from node
-  #started = false // whether the `eventLoop` property is permanently set
   #launcher // timer set by opening windows to ensure app is launched soon after
   #session // Promise that resolves when the current set of windows are all closed
 
@@ -7702,9 +7709,6 @@ class App extends RustClass{
 
   constructor(){
     super(App)
-
-    // set the callback to use for event dispatch & rendering
-    if (neon.App) this.ƒ("register", this.#dispatch.bind(this))
 
     // track new windows and schedule launch if needed
     Window.events.on('open', win => {
@@ -7723,14 +7727,8 @@ class App extends RustClass{
   }
 
   get windows(){ return [...this.#windows] }
-  get running(){ return this.#started }
-  get eventLoop(){ return this.#events }
-  set eventLoop(mode){
-    if (this.#started) throw new Error("Cannot alter event loop after it has begun")
-    if (['native', 'node'].includes(mode) && mode != this.#events){
-      this.#events = this.ƒ("setMode", mode)
-    }
-  }
+  get running(){ return this.#session != null }
+  set eventLoop(mode){ _deprecated("App.eventLoop") }
   get fps(){ return this.#fps }
   set fps(rate){
     checkSupport()
@@ -7742,9 +7740,8 @@ class App extends RustClass{
   launch(){
     checkSupport()
     clearImmediate(this.#launcher)
-    this.#started = true
 
-    this.#session ??= this.ƒ('activate').finally(() => {
+    this.#session ??= this.ƒ('activate', this.#dispatch.bind(this)).finally(() => {
       this.#session = null
       this.#launcher = null
       this.emit('idle', {type:'idle', target:this})
@@ -7754,19 +7751,19 @@ class App extends RustClass{
   }
 
   #eachWindow(updates, callback){
-    for (const [id, payload] of Object.entries(updates || {})){
+    for (const [id, payload] of Object.entries(updates ?? {})){
       let win = this.#windows.find(win => win.id == id)
       if (win) callback(win, payload)
     }
   }
 
-  #dispatch(isFrame, payload){
+  #dispatch(payload){
     let {geom, state, ui} = JSON.parse(payload)
 
     // merge autogenerated window locations into newly opened windows
     if (geom) this.#eachWindow(geom, (win, {top, left}) => {
-      win.left = win.left || left
-      win.top = win.top || top
+      win.left ??= left
+      win.top ??= top
     })
 
     // update state of windows that are still active and mark others as closed
@@ -7786,9 +7783,60 @@ class App extends RustClass{
       for (const [[type, e]] of events.map(o => Object.entries(o))){
         switch(type){
           case 'mouse':
+            // deliver the pointer event just before its equivalent mouse event (mimicking browser behavior)
+            let p = Object.freeze({
+              pointerId: 1, pointerType: 'mouse', isPrimary: true,
+              pressure: e.buttons ? 0.5 : 0, tangentialPressure: 0,
+              width: 1, height: 1, tiltX: 0, tiltY: 0, twist: 0,
+              button: e.button ?? -1, buttons: e.buttons,
+              x: e.point.x, y: e.point.y, pageX: e.page_point.x, pageY: e.page_point.y,
+              ...e.modifiers,
+            })
+            let getCoalescedEvents = () => [p]
+            switch(e.event){
+              case 'mousemove':   win.emit('pointermove',   {...p, getCoalescedEvents}); break
+              case 'mousedown':   win.emit('pointerdown',   {...p, getCoalescedEvents}); break
+              case 'mouseup':     win.emit('pointerup',     {...p, getCoalescedEvents}); break
+              case 'mouseenter':  win.emit('pointerover',   p); win.emit('pointerenter', p); break
+              case 'mouseleave':  win.emit('pointerout',    p); win.emit('pointerleave', p); break
+              case 'pointercancel': win.emit('pointercancel', p); continue
+            }
+
             var {button, buttons, point, page_point:{x:pageX, y:pageY}, modifiers} = e
             win.emit(e.event, {button, buttons, ...point, pageX, pageY, ...modifiers})
           break
+
+          case 'touch': {
+            let t = Object.freeze({
+              pointerId: e.pointer_id, pointerType: 'touch', isPrimary: e.is_primary,
+              pressure: (e.event=='touchend' || e.event=='touchcancel') ? 0 : 0.5, tangentialPressure: 0,
+              width: 1, height: 1, tiltX: 0, tiltY: 0, twist: 0,
+              button: (e.event=='touchstart' || e.event=='touchend') ? 0 : -1,
+              buttons: (e.event=='touchend' || e.event=='touchcancel') ? 0 : 1,
+              x: e.point.x, y: e.point.y, pageX: e.page_point.x, pageY: e.page_point.y,
+              ...e.modifiers,
+            })
+            let getCoalescedEvents = () => [t]
+            switch(e.event){
+              case 'touchstart':
+                // synthesize over/enter since touch events don't otherwise send them
+                win.emit('pointerover', t); win.emit('pointerenter', t)
+                win.emit('pointerdown', {...t, getCoalescedEvents})
+              break
+              case 'touchmove':
+                win.emit('pointermove', {...t, getCoalescedEvents})
+              break
+              case 'touchend':
+                // synthesize out/leave since touch events don't otherwise send them
+                win.emit('pointerup', {...t, getCoalescedEvents})
+                win.emit('pointerout', t); win.emit('pointerleave', t)
+              break
+              case 'touchcancel':
+                win.emit('pointercancel', t)
+                win.emit('pointerout', t); win.emit('pointerleave', t)
+              break
+            }
+          } break
 
           case 'input':
             let [data, inputType] = e
@@ -7847,8 +7895,11 @@ class App extends RustClass{
       }
     })
 
-    // provide frame updates to prompt redraws
-    if (isFrame) for (let win of this.#windows){
+    // provide frame updates and trigger redraws in the listeners
+    for (let win of this.#windows){
+      // bail out for non-animating windows (to avoid advancing their frame counts while idle)
+      if (!win.listenerCount('frame') && !win.listenerCount('draw')) continue
+
       let frame = ++this.#frames[win.id]
 
       if (frame==0) win.emit("setup")
@@ -7859,10 +7910,11 @@ class App extends RustClass{
       }
     }
 
-    // if this is a full roundtrip, return window state & content
-    return isFrame && [
+    // if this is a full roundtrip, return window state, content, and whether any window is still animating
+    return [
       JSON.stringify( this.#windows.map(win => win.state) ),
-      this.#windows.map(win => core(win.canvas.pages[win.page-1]) )
+      this.#windows.map(win => core(win.canvas.pages[win.page-1]) ),
+      this.#windows.some(win => win.listenerCount('frame') > 0 || win.listenerCount('draw') > 0)
     ]
   }
 
@@ -7871,8 +7923,8 @@ class App extends RustClass{
   }
 
   [REPR](depth, options) {
-    let {eventLoop, fps, windows} = this
-    return `App ${inspect({eventLoop, fps, windows}, Object.assign(options, {
+    let {fps, windows} = this
+    return `App ${inspect({fps, windows}, Object.assign(options, {
       depth:1, customInspect:false
     }))}`
   }
@@ -7887,6 +7939,8 @@ class Window extends EventEmitter{
   static #nextID = 1
   #canvas
   #state
+  #rafID = 0
+  #rafCallbacks = new Map()
 
   // accept either ƒ(width, height, {…}) or ƒ({…})
   constructor(width=512, height=512, opts={}){
@@ -7894,8 +7948,8 @@ class Window extends EventEmitter{
 
     if (!Number.isFinite(width) || !Number.isFinite(height)){
       opts = [...arguments].slice(-1)[0] || {}
-      width = opts.width || (opts.canvas || {}).width || 512
-      height = opts.height || (opts.canvas || {}).height || 512
+      width = opts.width || opts.canvas?.width || 512
+      height = opts.height || opts.canvas?.height || 512
     }
 
     let hasCanvas = opts.canvas instanceof Canvas
@@ -7964,13 +8018,13 @@ class Window extends EventEmitter{
 
   get cursor(){ return this.#state.cursor }
   set cursor(icon){
-    if (css.cursor(icon)){
+    if (icon = css.cursor(icon)){
       this.#state.cursor = icon
     }
   }
 
   get fit(){ return this.#state.fit }
-  set fit(mode){ if (css.fit(mode)) this.#state.fit = mode }
+  set fit(mode){ if (mode = css.fit(mode)) this.#state.fit = mode }
 
   get left(){ return this.#state.left }
   set left(val){ if (Number.isFinite(val)) this.#state.left = val }
@@ -8013,9 +8067,25 @@ class Window extends EventEmitter{
     }
   }
 
+  requestAnimationFrame(callback){
+    let id = ++this.#rafID
+    let fn = ({frame}) => { this.#rafCallbacks.delete(id); callback(frame) }
+    this.#rafCallbacks.set(id, fn)
+    this.once('frame', fn)
+    return id
+  }
+
+  cancelAnimationFrame(id){
+    let fn = this.#rafCallbacks.get(id)
+    if (fn){
+      this.off('frame', fn)
+      this.#rafCallbacks.delete(id)
+    }
+  }
+
   emit(type, e){
     // report errors in event-handlers but don't crash
-    try{ super.emit(type, Object.assign({target:this, type}, e)) }
+    try{ super.emit(type, Object.freeze({...e, target:this, type})) }
     catch(err){ console.error(err) }
   }
 
@@ -8025,12 +8095,22 @@ class Window extends EventEmitter{
   }
 }
 
+// emit a deprecation warning, once per API per process
+let _warnings = {
+  "App.eventLoop": "App.eventLoop no longer has any effect and will be removed in a future release (a single node-integrated event loop is now always used).",
+}
+function _deprecated(oldAPI){
+  let message = _warnings[oldAPI]
+  if (message) console.error(`Deprecation warning: ${message}`)
+  delete _warnings[oldAPI]
+}
+
 module.exports = {App:new App(), Window}
 
 
 /***/ }),
 
-/***/ 6854:
+/***/ 2001:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -8039,8 +8119,8 @@ module.exports = {App:new App(), Window}
 
 
 
-const {RustClass, core, readOnly, inspect, neon, argc, REPR} = __nccwpck_require__(9020),
-      {fetchURL, decodeDataURL, expandURL} = __nccwpck_require__(7611),
+const {RustClass, core, readOnly, inspect, neon, argc, REPR, STRICT} = __nccwpck_require__(789),
+      {fetchURL, decodeDataURL, expandURL} = __nccwpck_require__(5026),
       {EventEmitter} = __nccwpck_require__(4434),
       {readFile} = __nccwpck_require__(1943)
 
@@ -8049,22 +8129,60 @@ const {RustClass, core, readOnly, inspect, neon, argc, REPR} = __nccwpck_require
 //
 
 const DecodingError = () => new Error("Could not decode image data")
+const DisposalError = () => new Error("Image was disposed before loading completed")
+const STALE = Symbol("stale request") // decode result for a superseded request: drop with no event/rejection
+const CORRUPT = Symbol("corrupt data") // decode result for undecodable data: reject with DecodingError
 
-const loadImage = (src, options) => new Promise((res, rej) =>
-  fetchData(src, options,
+const loadImage = (src, args) => new Promise((res, rej) => {
+  let {page, ...options} = args || {}, // separate the pdf page selection from the http request options
+      pageNum = page==null ? undefined : Number.isFinite(Number(page)) ? Number(page) : -1
+  fetchData(src, options, res, rej,
     (data, src, raw) => {
       let img = new Image()
       img.prop('src', src)
-      if (img.prop('data', data, raw)) res(img)
-      else rej(DecodingError())
+      return img.prop('data', data, raw, pageNum) ? img : CORRUPT
     },
-    rej,
   )
-)
+})
+
+const loadCanvas = (src, args) => new Promise((res, rej) => {
+  // Pull the creation-only settings out of the bag — the canvas & context options that can't be
+  // applied after the fact — and pass whatever's left along as http request options.
+  let {textContrast, textGamma, gpu, colorSpace, willReadFrequently, ...options} = args || {}
+
+  fetchData(src, options, res, rej,
+    (data, src, raw) => {
+      const {Canvas} = __nccwpck_require__(861) // deferred: canvas.js requires this module in turn
+
+      // convert PDF data to an array of pages (or return `undefined` if it's any other format)
+      let doc = neon.PDF.open(data)
+      if (doc){
+        let canvas
+        for (let {page, width, height} of doc){
+          let ctx = canvas ? canvas.newPage(width, height)
+                           : (canvas = new Canvas(width, height, {textContrast, textGamma, gpu}))
+                               .getContext('2d', {colorSpace, willReadFrequently})
+          neon.PDF.impose(page, core(ctx))
+        }
+        return canvas ? canvas : CORRUPT // fails if no valid pages were recovered
+      }
+
+      // everything else becomes a single-page canvas sized to the image, with the image
+      // content already drawn into it
+      let img = new Image()
+      img.prop('src', src)
+      if (!img.prop('data', data, raw, undefined, true)) return CORRUPT
+
+      let {width, height} = img,
+          canvas = new Canvas(width, height, {textContrast, textGamma, gpu})
+      canvas.getContext('2d', {colorSpace, willReadFrequently}).drawImage(img, 0, 0, width, height)
+      return canvas
+    },
+  )
+})
 
 class Image extends RustClass {
   #fetch
-  #err
 
   constructor(data, src='') {
     super(Image).alloc()
@@ -8074,7 +8192,8 @@ class Image extends RustClass {
 
     if (Buffer.isBuffer(data)) {
       if (!this.prop("data", data)) throw DecodingError()
-    }else if (typeof data=='string'){
+    }else if (data != null){
+      data = `${data}` // anything other than a Buffer is stringified & treated as a data URL
       decodeDataURL(data,
         buffer => {
           if (!this.prop("data", buffer)) throw DecodingError()
@@ -8082,8 +8201,6 @@ class Image extends RustClass {
         },
         err => { throw err },
       )
-    }else if (data){
-      throw TypeError(`Exptected a Buffer or a String containing a data URL (got: ${data})`)
     }
   }
 
@@ -8107,44 +8224,74 @@ class Image extends RustClass {
     if (this.#onerror) this.on('error', this.#onerror)
   }
 
+  #fail(err){
+    // only emit the 'error' event if there are listeners (since otherwise EventEmitter will throw)
+    this.ref('error', err)
+    if (this.listenerCount('error')) this.emit('error', err)
+  }
+
   get src(){ return this.prop('src') }
   set src(src){
     const request = this.#fetch = {} // use an empty object as a unique token
-    const loaded = (data, imgSrc, raw) => {
-      if (request === this.#fetch){ // confirm this is the most recent request with ===
-        this.#fetch = undefined
-        this.prop("src", imgSrc)
-        this.#err = this.prop("data", data, raw) ? null : DecodingError()
-        if (this.#err) this.emit('error', this.#err)
-        else this.emit('load', this)
-      }
-    }
-    const failed = (err) => {
-      if (request === this.#fetch){ // confirm this is the most recent request with ===
-        this.#fetch = undefined
-        this.#err = err
-        this.prop("data", Buffer.alloc(0))
-        this.emit('error', err)
-      }
-    }
-
     src = expandURL(src)
-    this.prop("src", typeof src=='string' ? src : '')
+    this.prop("src", Buffer.isBuffer(src) || isSharpImage(src) ? '' : `${src}`) // stringified, so wrapped strings work
 
-    fetchData(src, undefined, loaded, failed)
+    fetchData(src, undefined,
+      () => {
+        // loaded
+        this.#fetch = undefined
+        this.ref('error', null)
+        this.emit('load', this)
+      },
+      err => {
+        // failed
+        if (request !== this.#fetch) return // confirm this is still the most recent request
+        this.#fetch = undefined
+        this.prop("data", Buffer.alloc(0))
+        this.#fail(err)
+      },
+      (data, imgSrc, raw) => {
+        // decode image data
+        if (request !== this.#fetch) return STALE // src has been overwritten since the prior request
+        this.prop("src", imgSrc)
+        return this.prop("data", data, raw) ? this : CORRUPT
+      },
+    )
   }
 
   decode(){
     return this.#fetch ? new Promise((res, rej) => this.once('load', res).once('error', rej) )
-         : this.#err ? Promise.reject(this.#err)
+         : this.ref('error') ? Promise.reject(this.ref('error'))
          : this.complete ? Promise.resolve(this)
          : Promise.reject(new Error("Image source not set"))
   }
 
+  dispose(){
+    if (this.ref('disposed')) return
+
+    if (this.#fetch){
+      this.#fetch = undefined
+      this.#fail(DisposalError())
+    }
+
+    this.ƒ('dispose')
+    this.ref('disposed', true)
+  }
+  [Symbol.dispose](){ this.dispose() }
+
+  async release(){
+    this.dispose()
+    await new Promise(resolve => setImmediate(resolve))
+  }
+  [Symbol.asyncDispose](){ return this.release() }
+
   [REPR](depth, options) {
-    let {width, height, complete, src} = this
-    options.maxStringLength = src.match(/^data:/) ? 128 : Infinity;
-    return `Image ${inspect({width, height, complete, src}, options)}`
+    if (this.ref('disposed')) return `Image (disposed)`
+    let {width, height, complete, src} = this,
+        err = this.ref('error')
+    options.maxStringLength = src.startsWith("data:") ? 128 : Infinity;
+    let error = err ? {error:err.message} : {}
+    return `Image ${inspect({width, height, complete, src, ...error}, options)}`
   }
 }
 
@@ -8157,9 +8304,9 @@ Object.assign(Image.prototype, EventEmitter.prototype)
 
 const loadImageData = (src, ...args) => new Promise((res, rej) => {
   let {colorType, colorSpace, ...options} = args[2] || {}
-  fetchData(src, options, (data, src, raw) => res(
-    raw ? new ImageData(data, raw.width, raw.height) : new ImageData(data, ...args)
-  ), rej)
+  fetchData(src, options, res, rej,
+    (data, src, raw) => raw ? new ImageData(data, raw.width, raw.height) : new ImageData(data, ...args),
+  )
 })
 
 class ImageData{
@@ -8169,34 +8316,44 @@ class ImageData{
       var {data, width, height, colorSpace, colorType, bytesPerPixel} = args[0]
     }else if (args[0] instanceof Image){
       argc(arguments, 1)
+      validImage(args[0])
       var [image, {colorSpace='srgb', colorType='rgba'}={}] = args,
           {width, height} = image,
-          bytesPerPixel = pixelSize(colorType),
+          bytesPerPixel = PIXEL_SIZES[colorType = validColorType(colorType)],
           buffer = neon.Image.pixels(core(image), {colorType}),
-          data = new Uint8ClampedArray(buffer)
-    }else if (args[0] instanceof Uint8ClampedArray || args[0] instanceof Buffer){
+          data = wrapPixels(buffer, colorType)
+    }else if (args[0] instanceof Uint8ClampedArray || args[0] instanceof Uint8Array || isFloat16Array(args[0])){
       argc(arguments, 2)
-      var [data, width, height, {colorSpace='srgb', colorType='rgba'}={}] = args,
-          bytesPerPixel = pixelSize(colorType) // validates the string as side effect
+      var [data, width, height, options={}] = args,
+          {colorSpace='srgb'} = options,
+          colorType = (options.colorType != null) ? validColorType(options.colorType)
+                    : isFloat16Array(data) ? 'RGBAF16' : 'rgba',
+          bytesPerPixel = PIXEL_SIZES[colorType]
 
+      // throw on 8/16-bit mismatches
+      if (isFloat16Array(data) && !isFloat16Type(colorType)){
+        throw new TypeError(`A Float16Array requires a half-float colorType (got '${colorType}')`)
+      }
+
+      let {byteLength} = data
       width = Math.floor(Math.abs(width))
-      height = Math.floor(Math.abs(height || data.length / width / bytesPerPixel))
-      data = data instanceof Uint8ClampedArray ? data : new Uint8ClampedArray(data)
-      if (data.length / bytesPerPixel != width * height){
+      height = Math.floor(Math.abs(height || byteLength / width / bytesPerPixel))
+      data = wrapPixels(data, colorType)
+      if (byteLength / bytesPerPixel != width * height){
         throw new TypeError("ImageData dimensions must match buffer length")
       }
+    }else if (ArrayBuffer.isView(args[0]) || args[0] instanceof ArrayBuffer){
+      throw new TypeError(`Expected a Uint8ClampedArray, Uint8Array, Float16Array, or Buffer (got ${args[0].constructor.name})`)
     }else{
       argc(arguments, 2)
       var [width, height, {colorSpace='srgb', colorType='rgba'}={}] = args,
-          bytesPerPixel = pixelSize(colorType)
+          bytesPerPixel = PIXEL_SIZES[colorType = validColorType(colorType)]
 
       width = Math.floor(Math.abs(width))
       height = Math.floor(Math.abs(height))
     }
 
-    if (!['srgb'].includes(colorSpace)){ // TODO: add display-p3 when supported…
-      throw TypeError(`Unsupported colorSpace: ${colorSpace}`)
-    }
+    colorSpace = validColorSpace(colorSpace)
 
     if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0){
       throw RangeError("Dimensions must be non-zero")
@@ -8207,13 +8364,23 @@ class ImageData{
     readOnly(this, "width", width)
     readOnly(this, "height", height)
     readOnly(this, 'bytesPerPixel', bytesPerPixel)
-    readOnly(this, "data", data || new Uint8ClampedArray(width * height * bytesPerPixel))
+    readOnly(this, "data", data || allocPixels(width, height, bytesPerPixel, colorType))
   }
 
   toSharp(){
+    const spec = SHARP_FORMATS[this.colorType]
+    if (!spec) throw new TypeError(`toSharp() does not support the colorType '${this.colorType}'`)
+
     const sharp = getSharp()
-    let {width, height, bytesPerPixel:channels} = this
-    return sharp(this.data, {raw:{width, height, channels}}).withMetadata({density:72})
+    let {width, height} = this,
+        {channels} = spec
+
+    // Sharp can only read wide-gamut colors when wrapped in a file container, so convert display-p3 to TIFF
+    let sharpImage = this.colorSpace != 'srgb' && !spec.colorless
+      ? sharp(neon.ImageData.toTiff(this, spec))
+      : sharp(neon.ImageData.toRaw(this, spec), {raw:{width, height, channels}})
+
+    return withDensity(sharpImage, 72)
   }
 
   [REPR](depth, options) {
@@ -8226,17 +8393,112 @@ class ImageData{
 // Utilities
 //
 
-function pixelSize(colorType){
-  const bpp = ["Alpha8", "Gray8", "R8UNorm"].includes(colorType) ? 1
-    : ["A16Float", "A16UNorm", "ARGB4444", "R8G8UNorm", "RGB565"].includes(colorType) ? 2
-    : [ "rgb", "rgba", "bgra", "BGR101010x", "BGRA1010102", "BGRA8888", "R16G16Float", "R16G16UNorm",
-        "RGB101010x", "RGB888x", "RGBA1010102", "RGBA8888", "RGBA8888", "SRGBA8888" ].includes(colorType) ? 4
-    : ["R16G16B16A16UNorm", "RGBAF16", "RGBAF16Norm"].includes(colorType) ? 8
-    : colorType=="RGBAF32" ? 16
-    : 0
+function validImage(image){
+  if (image.ref('error')) throw new Error("Image failed to load: listen for the `error` event or await `decode()` for details")
+  if (!image.complete) throw new Error("Image has not completed loading: listen for the `load` event or await `decode()` first")
+  return image
+}
 
-  if (!bpp) throw new TypeError(`Unknown colorType: ${colorType}`)
-  return bpp
+function validColorSpace(colorSpace){
+  colorSpace = `${colorSpace}`.toLowerCase()
+  if (!['srgb', 'display-p3'].includes(colorSpace)){
+    if (STRICT) throw TypeError(`Unsupported colorSpace: ${colorSpace}`)
+    colorSpace = 'srgb' // unless in strict mode, invalid spaces are silently ignored
+  }
+  return colorSpace
+}
+
+// bytes per pixel for each colorType
+const PIXEL_SIZES = {
+  Alpha8:1, Gray8:1, R8UNorm:1,
+  A16Float:2, A16UNorm:2, ARGB4444:2, R8G8UNorm:2, RGB565:2,
+  rgb:4, rgba:4, bgra:4, BGR101010x:4, BGRA1010102:4, BGRA8888:4, R16G16Float:4,
+  R16G16UNorm:4, RGB101010x:4, RGB888x:4, RGBA1010102:4, RGBA8888:4, SRGBA8888:4,
+  R16G16B16A16UNorm:8, RGBAF16:8, RGBAF16Norm:8,
+  RGBAF32:16,
+}
+const COLOR_TYPES = new Map(Object.keys(PIXEL_SIZES).map(name => [name.toLowerCase(), name]))
+const FLOAT16_TYPES = ["RGBAF16", "RGBAF16Norm", "A16Float", "R16G16Float"]
+const hasFloat16 = typeof Float16Array !== 'undefined' // Float16Array is Node 23+
+const isFloat16Type = colorType => FLOAT16_TYPES.includes(colorType)
+const isFloat16Array = value => hasFloat16 && value instanceof Float16Array
+const arrayForColorType = colorType =>
+  isFloat16Type(colorType) && hasFloat16 ? Float16Array : Uint8ClampedArray
+
+// ensure raw pixel bytes are wrapped in a colorType-appropriate array
+function wrapPixels(data, colorType){
+  const ArrayType = arrayForColorType(colorType)
+  if (data instanceof ArrayType) return data // return as-is if already correctly typed
+
+  // borrow the buffer contents rather than copying (if alingment permits it)
+  let {buffer, byteOffset, byteLength} = data
+  return byteOffset % ArrayType.BYTES_PER_ELEMENT == 0
+    ? new ArrayType(buffer, byteOffset, byteLength / ArrayType.BYTES_PER_ELEMENT)
+    : new ArrayType(buffer.slice(byteOffset, byteOffset + byteLength))
+}
+
+// allocate a zero-filled pixel buffer of the colorType-appropriate array type
+function allocPixels(width, height, bytesPerPixel, colorType){
+  const ArrayType = arrayForColorType(colorType)
+  return new ArrayType(width * height * bytesPerPixel / ArrayType.BYTES_PER_ELEMENT)
+}
+
+function validColorType(colorType){
+  let name = COLOR_TYPES.get(`${colorType}`.toLowerCase())
+  if (!name) throw new TypeError(`Unknown colorType: ${colorType}`)
+  return name
+}
+
+// Sharp accepts 1–4 bands (8-bit or 16-bit unsigned) in RGBA order only, so some colorTypes require
+// layout changes or re-encoding:
+//
+// `to`:        the color type to be converted to (omitted if the layout is already compatible)
+// `channels`:  the number of distinct channels to be preserved (<4 if monochrome or alpha-less)
+// `bits`:      the number of bits per channel (defaults to 8 if omitted)
+// `colorless`: whether the format contains <3 color channels, so an ICC profile is meaningless
+//
+const SHARP_FORMATS = {
+  // Native libvips layouts (no `to` conversion necessary)
+  Alpha8:            {channels:1, colorless:true},
+  Gray8:             {channels:1, colorless:true},
+  R8UNorm:           {channels:1, colorless:true},
+  rgba:              {channels:4},
+  RGBA8888:          {channels:4},
+
+  // like RGBA8888 but double-applies the sRGB transfer function, so needs to be reencoded first
+  SRGBA8888:         {to:'rgba', channels:4},
+
+  // 8-bit, but the channel order or bit packing needs to be normalized
+  bgra:              {to:'rgba', channels:4},
+  BGRA8888:          {to:'rgba', channels:4},
+  ARGB4444:          {to:'rgba', channels:4},
+  RGB565:            {to:'rgba', channels:4},
+
+  // RGB plus an unused padding byte: normalize then drop the pad
+  rgb:               {to:'rgba', channels:3},
+  RGB888x:           {to:'rgba', channels:3},
+
+  // 16-bit unsigned, used as-is (no `to` conversion)
+  A16UNorm:          {channels:1, bits:16, colorless:true},
+  R16G16B16A16UNorm: {channels:4, bits:16},
+
+  // 10-bit packed: convert to 16-bit to preserve detail
+  RGB101010x:        {to:'R16G16B16A16UNorm', channels:4, bits:16},
+  RGBA1010102:       {to:'R16G16B16A16UNorm', channels:4, bits:16},
+  BGR101010x:        {to:'R16G16B16A16UNorm', channels:4, bits:16},
+  BGRA1010102:       {to:'R16G16B16A16UNorm', channels:4, bits:16},
+
+  // Two-channel RG data: expand to 3 channels with B=0
+  R8G8UNorm:         {to:'rgba', channels:3, colorless:true},
+  R16G16UNorm:       {to:'R16G16B16A16UNorm', channels:3, bits:16, colorless:true},
+  R16G16Float:       {to:'R16G16B16A16UNorm', channels:3, bits:16, colorless:true},
+
+  // Canvas surfaces are 8-bit SDR so float types are already clamped [0..1]:
+  // remap to unsigned since libvips's float-handling would use *linear* scRGB
+  A16Float:          {to:'A16UNorm', channels:1, bits:16, colorless:true},
+  RGBAF16:           {to:'R16G16B16A16UNorm', channels:4, bits:16},
+  RGBAF16Norm:       {to:'R16G16B16A16UNorm', channels:4, bits:16},
+  RGBAF32:           {to:'R16G16B16A16UNorm', channels:4, bits:16},
 }
 
 function getSharp(){
@@ -8247,50 +8509,101 @@ function getSharp(){
   }
 }
 
-function isSharpImage(obj){
-   try{
-    return obj instanceof __nccwpck_require__(5466)
-  }catch{
-    return false
+// set the output density without disturbing the ICC profile
+function withDensity(sharpImage, density){
+  sharpImage.keepIccProfile()
+  if (sharpImage.withDensity){
+     return sharpImage.withDensity(density)
+  }else{
+    // sharp <0.35 lacks withDensity() and withMetadata() forces sRGB
+    sharpImage.options.withMetadataDensity = density
+    return sharpImage.keepExif()
   }
 }
 
-const fetchData = (src, reqOpts, loaded, failed) => {
+function isSharpImage(obj){
+  return obj != null && typeof obj == 'object' &&
+         obj.constructor && obj.constructor.name == 'Sharp' &&
+         obj.options && typeof obj.options == 'object' &&
+         typeof obj.ensureAlpha == 'function' && typeof obj.raw == 'function' &&
+         typeof obj.toBuffer == 'function'
+}
+
+async function readSharpPixels(src){
+  // normalize the working colorspace to sRGB for color images or b/w for greyscale
+  let space = src.options.colourspace // NB: british spelling required here
+  if (space == 'grey16') src.toColorspace('b-w')
+  else if (space != 'srgb' && space != 'b-w') src.toColorspace('srgb')
+
+  // extract pixels as 8-bit unpremultiplied (sharp's raw output is always straight alpha)
+  let {data, info:{width, height, channels}} = await src
+      .ensureAlpha()
+      .raw({depth:'uchar'})
+      .toBuffer({resolveWithObject:true})
+
+  // if the pixels still aren't rgba (e.g., if they're greyscale), convert again
+  if (channels != 4){
+    ({data, info:{width, height}} = await new src.constructor(data, {raw:{width, height, channels}})
+      .toColorspace('srgb')
+      .ensureAlpha()
+      .raw({depth:'uchar'})
+      .toBuffer({resolveWithObject:true}))
+  }
+
+  return {data, width, height}
+}
+
+const fetchData = (src, reqOpts, loaded, failed, decode) => {
+  const fetched = (data, imgSrc, raw) => {
+    let result
+
+    // `decode` runs within a try so errors are turned into promise rejections/`error` events
+    try{ result = decode(data, imgSrc, raw) }
+    catch(e){ return failed(e) }
+
+    if (result === STALE) return // got response to a no-longer-current request
+    if (result === CORRUPT || !result) return failed(DecodingError()) // received unusable data
+
+    // `loaded` runs without a try, so a throw from a user 'load' handler propagates instead of being
+    // reported as a decode failure
+    loaded(result)
+  }
+
   src = expandURL(src)
   if (Buffer.isBuffer(src)) {
-    loaded(src, '::Buffer::')
+    fetched(src, '::Buffer::')
   }else if (isSharpImage(src)){
-    src.ensureAlpha().raw().toBuffer((err, buf, info) => {
-      let {options:{input:{file, buffer}}} = src
-      if (err) failed(err)
-      else loaded(buf, buffer ? '::Sharp::' : file, info)
-    })
+    let {file} = src.options.input // preserve path if file-based
+    readSharpPixels(src).then(
+      ({data, width, height}) => fetched(data, file ? file : '::Sharp::', {width, height}),
+      failed // reject without catching `fetched` so `load` handler errors aren't labeled as decode failures
+    )
   }else{
     src = typeof src=='string' ? src : ''+src
     if (src.startsWith('data:')){
       decodeDataURL(src,
-        buffer => loaded(buffer, src),
+        buffer => fetched(buffer, src),
         err =>  failed(err),
       )
     }else if (/^\s*https?:\/\//.test(src)){
       fetchURL(src, reqOpts,
-        buffer => loaded(buffer, src),
+        buffer => fetched(buffer, src),
         err => failed(err)
       )
     }else{
       readFile(src)
-        .then(data => loaded(data, src))
+        .then(data => fetched(data, src))
         .catch(e => failed(e))
     }
   }
 }
 
-module.exports = {Image, ImageData, loadImage, loadImageData, pixelSize, getSharp}
+module.exports = {Image, ImageData, loadImage, loadImageData, loadCanvas, validColorType, validColorSpace, getSharp, withDensity, validImage}
 
 
 /***/ }),
 
-/***/ 9020:
+/***/ 789:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -8305,12 +8618,17 @@ const {inspect} = __nccwpck_require__(9023)
 const STRICT = !["0", "false", "off"].includes((process.env.SKIA_CANVAS_STRICT || "0").trim().toLowerCase())
 
 const ø = Symbol.for('📦'), // the attr containing the boxed struct
-      core = (obj) => (obj||{})[ø], // dereference the boxed struct
+      ϟ = Symbol.for('📐'), // classes with a drawlist install a queue-flush method here
+      flush = (obj) => { if (obj?.[ϟ]) obj[ϟ]() }, // flush drawlist (if its queue isn't empty)
+      core = (obj) => {
+        flush(obj) // flush pending drawlist before the handle crosses to rust
+        return obj?.[ø] // dereference the boxed struct (for use as a function argument)
+      },
       wrap = (type, struct) => { // create new instance for struct
         let obj = internal(Object.create(type.prototype), ø, struct)
         return struct && internal(obj, 'native', neon[type.name])
       },
-      neon = Object.entries(__nccwpck_require__(6473)).reduce( (api, [name, fn]) => {
+      neon = Object.entries(loadNative()).reduce( (api, [name, fn]) => {
         let [_, struct, getset, attr] = name.match(/(.*?)_(?:([sg]et)_)?(.*)/),
             cls = api[struct] || (api[struct] = {}),
             slot = getset ? (cls[attr] || (cls[attr] = {})) : cls
@@ -8344,6 +8662,9 @@ class RustClass{
   }
 
   prop(attr, ...vals){
+    if (this.ref('disposed')) rustError(new TypeError(`Cannot access .${attr} on a disposed ${this.constructor.name}`), this.prop)
+    flush(this) // flush pending drawlist verbs to rust before this un-batched call
+
     try{
       let getset = arguments.length > 1 ? 'set' : 'get'
       return this.native[attr][getset](this[ø], ...vals)
@@ -8353,6 +8674,9 @@ class RustClass{
   }
 
   ƒ(fn, ...args){
+    if (this.ref('disposed')) rustError(new TypeError(`Cannot call ${fn}() on a disposed ${this.constructor.name}`), this.ƒ)
+    flush(this) // flush pending drawlist verbs to rust before this un-batched call
+
     try{
       return this.native[fn](this[ø], ...args)
     }catch(error){
@@ -8370,11 +8694,6 @@ const internal = (obj, attr, value) => (
   Object.defineProperty(obj, attr, {value, writable:false, enumerable:false})
 )
 
-// convert arguments list to a string of type abbreviations
-function signature(args){
-  return args.map(v => (Array.isArray(v) ? 'a' : {string:'s', number:'n', object:'o'}[typeof v] || 'x')).join('')
-}
-
 // validate number of args in invocation
 const argc = (args, ...expected) => {
   if (expected.includes(args.length) || args.length > Math.max(...expected)) return
@@ -8386,30 +8705,374 @@ const argc = (args, ...expected) => {
 // remove internals from stack trace and filter non-strict errors
 const rustError = (error, stack) => {
   if (error.message.startsWith("⚠️")){
-    if (STRICT) error.message = error.message.substr(1)
+    if (STRICT) error.message = error.message.slice("⚠️".length) // ⚠️ is two codepoints (⚠ + U+FE0F)
     else return
   }
   Error.captureStackTrace(error, stack)
   throw error
 }
 
-module.exports = {neon, core, wrap, signature, argc, readOnly, RustClass, inspect, REPR:inspect.custom}
+//
+// find and load the compiled native binary
+//
+
+function loadNative(){
+  // first check for lib/skia.node (for local builds and `prebuild.mjs download` installs)
+  let local = (__nccwpck_require__(6928).join)(__dirname, '../skia.node'),
+      dlopenError // set if a local binary exists but the OS loader rejects it
+
+  if ((__nccwpck_require__(9896).existsSync)(local)){
+    try{ return __nccwpck_require__(3938)(local) }
+    catch(e){
+      // if lib/skia.node exists but is invalid, don't crash yet: check for optional-dependencies first
+      if (e.code != 'ERR_DLOPEN_FAILED') throw e
+      dlopenError = e
+    }
+  }
+
+  // otherwise try the @skia-canvas/<platform-specific> package (for most other installs)
+  let attempt = load => {
+    try{ return load() }
+    catch(e){
+      if (e.code == 'MODULE_NOT_FOUND') throw new Error(nativeModuleNotFound(dlopenError), {cause:e}) // package not installed
+      throw e // package found but its binary failed to load: surface the real error
+    }
+  }
+
+  switch (`${process.platform}-${process.arch}`){
+    // the repeated literal strings are so bundlers can see them in static analysis
+    case 'darwin-arm64': return attempt(() => __nccwpck_require__(3620))
+    case 'darwin-x64': return attempt(() => __nccwpck_require__(8170))
+    case 'win32-arm64': return attempt(() => __nccwpck_require__(8572))
+    case 'win32-x64': return attempt(() => __nccwpck_require__(2530))
+    case 'linux-arm64': return isMusl()
+      ? attempt(() => __nccwpck_require__(2063))
+      : attempt(() => __nccwpck_require__(1611))
+    case 'linux-x64': return isMusl()
+      ? attempt(() => __nccwpck_require__(7821))
+      : attempt(() => __nccwpck_require__(1623))
+  }
+
+  // no prebuilt binary is published for this platform
+  throw new Error(nativeModuleNotFound(dlopenError))
+}
+
+function isMusl(){
+  const {familySync, MUSL} = __nccwpck_require__(1196)
+  return familySync() == MUSL
+}
+
+function nativeModuleNotFound(dlopenError){
+  let libc = process.platform == 'linux' ? (isMusl() ? '-musl' : '-glibc') : '',
+      pkg = `@skia-canvas/${process.platform}-${process.arch}${libc}`,
+      triplet = pkg.replace('@skia-canvas/', '')
+
+  // tailor recovery suggestions to whether a lib/skia.node file was present but unusable
+  let lines = dlopenError ? [
+    `Skia Canvas found a native binary at lib/skia.node but the system loader rejected it.`,
+    `It was probably built for a different architecture or C library than this "${triplet}" system.`,
+    `Maybe you copied node_modules between machines, or have a stale local build?`,
+    ``,
+    `To fix it:`,
+    ` • if you installed via npm: delete node_modules/skia-canvas/lib/skia.node and re-run`,
+    `   "npm install" on this machine so the matching "${pkg}"`,
+    `   package is used instead`,
+    ` • if you're working from a source checkout: rebuild against this Node version with`,
+    `   "npm run build" (or "node lib/prebuild.mjs compile")`,
+    ``,
+    dlopenError.message.split('\n')[0].trim(),
+  ] : [
+    `Skia Canvas could not find a native binary for this platform (${triplet}).`,
+    ``,
+    `The "${pkg}" package should have been installed automatically as an optional`,
+    `dependency but is not present.`,
+    ``,
+    `Some likely causes:`,
+    ` • node_modules was copied over from a machine running a different OS or architecture`,
+    ` • optional dependencies were disabled during install (--no-optional / --omit=optional)`,
+    ` • you're using pnpm/yarn without specifying supportedArchitectures for this system`,
+    ``,
+    `To fix it:`,
+    ` • delete node_modules and re-run "npm install" on this machine`,
+    ` • add a supportedArchitectures entry to pnpm-workspace.yaml or .yarnrc.yml, then reinstall`,
+    ` • if all else fails, you can try to fetch or compile the library with:`,
+    `   node node_modules/skia-canvas/lib/prebuild.mjs download --or-compile`,
+    ``,
+  ]
+
+  return lines.join('\n')
+}
+
+
+module.exports = {neon, core, wrap, argc, readOnly, RustClass, inspect, REPR:inspect.custom, STRICT, rustError, ϟ, ø}
 
 
 /***/ }),
 
-/***/ 5523:
+/***/ 2406:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
-// Bézier paths
+// Bézier paths — the Path2D class plus the DrawList kernel it shares with Context2D.
 //
 
 
 
-const {RustClass, core, wrap, inspect, argc, REPR} = __nccwpck_require__(9020),
-      {toSkMatrix} = __nccwpck_require__(2880),
-      css = __nccwpck_require__(3729)
+const {neon, RustClass, core, wrap, inspect, argc, STRICT, rustError, REPR, ϟ, ø} = __nccwpck_require__(789),
+      {toSkMatrix} = __nccwpck_require__(5213),
+      css = __nccwpck_require__(830)
+
+//
+// DrawList
+//
+
+class DrawList {
+  static install(klass){
+    // install the appropriate drawing verbs onto class's prototype
+    let verbs = [
+      // common to Path2D and Context
+      'moveTo', 'lineTo', 'bezierCurveTo', 'quadraticCurveTo', 'conicCurveTo',
+      'arc', 'arcTo', 'ellipse', 'rect', 'roundRect', 'closePath',
+    ].concat(klass !== Path2D ? [
+      // extra Context-only ops
+      'beginPath', 'save', 'restore', 'translate', 'scale', 'rotate', 'transform',
+      'setTransform', 'resetTransform', 'fill', 'stroke', 'fillRect', 'strokeRect', 'clearRect',
+    ] : [])
+
+    for (let name of verbs){
+      Object.defineProperty(klass.prototype, name, {value: this.#build(name), writable:true, enumerable:false, configurable:true})
+    }
+
+    // add the hook that neon.js's ƒ/prop/core handlers use to flush queued drawing ops to rust
+    Object.defineProperty(klass.prototype, ϟ, {value(){ plot(this) }, writable:true, enumerable:false, configurable:true})
+    return klass
+  }
+
+  // -- verb <-> opcode mapping (coordinated with drawlist.rs) ------------------------------------
+
+  // opcode + arity table, exported from the rust decoder
+  static #OPCODES = neon.DrawList.opcodes()
+
+  // verb spec table (`ccw` marks a counter-clockwise flag arg following the named args;
+  // `radius` holds the indices of args that must be ≥ 0)
+  static #VERBS = {
+    // Shared verbs
+    moveTo:           { args:['x', 'y'] },
+    lineTo:           { args:['x', 'y'] },
+    bezierCurveTo:    { args:['cp1x', 'cp1y', 'cp2x', 'cp2y', 'x', 'y'] },
+    quadraticCurveTo: { args:['cpx', 'cpy', 'x', 'y'] },
+    conicCurveTo:     { args:['cpx', 'cpy', 'x', 'y', 'weight'] },
+    arc:              { args:['x', 'y', 'radius', 'startAngle', 'endAngle'], ccw:true, radius:[2] },
+    arcTo:            { args:['x1', 'y1', 'x2', 'y2', 'radius'], radius:[4] },
+    ellipse:          { args:['x', 'y', 'xRadius', 'yRadius', 'rotation', 'startAngle', 'endAngle'], ccw:true, radius:[2, 3] },
+    rect:             { args:['x', 'y', 'width', 'height'] },
+    closePath:        { args:[] },
+    // roundRect gets a custom builder
+
+    // Context2D-only verbs
+    beginPath:        { args:[] },
+    save:             { args:[] },
+    restore:          { args:[] },
+    resetTransform:   { args:[] },
+    translate:        { args:['x', 'y'] },
+    scale:            { args:['x', 'y'] },
+    rotate:           { args:['angle'] },
+    fillRect:         { args:['x', 'y', 'width', 'height'] },
+    strokeRect:       { args:['x', 'y', 'width', 'height'] },
+    clearRect:        { args:['x', 'y', 'width', 'height'] },
+    // transform, setTransform, fill, & stroke are custom
+  }
+
+  // -- verb wrappers (each validates args then enqueues as f64s) ---------------------------------
+
+  // build one verb wrapper (#compile handles most cases, but others need custom builders)
+  static #build(name){
+    switch (name){
+      case 'roundRect':    return this.#makeRoundRect()
+      case 'transform':    return this.#makeMatrixOp('transform')
+      case 'setTransform': return this.#makeMatrixOp('setTransform')
+      case 'fill':         return this.#makeFill()
+      case 'stroke':       return this.#makeStroke()
+      default:             return this.#compile(name, this.#VERBS[name])
+    }
+  }
+
+  // build a wrapper for one of the verbs with 1..n float args
+  static #compile(name, spec){
+    let meta = this.#OPCODES[name]
+    if (!meta) throw new Error(`DrawList opcode unknown: "${name}"`)
+    let locals = spec.args.map((_, i) => `a${i}`), // coerced-args a0, a1, ...
+        n = locals.length,
+        slots = [meta.op, ...locals, ...(spec.ccw ? ['ccw'] : [])] // the record layout, opcode then args
+    if (meta.arity !== slots.length - 1)
+      throw new Error(`DrawList arity mismatch for "${name}" (js ${slots.length - 1} vs rust ${meta.arity})`)
+    let negRadius = spec.radius && spec.radius.map(i => `a${i} < 0`).join(' || ')
+
+    let src = [
+      `return function ${name}(){`,
+        // arity check
+        n && `if (arguments.length < ${n}) check.arity(names, arguments.length)`,
+        // toNumber coercion
+        ...locals.map((a, i) => `let ${a} = +arguments[${i}]`),
+        spec.ccw && `let ccw = arguments[${n}] ? 1 : 0`,
+        // check finiteness only in strict mode
+        ...(STRICT ? locals.map((a, i) => `check.number(${a}, names[${i}], ${i})`) : []),
+        negRadius && `if (${negRadius}) throw new DOMException("Radius value must be positive", "IndexSizeError")`,
+        // realloc if out of space
+        `let m = reserve(this, ${slots.length}), buf = this[QBUF]`,
+        // commit
+        ...slots.map((val, i) => `buf[m + ${i}] = ${val}`),
+      `}`,
+    ].filter(Boolean).join('\n')
+
+    // pass in references to the verb's arg details and the instance's queue storage
+    return new Function('check', 'names', 'reserve', 'QBUF', src)(check, spec.args, reserve, QBUF)
+  }
+
+  // roundRect normalizes coords with negative dimensions, throws on negative radii, and silently
+  // ignores calls with nonfinite coords or radii (unless strict mode is enbaled to surface them)
+  static #makeRoundRect(){
+    let OP = this.#OPCODES.roundRect.op
+    return function roundRect(x, y, w, h, r=0){
+      argc(arguments, 4, 5)
+      let radii = css.radii(r) // null on a non-finite radius, RangeError on a negative one
+      if (!radii) return
+      x = +x; y = +y; w = +w; h = +h
+      // check finiteness only in strict mode
+      if (!(isFinite(x) && isFinite(y) && isFinite(w) && isFinite(h))){
+        if (STRICT){ check.number(x, 'x', 0); check.number(y, 'y', 1); check.number(w, 'width', 2); check.number(h, 'height', 3) }
+        return
+      }
+      if (w < 0) radii = [radii[1], radii[0], radii[3], radii[2]]
+      if (h < 0) radii = [radii[3], radii[2], radii[1], radii[0]]
+      let m = reserve(this, 13), buf = this[QBUF]
+      buf[m] = OP; buf[m+1] = x; buf[m+2] = y; buf[m+3] = w; buf[m+4] = h
+      let k = m + 5
+      for (let pt of radii){ buf[k++] = pt.x; buf[k++] = pt.y }
+    }
+  }
+
+  // transform & setTransform pack their matrices as 9-float sequences and throw on bad input shape
+  // (but silently ignore matrices with nonfinite terms)
+  static #makeMatrixOp(name){
+    let OP = this.#OPCODES[name].op
+    return {[name](){
+      let m = toSkMatrix.apply(null, arguments) // 9 floats, or throws
+      let n = reserve(this, 10), buf = this[QBUF]
+      buf[n] = OP
+      buf.set(m, n + 1)
+    }}[name]
+  }
+
+  // fill() & fill(rule) just enqueue but fill(path2d) triggers a flush
+  static #makeFill(){
+    let OP = this.#OPCODES.fill.op
+    return function fill(path, rule){
+      if (path instanceof Path2D) arguments[0] = core(path)
+      else if (arguments.length < 2){
+        let r = check.fillRule(path, 0) // fill() or fill(rule): `path` is the rule arg
+        let n = reserve(this, 2), buf = this[QBUF]
+        buf[n] = OP; buf[n + 1] = r
+        return
+      }
+      // Path2D barrier (drain + direct call), or native's "Expected a Path2D" parity throw
+      return this.ƒ('fill', ...arguments)
+    }
+  }
+
+  // stroke() just enqueues but stroke(path2d) triggers a flush
+  static #makeStroke(){
+    let OP = this.#OPCODES.stroke.op
+    return function stroke(path){
+      if (path instanceof Path2D) arguments[0] = core(path)
+      else if (arguments.length == 0){
+        let n = reserve(this, 1)
+        this[QBUF][n] = OP
+        return
+      }
+      // Path2D barrier (drain + direct call), or native's "Expected a Path2D" parity throw
+      return this.ƒ('stroke', ...arguments)
+    }
+  }
+}
+
+// -- drawlist queue methods (added to Context2D & Path2D via DrawList.intall) --------------------
+
+// per-object queue storage
+const INIT_SLOTS = 256, MAX_SLOTS = 8192, // start small for throwaway Path2Ds but allow queues to grow
+      QBUF = Symbol('drawlist.buffer'), // the Float64Array (allocated lazily)
+      QLEN = Symbol('drawlist.length') // used slot count
+
+// allocate the next `need` slots in obj[QBUF] and return the offset where they begin.
+// QLEN is advanced past the reservation before the caller fills it in.
+function reserve(obj, need){
+  let buf = obj[QBUF], n = obj[QLEN] | 0
+  if (buf === undefined) buf = obj[QBUF] = new Float64Array(INIT_SLOTS)
+  if (n + need > buf.length){
+    if (buf.length >= MAX_SLOTS){
+      plot(obj) // at capacity: flush to Rust, restarting the queue at 0
+      n = 0
+    }else{
+      let bigger = new Float64Array(Math.min(buf.length * 2, MAX_SLOTS))
+      bigger.set(buf.subarray(0, n))
+      obj[QBUF] = bigger
+    }
+  }
+  obj[QLEN] = n + need
+  return n
+}
+
+// flush the pending records to Rust and clear the queue
+function plot(obj){
+  let len = obj[QLEN] | 0
+  if (len){
+    obj[QLEN] = 0
+    try{
+      obj.native.plot(obj[ø], obj[QBUF], len)
+    }catch(error){
+      rustError(error, plot)
+    }
+  }
+}
+
+// -- arg validation helpers ----------------------------------------------------------------------
+
+function ordinal(idx){
+  const rustIdx = idx + 1
+  const ords = ["st", "nd", "rd"]
+  let slot = ((rustIdx + 90) % 100 - 10) % 10 - 1
+  return `${rustIdx}${(slot >= 0 && slot <= 2) ? ords[slot] : "th"}`
+}
+
+const check = {
+  // throw if too few args were passed
+  arity(argNames, got){
+    let err = new TypeError(`not enough arguments (missing: ${argNames.slice(got).join(", ")})`)
+    Error.captureStackTrace(err, check.arity)
+    throw err
+  },
+
+  // assert `val` is a finite number
+  number(val, argName, idx){
+    if (isFinite(val)) return
+    let err = new TypeError(`Expected a number for \`${argName}\` as ${ordinal(idx)} arg`)
+    Error.captureStackTrace(err, check.number)
+    throw err
+  },
+
+  // map fill-rule enum values: nonzero->0, evenodd->1 (or throw)
+  fillRule(rule, idx){
+    if (rule === undefined || `${rule}` === 'nonzero') return 0 // stringified, so wrapped strings work
+    if (`${rule}` === 'evenodd') return 1
+    let err = new TypeError(`Expected \`fillRule\` to be "nonzero" or "evenodd" for ${ordinal(idx)} arg`)
+    Error.captureStackTrace(err, check.fillRule)
+    throw err
+  },
+}
+
+//
+// Path2D
+//
 
 class Path2D extends RustClass{
   static op(operation, path, other){
@@ -8429,51 +9092,37 @@ class Path2D extends RustClass{
   constructor(source){
     super(Path2D)
     if (source instanceof Path2D) this.init('from_path', core(source))
-    else if (typeof source == 'string') this.init('from_svg', source)
+    else if (source !== undefined) this.init('from_svg', `${source}`) // anything else is stringified
     else this.alloc()
   }
 
   // dimensions & contents
   get bounds(){ return this.ƒ('bounds') }
   get edges(){ return this.ƒ("edges") }
+  get contours(){ return this.ƒ("contours").map(c => wrap(Path2D, c)) }
   get d(){ return this.prop("d") }
   set d(svg){ return this.prop("d", svg) }
   contains(x, y){ return this.ƒ("contains", ...arguments)}
 
-  points(step=1){
-    return this.jitter(step, 0).edges
-               .map(([verb, ...pts]) => pts.slice(-2))
-               .filter(pt => pt.length)
+  // arc-length measurement (distances are pre-coerced since rust treats non-numbers as NaN)
+  get length(){ return this.prop("length") }
+  positionAt(distance){ return this.ƒ("positionAt", +distance) }
+  tangentAt(distance){ return this.ƒ("tangentAt", +distance) }
+  normalAt(distance){ return this.ƒ("normalAt", +distance) }
+
+  slice(start, end, inverted){
+    if (arguments.length == 0) return new Path2D(this) // return an exact copy
+    let args = Array.from(arguments, (arg, i) => i < 2 && arg !== undefined ? +arg : arg)
+    return Path2D.effect("slice", this, ...args)
   }
+
+  points(step=1, mode="even"){ return this.ƒ("points", +step, String(mode)) }
 
   // concatenation
   addPath(path, matrix){
     let args = path instanceof Path2D ? [core(path)] : []
     if (matrix) args.push(toSkMatrix(matrix))
     this.ƒ('addPath', ...args)
-  }
-
-  // line segments
-  moveTo(x, y){ this.ƒ("moveTo", ...arguments) }
-  lineTo(x, y){ this.ƒ("lineTo", ...arguments) }
-  closePath(){ this.ƒ("closePath") }
-  arcTo(x1, y1, x2, y2, radius){ this.ƒ("arcTo", ...arguments) }
-  bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y){ this.ƒ("bezierCurveTo", ...arguments) }
-  quadraticCurveTo(cpx, cpy, x, y){ this.ƒ("quadraticCurveTo", ...arguments) }
-  conicCurveTo(cpx, cpy, x, y, weight){ this.ƒ("conicCurveTo", ...arguments) }
-
-  // shape primitives
-  ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, isCCW){ this.ƒ("ellipse", ...arguments) }
-  rect(x, y, width, height){this.ƒ("rect", ...arguments) }
-  arc(x, y, radius, startAngle, endAngle){ this.ƒ("arc", ...arguments) }
-  roundRect(x, y, w, h, r){
-    argc(arguments, 4, 5)
-    let radii = css.radii(r)
-    if (radii){
-      if (w < 0) radii = [radii[1], radii[0], radii[3], radii[2]]
-      if (h < 0) radii = [radii[3], radii[2], radii[1], radii[0]]
-      this.ƒ("roundRect", x, y, w, h, ...radii.map(({x, y}) => [x, y]).flat())
-    }
   }
 
   // tween similar paths
@@ -8489,9 +9138,9 @@ class Path2D extends RustClass{
   // path effects
   jitter(len, amt, seed){ return Path2D.effect("jitter", this, ...arguments) }
   simplify(rule){         return Path2D.effect("simplify", this, ...arguments) }
-  unwind(){               return Path2D.effect("unwind", this) }
   round(radius){          return Path2D.effect("round", this, ...arguments) }
   offset(dx, dy){         return Path2D.effect("offset", this, ...arguments) }
+  unwind(){ _deprecated('Path2D.unwind()'); return this.simplify('evenodd') }
 
   transform(matrix){
     return Path2D.effect("transform", this, toSkMatrix.apply(null, arguments))
@@ -8513,12 +9162,24 @@ class Path2D extends RustClass{
   }
 }
 
-module.exports = {Path2D}
+// install the batched path-verb wrappers (moveTo, lineTo, etc.) + the ϟ plot() hook
+DrawList.install(Path2D)
+
+let _warnings = {
+  "Path2D.unwind()": "Path2D.unwind() is deprecated and will be removed in a future release; use Path2D.simplify('evenodd') instead",
+}
+function _deprecated(oldAPI){
+  let message = _warnings[oldAPI]
+  if (message) console.error(`Deprecation warning: ${message}`)
+  delete _warnings[oldAPI]
+}
+
+module.exports = {Path2D, DrawList}
 
 
 /***/ }),
 
-/***/ 5817:
+/***/ 9204:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -8527,7 +9188,71 @@ module.exports = {Path2D}
 
 
 
-const {RustClass, readOnly, signature, inspect, REPR} = __nccwpck_require__(9020)
+const {RustClass, inspect, REPR} = __nccwpck_require__(789),
+      {filePath} = __nccwpck_require__(5026)
+
+// human-readable names for the registered OpenType feature tags (from the OT 1.9.1 registry)
+// see: <https://learn.microsoft.com/typography/opentype/spec/featurelist>
+const FEATURE_LABELS = {
+  aalt:"Access All Alternates", abvf:"Above-base Forms", abvm:"Above-base Mark Positioning",
+  abvs:"Above-base Substitutions", afrc:"Alternative Fractions", akhn:"Akhand",
+  apkn:"Kerning for Alternate Proportional Widths", blwf:"Below-base Forms",
+  blwm:"Below-base Mark Positioning", blws:"Below-base Substitutions", calt:"Contextual Alternates",
+  case:"Case-Sensitive Forms", ccmp:"Glyph Composition / Decomposition", cfar:"Conjunct Form After Ro",
+  chws:"Contextual Half-width Spacing", cjct:"Conjunct Forms", clig:"Contextual Ligatures",
+  cpct:"Centered CJK Punctuation", cpsp:"Capital Spacing", cswh:"Contextual Swash",
+  curs:"Cursive Positioning", c2pc:"Petite Capitals From Capitals", c2sc:"Small Capitals From Capitals",
+  dist:"Distances", dlig:"Discretionary Ligatures", dnom:"Denominators", dtls:"Dotless Forms",
+  expt:"Expert Forms", falt:"Final Glyph on Line Alternates", fin2:"Terminal Forms #2",
+  fin3:"Terminal Forms #3", fina:"Terminal Forms", flac:"Flattened Accent Forms", frac:"Fractions",
+  fwid:"Full Widths", half:"Half Forms", haln:"Halant Forms", halt:"Alternate Half Widths",
+  hist:"Historical Forms", hkna:"Horizontal Kana Alternates", hlig:"Historical Ligatures",
+  hngl:"Hangul", hojo:"Hojo Kanji Forms", hwid:"Half Widths", init:"Initial Forms",
+  isol:"Isolated Forms", ital:"Italics", jalt:"Justification Alternates", jp78:"JIS78 Forms",
+  jp83:"JIS83 Forms", jp90:"JIS90 Forms", jp04:"JIS2004 Forms", kern:"Kerning", lfbd:"Left Bounds",
+  liga:"Standard Ligatures", ljmo:"Leading Jamo Forms", lnum:"Lining Figures", locl:"Localized Forms",
+  ltra:"Left-to-right Alternates", ltrm:"Left-to-right Mirrored Forms", mark:"Mark Positioning",
+  med2:"Medial Forms #2", medi:"Medial Forms", mgrk:"Mathematical Greek", mkmk:"Mark to Mark Positioning",
+  mset:"Mark Positioning via Substitution", nalt:"Alternate Annotation Forms", nlck:"NLC Kanji Forms",
+  nukt:"Nukta Forms", numr:"Numerators", onum:"Oldstyle Figures", opbd:"Optical Bounds",
+  ordn:"Ordinals", ornm:"Ornaments", palt:"Proportional Alternate Widths", pcap:"Petite Capitals",
+  pkna:"Proportional Kana", pnum:"Proportional Figures", pref:"Pre-base Forms", pres:"Pre-base Substitutions",
+  pstf:"Post-base Forms", psts:"Post-base Substitutions", pwid:"Proportional Widths", qwid:"Quarter Widths",
+  rand:"Randomize", rclt:"Required Contextual Alternates", rkrf:"Rakar Forms", rlig:"Required Ligatures",
+  rphf:"Reph Form", rtbd:"Right Bounds", rtla:"Right-to-left Alternates", rtlm:"Right-to-left Mirrored Forms",
+  ruby:"Ruby Notation Forms", rvrn:"Required Variation Alternates", salt:"Stylistic Alternates",
+  sinf:"Scientific Inferiors", size:"Optical size", smcp:"Small Capitals", smpl:"Simplified Forms",
+  ssty:"Math Script-style Alternates", stch:"Stretching Glyph Decomposition", subs:"Subscript",
+  sups:"Superscript", swsh:"Swash", titl:"Titling", tjmo:"Trailing Jamo Forms", tnam:"Traditional Name Forms",
+  tnum:"Tabular Figures", trad:"Traditional Forms", twid:"Third Widths", unic:"Unicase",
+  valt:"Alternate Vertical Metrics", vapk:"Kerning for Alternate Proportional Vertical Metrics",
+  vatu:"Vattu Variants", vchw:"Vertical Contextual Half-width Spacing", vert:"Vertical Alternates",
+  vhal:"Alternate Vertical Half Metrics", vjmo:"Vowel Jamo Forms", vkna:"Vertical Kana Alternates",
+  vkrn:"Vertical Kerning", vpal:"Proportional Alternate Vertical Metrics", vrt2:"Vertical Alternates and Rotation",
+  vrtr:"Vertical Alternates for Rotation", zero:"Slashed Zero",
+}
+
+// whether features accept a 0/1..N index value rather than just a 0/1 toggle
+const INDEXED_FEATURES = new Set(['aalt', 'salt', 'nalt', 'swsh', 'cswh', 'ornm'])
+
+// add arg-type fields and missing feature labels to a Font or FontFamily
+function expandFontFeatures(font){
+  if (!font) return font
+
+  let features = {}
+  for (let tag of Object.keys(font.features)){
+    let ss = /^ss([0-9][0-9])$/.exec(tag),
+        cv = /^cv([0-9][0-9])$/.exec(tag),
+        type = INDEXED_FEATURES.has(tag) || cv ? 'indexed' : 'on/off',
+        label = font.features[tag] || FEATURE_LABELS[tag] ||
+                (ss && `Stylistic Set ${parseInt(ss[1], 10)}`) ||
+                (cv && `Character Variant ${parseInt(cv[1], 10)}`)
+
+    features[tag] = label ? {label, type} : {type}
+  }
+
+  return Object.assign(font, {features})
+}
 
 class FontLibrary extends RustClass {
   constructor(){
@@ -8538,20 +9263,25 @@ class FontLibrary extends RustClass {
 
   has(familyName){ return this.ƒ('has', familyName) }
 
-  family(name){ return this.ƒ('family', name) }
+  family(name){ return expandFontFeatures(this.ƒ('family', name)) }
 
   use(...args){
-    let sig = signature(args)
-    if (sig=='o'){
+    args = args.map(filePath) // convert URLs to paths
+    let [alias, fonts] = args.length == 2 ? args : [undefined, args[0]],
+        hasValidAlias = args.length == 1 || typeof alias == 'string',
+        isPathList = typeof fonts == 'string' || Array.isArray(fonts),
+        isFamilyMap = args.length == 1 && !isPathList && typeof fonts == 'object' && fonts !== null
+
+    if (isFamilyMap){
+      // use({family: paths[], ...})
       let results = {}
-      for (let [alias, paths] of Object.entries(args.shift())){
-        results[alias] = this.ƒ("addFamily", alias, [paths].flat())
+      for (let [name, paths] of Object.entries(fonts)){
+        results[name] = this.ƒ("addFamily", name, [paths].flat().map(filePath)).map(expandFontFeatures)
       }
       return results
-    }else if (sig.match(/^s?[as]$/)){
-      let fonts = [args.pop()].flat()
-      let alias = args.shift()
-      return this.ƒ("addFamily", alias, fonts)
+    }else if (hasValidAlias && isPathList){
+      // use(paths[]) or use(alias, paths[])
+      return this.ƒ("addFamily", alias, [fonts].flat().map(filePath)).map(expandFontFeatures)
     }else{
       throw new Error("Expected an array of file paths or an object mapping family names to font files")
     }
@@ -8561,8 +9291,36 @@ class FontLibrary extends RustClass {
 }
 
 class TextMetrics{
-  constructor(metrics){
-    for (let k in metrics) readOnly(this, k, metrics[k])
+  constructor([metrics, lineNums, runNums, families]){
+    // rebuild the per-run & per-line objects from their flattened form
+    let runs = families.map((family, r) => {
+      let [x, y, width, height, ascent, descent, capHeight, xHeight, underline, strikethrough] = runNums.subarray(r*10, r*10+10)
+      return {
+        x, y, width, height, family, ascent, descent, capHeight, xHeight,
+        underline: isNaN(underline) ? null : underline, // underline & strikethrough positions are optional
+        strikethrough: isNaN(strikethrough) ? null : strikethrough,
+      }
+    })
+    let lines = Array.from({length:lineNums.length / 13}, (_, i) => {
+      let [x, y, width, height, baseline, hangingBaseline, alphabeticBaseline, ideographicBaseline,
+           ascent, descent, startIndex, endIndex, runsEnd] = lineNums.subarray(i*13, i*13+13),
+          runsStart = i ? lineNums[i*13 - 1] : 0 // the line's run indices start where the previous line's ended
+      return {
+        x, y, width, height, baseline, hangingBaseline, alphabeticBaseline, ideographicBaseline,
+        ascent, descent, startIndex, endIndex, runs:runs.slice(runsStart, runsEnd),
+      }
+    })
+
+    // unpack the whole-text-block metrics
+    let [width, actualBoundingBoxLeft, actualBoundingBoxRight, actualBoundingBoxAscent, actualBoundingBoxDescent,
+         fontBoundingBoxAscent, fontBoundingBoxDescent, emHeightAscent, emHeightDescent,
+         hangingBaseline, alphabeticBaseline, ideographicBaseline] = metrics
+
+    Object.assign(this, {
+      width, actualBoundingBoxLeft, actualBoundingBoxRight, actualBoundingBoxAscent, actualBoundingBoxDescent,
+      fontBoundingBoxAscent, fontBoundingBoxDescent, emHeightAscent, emHeightDescent,
+      hangingBaseline, alphabeticBaseline, ideographicBaseline, lines
+    })
   }
 }
 
@@ -8572,7 +9330,7 @@ module.exports = {FontLibrary:new FontLibrary(), TextMetrics}
 
 /***/ }),
 
-/***/ 8693:
+/***/ 4622:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 //
@@ -8581,17 +9339,17 @@ module.exports = {FontLibrary:new FontLibrary(), TextMetrics}
 
 
 
-const {Canvas, CanvasGradient, CanvasPattern, CanvasTexture} = __nccwpck_require__(9756),
-      {Image, ImageData, loadImage, loadImageData} = __nccwpck_require__(6854),
-      {DOMPoint, DOMMatrix, DOMRect} = __nccwpck_require__(2880),
-      {TextMetrics, FontLibrary} = __nccwpck_require__(5817),
-      {CanvasRenderingContext2D} = __nccwpck_require__(2061),
-      {App, Window} = __nccwpck_require__(6825),
-      {Path2D} = __nccwpck_require__(5523)
+const {Canvas, CanvasGradient, CanvasPattern, CanvasTexture} = __nccwpck_require__(861),
+      {Image, ImageData, loadImage, loadImageData, loadCanvas} = __nccwpck_require__(2001),
+      {DOMPoint, DOMMatrix, DOMRect} = __nccwpck_require__(5213),
+      {TextMetrics, FontLibrary} = __nccwpck_require__(9204),
+      {CanvasRenderingContext2D} = __nccwpck_require__(4730),
+      {App, Window} = __nccwpck_require__(7106),
+      {Path2D} = __nccwpck_require__(2406)
 
 module.exports = {
   Canvas, CanvasGradient, CanvasPattern, CanvasTexture,
-  Image, ImageData, loadImage, loadImageData,
+  Image, ImageData, loadImage, loadImageData, loadCanvas,
   Path2D, DOMPoint, DOMMatrix, DOMRect,
   FontLibrary, TextMetrics,
   CanvasRenderingContext2D,
@@ -8601,12 +9359,13 @@ module.exports = {
 
 /***/ }),
 
-/***/ 7611:
+/***/ 5026:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const url = __nccwpck_require__(7016),
-      {http, https} = __nccwpck_require__(4987),
-      {HttpsProxyAgent} = __nccwpck_require__(2807)
+const url = __nccwpck_require__(7016)
+
+// http clients & proxy agents will be initialized lazily
+let http, https, HttpsProxyAgent
 
 const UA = {"User-Agent": "Skia Canvas"}
 const PROXY_URL =
@@ -8614,15 +9373,20 @@ const PROXY_URL =
   process.env.http_proxy || process.env.HTTP_PROXY
 
 const fetchURL = (url, opts, ok, fail) => {
+  if (!http) ({http, https} = __nccwpck_require__(4987))
+
   let proto = url.slice(0,5).split(':')[0],
       client = {http, https}[proto.toLowerCase()]
 
   if (!client){
     fail(new Error(`Unsupported protocol: expected 'http' or 'https' (got: ${proto})`))
   }else{
-    opts = opts || {}
+    opts ??= {}
     opts.headers = {...UA, ...opts.headers}
-    opts.agent = opts.agent===undefined && PROXY_URL ? new HttpsProxyAgent(PROXY_URL) : opts.agent
+    if (opts.agent===undefined && PROXY_URL){
+      HttpsProxyAgent ??= (__nccwpck_require__(1735)/* .HttpsProxyAgent */ .b)
+      opts.agent = new HttpsProxyAgent(PROXY_URL)
+    }
 
     let req = client.request(url, opts, resp => {
       if (resp.statusCode < 200 || resp.statusCode >= 300){
@@ -8635,7 +9399,12 @@ const fetchURL = (url, opts, ok, fail) => {
       }
     })
 
-    req.on('error', e => fail(e))
+    // distinguish lapsed `timeout` deadlines from the user calling .abort() on a controller of their own
+    const timedOut = (err, signal) => err.name == 'AbortError' && signal?.reason?.name == 'TimeoutError'
+    req.on('timeout', () => req.destroy(new Error(`Timed out loading image from "${url}"`)))
+    req.on('error', e => fail(
+      timedOut(e, opts.signal) ? new Error(`Timed out loading image from "${url}"`, {cause:e}) : e
+    ))
     if (opts.body) req.write(opts.body)
     req.end()
   }
@@ -8664,70 +9433,18 @@ const expandURL = (src) => {
   return src
 }
 
-module.exports = {fetchURL, decodeDataURL, expandURL}
-
-
-/***/ }),
-
-/***/ 1846:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-
-var paren = __nccwpck_require__(9349)
-
-module.exports = function splitBy (string, separator, o) {
-	if (string == null) throw Error('First argument should be a string')
-	if (separator == null) throw Error('Separator should be a string or a RegExp')
-
-	if (!o) o = {}
-	else if (typeof o === 'string' || Array.isArray(o)) {
-		o = {ignore: o}
-	}
-
-	if (o.escape == null) o.escape = true
-	if (o.ignore == null) o.ignore = ['[]', '()', '{}', '<>', '""', "''", '``', '“”', '«»']
-	else {
-		if (typeof o.ignore === 'string') {o.ignore = [o.ignore]}
-
-		o.ignore = o.ignore.map(function (pair) {
-			// '"' → '""'
-			if (pair.length === 1) pair = pair + pair
-			return pair
-		})
-	}
-
-	var tokens = paren.parse(string, {flat: true, brackets: o.ignore})
-	var str = tokens[0]
-
-	var parts = str.split(separator)
-
-	// join parts separated by escape
-	if (o.escape) {
-		var cleanParts = []
-		for (var i = 0; i < parts.length; i++) {
-			var prev = parts[i]
-			var part = parts[i + 1]
-
-			if (prev[prev.length - 1] === '\\' && prev[prev.length - 2] !== '\\') {
-				cleanParts.push(prev + separator + part)
-				i++
-			}
-			else {
-				cleanParts.push(prev)
-			}
-		}
-		parts = cleanParts
-	}
-
-	// open parens pack & apply unquotes, if any
-	for (var i = 0; i < parts.length; i++) {
-		tokens[0] = parts[i]
-		parts[i] = paren.stringify(tokens, {flat: true})
-	}
-
-	return parts
+const filePath = (src) => {
+  // convert file URLs to paths & unwrap String objects, leave all other types unmodified
+  if (src instanceof URL){
+    if (src.protocol=='file:') src = url.fileURLToPath(src)
+    else throw Error(`URLs must use 'file' protocol (got '${src.protocol.replace(':', '')}')`)
+  }else if (src instanceof String){
+    src = `${src}`
+  }
+  return src
 }
+
+module.exports = {fetchURL, decodeDataURL, expandURL, filePath}
 
 
 /***/ }),
@@ -37003,9 +37720,9 @@ module.exports = {
 __nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9896);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(9477);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(9583);
 /* harmony import */ var _lib_topics_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(351);
-/* harmony import */ var _lib_word_cloud_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7919);
+/* harmony import */ var _lib_word_cloud_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(4766);
 
 
 
@@ -38765,7 +39482,7 @@ async function getTopics(login, myToken) {
 
 /***/ }),
 
-/***/ 7919:
+/***/ 4766:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -38825,9 +39542,9 @@ __nccwpck_require__.d(domutils_dist_namespaceObject, {
 // EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.9/node_modules/d3-cloud/build/d3.layout.cloud.js
 var d3_layout_cloud = __nccwpck_require__(6794);
 var d3_layout_cloud_default = /*#__PURE__*/__nccwpck_require__.n(d3_layout_cloud);
-// EXTERNAL MODULE: ./node_modules/.pnpm/skia-canvas@3.0.8_debug@4.4.3/node_modules/skia-canvas/lib/index.js
-var lib = __nccwpck_require__(8693);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/skia-canvas@3.0.8_debug@4.4.3/node_modules/skia-canvas/lib/index.mjs
+// EXTERNAL MODULE: ./node_modules/.pnpm/skia-canvas@4.0.0_debug@4.4.3/node_modules/skia-canvas/lib/index.js
+var lib = __nccwpck_require__(4622);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/skia-canvas@4.0.0_debug@4.4.3/node_modules/skia-canvas/lib/index.mjs
 //
 // Skia Canvas — ES Module version
 //
@@ -38836,7 +39553,7 @@ var lib = __nccwpck_require__(8693);
 
 const {
   Canvas, CanvasGradient, CanvasPattern, CanvasTexture,
-  Image, ImageData, loadImage, loadImageData,
+  Image, ImageData, loadImage, loadImageData, loadCanvas,
   Path2D, DOMPoint, DOMMatrix: lib_DOMMatrix, DOMRect,
   FontLibrary, TextMetrics,
   CanvasRenderingContext2D,
@@ -43053,8 +43770,8 @@ function defaultConstrain(transform, extent, translateExtent) {
 // EXTERNAL MODULE: ./node_modules/.pnpm/randomcolor@0.6.2/node_modules/randomcolor/randomColor.js
 var randomColor = __nccwpck_require__(3337);
 var randomColor_default = /*#__PURE__*/__nccwpck_require__.n(randomColor);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/core.js + 17 modules
-var core = __nccwpck_require__(9477);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/core.js + 16 modules
+var core = __nccwpck_require__(9583);
 ;// CONCATENATED MODULE: ./lib/draw-cloud.ts
 
 
@@ -57510,10 +58227,59 @@ async function genSVG(words) {
 
 /***/ }),
 
-/***/ 6473:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 3620:
+/***/ ((module) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(__nccwpck_require__.ab + "lib/skia.node")
+module.exports = eval("require")("@skia-canvas/darwin-arm64");
+
+
+/***/ }),
+
+/***/ 8170:
+/***/ ((module) => {
+
+module.exports = eval("require")("@skia-canvas/darwin-x64");
+
+
+/***/ }),
+
+/***/ 1611:
+/***/ ((module) => {
+
+module.exports = eval("require")("@skia-canvas/linux-arm64-glibc");
+
+
+/***/ }),
+
+/***/ 2063:
+/***/ ((module) => {
+
+module.exports = eval("require")("@skia-canvas/linux-arm64-musl");
+
+
+/***/ }),
+
+/***/ 7821:
+/***/ ((module) => {
+
+module.exports = eval("require")("@skia-canvas/linux-x64-musl");
+
+
+/***/ }),
+
+/***/ 8572:
+/***/ ((module) => {
+
+module.exports = eval("require")("@skia-canvas/win32-arm64");
+
+
+/***/ }),
+
+/***/ 2530:
+/***/ ((module) => {
+
+module.exports = eval("require")("@skia-canvas/win32-x64");
+
 
 /***/ }),
 
@@ -57541,10 +58307,32 @@ module.exports = eval("require")("supports-color");
 
 /***/ }),
 
+/***/ 3938:
+/***/ ((module) => {
+
+function webpackEmptyContext(req) {
+	var e = new Error("Cannot find module '" + req + "'");
+	e.code = 'MODULE_NOT_FOUND';
+	throw e;
+}
+webpackEmptyContext.keys = () => ([]);
+webpackEmptyContext.resolve = webpackEmptyContext;
+webpackEmptyContext.id = 3938;
+module.exports = webpackEmptyContext;
+
+/***/ }),
+
 /***/ 2613:
 /***/ ((module) => {
 
 module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("assert");
+
+/***/ }),
+
+/***/ 5317:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("child_process");
 
 /***/ }),
 
@@ -57816,7 +58604,7 @@ try {
 
 /***/ }),
 
-/***/ 9477:
+/***/ 9583:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -59227,8 +60015,8 @@ function toPlatformPath(pth) {
 var external_string_decoder_ = __nccwpck_require__(3193);
 // EXTERNAL MODULE: external "events"
 var external_events_ = __nccwpck_require__(4434);
-;// CONCATENATED MODULE: external "child_process"
-const external_child_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("child_process");
+// EXTERNAL MODULE: external "child_process"
+var external_child_process_ = __nccwpck_require__(5317);
 // EXTERNAL MODULE: external "assert"
 var external_assert_ = __nccwpck_require__(2613);
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+io@3.0.2/node_modules/@actions/io/lib/io-util.js
@@ -60070,7 +60858,7 @@ class ToolRunner extends external_events_.EventEmitter {
                     return reject(new Error(`The cwd: ${this.options.cwd} does not exist!`));
                 }
                 const fileName = this._getSpawnFileName();
-                const cp = external_child_process_namespaceObject.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
+                const cp = external_child_process_.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
                 let stdbuffer = '';
                 if (cp.stdout) {
                     cp.stdout.on('data', (data) => {
@@ -60737,6 +61525,583 @@ function getIDToken(aud) {
 
 //# sourceMappingURL=core.js.map
 
+/***/ }),
+
+/***/ 1735:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  b: () => (/* binding */ HttpsProxyAgent)
+});
+
+// EXTERNAL MODULE: external "net"
+var external_net_ = __nccwpck_require__(9278);
+// EXTERNAL MODULE: external "tls"
+var external_tls_ = __nccwpck_require__(4756);
+// EXTERNAL MODULE: external "assert"
+var external_assert_ = __nccwpck_require__(2613);
+// EXTERNAL MODULE: ./node_modules/.pnpm/debug@4.4.3/node_modules/debug/src/index.js
+var src = __nccwpck_require__(6835);
+// EXTERNAL MODULE: external "http"
+var external_http_ = __nccwpck_require__(8611);
+// EXTERNAL MODULE: external "https"
+var external_https_ = __nccwpck_require__(5692);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/agent-base@9.0.0/node_modules/agent-base/dist/helpers.js
+
+
+async function toBuffer(stream) {
+    let length = 0;
+    const chunks = [];
+    for await (const chunk of stream) {
+        length += chunk.length;
+        chunks.push(chunk);
+    }
+    return Buffer.concat(chunks, length);
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function json(stream) {
+    const buf = await toBuffer(stream);
+    const str = buf.toString('utf8');
+    try {
+        return JSON.parse(str);
+    }
+    catch (_err) {
+        const err = _err;
+        err.message += ` (input: ${str})`;
+        throw err;
+    }
+}
+function req(url, opts = {}) {
+    const href = typeof url === 'string' ? url : url.href;
+    const req = (href.startsWith('https:') ? https : http).request(url, opts);
+    const promise = new Promise((resolve, reject) => {
+        req
+            .once('response', resolve)
+            .once('error', reject)
+            .end();
+    });
+    req.then = promise.then.bind(promise);
+    return req;
+}
+//# sourceMappingURL=helpers.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/agent-base@9.0.0/node_modules/agent-base/dist/index.js
+
+
+
+
+const INTERNAL = Symbol('AgentBaseInternalState');
+class Agent extends external_http_.Agent {
+    constructor(opts) {
+        super(opts);
+        this[INTERNAL] = {};
+    }
+    /**
+     * Determine whether this is an `http` or `https` request.
+     */
+    isSecureEndpoint(options) {
+        if (options) {
+            // First check the `secureEndpoint` property explicitly, since this
+            // means that a parent `Agent` is "passing through" to this instance.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (typeof options.secureEndpoint === 'boolean') {
+                return options.secureEndpoint;
+            }
+            // If no explicit `secure` endpoint, check if `protocol` property is
+            // set. This will usually be the case since using a full string URL
+            // or `URL` instance should be the most common usage.
+            if (typeof options.protocol === 'string') {
+                return options.protocol === 'https:';
+            }
+        }
+        // Finally, if no `protocol` property was set, then fall back to
+        // checking the stack trace of the current call stack, and try to
+        // detect the "https" module.
+        const { stack } = new Error();
+        if (typeof stack !== 'string')
+            return false;
+        return stack
+            .split('\n')
+            .some((l) => l.indexOf('(https.js:') !== -1 ||
+            l.indexOf('node:https:') !== -1);
+    }
+    // In order to support async signatures in `connect()` and Node's native
+    // connection pooling in `http.Agent`, the array of sockets for each origin
+    // has to be updated synchronously. This is so the length of the array is
+    // accurate when `addRequest()` is next called. We achieve this by creating a
+    // fake socket and adding it to `sockets[origin]` and incrementing
+    // `totalSocketCount`.
+    incrementSockets(name) {
+        // If `maxSockets` and `maxTotalSockets` are both Infinity then there is no
+        // need to create a fake socket because Node.js native connection pooling
+        // will never be invoked.
+        if (this.maxSockets === Infinity && this.maxTotalSockets === Infinity) {
+            return null;
+        }
+        // All instances of `sockets` are expected TypeScript errors. The
+        // alternative is to add it as a private property of this class but that
+        // will break TypeScript subclassing.
+        if (!this.sockets[name]) {
+            // @ts-expect-error `sockets` is readonly in `@types/node`
+            this.sockets[name] = [];
+        }
+        const fakeSocket = new external_net_.Socket({ writable: false });
+        this.sockets[name].push(fakeSocket);
+        // @ts-expect-error `totalSocketCount` isn't defined in `@types/node`
+        this.totalSocketCount++;
+        return fakeSocket;
+    }
+    decrementSockets(name, socket) {
+        if (!this.sockets[name] || socket === null) {
+            return;
+        }
+        const sockets = this.sockets[name];
+        const index = sockets.indexOf(socket);
+        if (index !== -1) {
+            sockets.splice(index, 1);
+            // @ts-expect-error  `totalSocketCount` isn't defined in `@types/node`
+            this.totalSocketCount--;
+            if (sockets.length === 0) {
+                // @ts-expect-error `sockets` is readonly in `@types/node`
+                delete this.sockets[name];
+            }
+        }
+    }
+    // In order to properly update the socket pool, we need to call `getName()` on
+    // the core `https.Agent` if it is a secureEndpoint.
+    getName(options) {
+        const secureEndpoint = this.isSecureEndpoint(options);
+        if (secureEndpoint) {
+            return external_https_.Agent.prototype.getName.call(this, options);
+        }
+        return super.getName(options);
+    }
+    createSocket(req, options, cb) {
+        const connectOpts = {
+            ...options,
+            secureEndpoint: this.isSecureEndpoint(options),
+        };
+        const name = this.getName(connectOpts);
+        const fakeSocket = this.incrementSockets(name);
+        Promise.resolve()
+            .then(() => this.connect(req, connectOpts))
+            .then((socket) => {
+            this.decrementSockets(name, fakeSocket);
+            if (typeof socket
+                .addRequest === 'function') {
+                try {
+                    return socket.addRequest(req, connectOpts);
+                }
+                catch (err) {
+                    return cb(err);
+                }
+            }
+            this[INTERNAL].currentSocket = socket;
+            // @ts-expect-error `createSocket()` isn't defined in `@types/node`
+            super.createSocket(req, options, cb);
+        }, (err) => {
+            this.decrementSockets(name, fakeSocket);
+            cb(err);
+        });
+    }
+    createConnection() {
+        const socket = this[INTERNAL].currentSocket;
+        this[INTERNAL].currentSocket = undefined;
+        if (!socket) {
+            throw new Error('No socket was returned in the `connect()` function');
+        }
+        return socket;
+    }
+    get defaultPort() {
+        return (this[INTERNAL].defaultPort ??
+            (this.protocol === 'https:' ? 443 : 80));
+    }
+    set defaultPort(v) {
+        if (this[INTERNAL]) {
+            this[INTERNAL].defaultPort = v;
+        }
+    }
+    get protocol() {
+        return (this[INTERNAL].protocol ??
+            (this.isSecureEndpoint() ? 'https:' : 'http:'));
+    }
+    set protocol(v) {
+        if (this[INTERNAL]) {
+            this[INTERNAL].protocol = v;
+        }
+    }
+}
+//# sourceMappingURL=index.js.map
+// EXTERNAL MODULE: external "url"
+var external_url_ = __nccwpck_require__(7016);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/https-proxy-agent@9.1.0/node_modules/https-proxy-agent/dist/parse-proxy-response.js
+
+const debug = src('https-proxy-agent:parse-proxy-response');
+function parseProxyResponse(socket) {
+    return new Promise((resolve, reject) => {
+        // we need to buffer any HTTP traffic that happens with the proxy before we get
+        // the CONNECT response, so that if the response is anything other than an "200"
+        // response code, then we can re-play the "data" events on the socket once the
+        // HTTP parser is hooked up...
+        let buffersLength = 0;
+        const buffers = [];
+        function read() {
+            const b = socket.read();
+            if (b)
+                ondata(b);
+            else
+                socket.once('readable', read);
+        }
+        function cleanup() {
+            socket.removeListener('end', onend);
+            socket.removeListener('error', onerror);
+            socket.removeListener('readable', read);
+        }
+        function onend() {
+            cleanup();
+            debug('onend');
+            reject(new Error('Proxy connection ended before receiving CONNECT response'));
+        }
+        function onerror(err) {
+            cleanup();
+            debug('onerror %o', err);
+            reject(err);
+        }
+        function ondata(b) {
+            buffers.push(b);
+            buffersLength += b.length;
+            const buffered = Buffer.concat(buffers, buffersLength);
+            const endOfHeaders = buffered.indexOf('\r\n\r\n');
+            if (endOfHeaders === -1) {
+                // keep buffering
+                debug('have not received end of HTTP headers yet...');
+                read();
+                return;
+            }
+            const headerParts = buffered
+                .slice(0, endOfHeaders)
+                .toString('ascii')
+                .split('\r\n');
+            const firstLine = headerParts.shift();
+            if (!firstLine) {
+                socket.destroy();
+                return reject(new Error('No header received from proxy CONNECT response'));
+            }
+            const firstLineParts = firstLine.split(' ');
+            const statusCode = +firstLineParts[1];
+            const statusText = firstLineParts.slice(2).join(' ');
+            const headers = {};
+            for (const header of headerParts) {
+                if (!header)
+                    continue;
+                const firstColon = header.indexOf(':');
+                if (firstColon === -1) {
+                    socket.destroy();
+                    return reject(new Error(`Invalid header from proxy CONNECT response: "${header}"`));
+                }
+                const key = header.slice(0, firstColon).toLowerCase();
+                const value = header.slice(firstColon + 1).trimStart();
+                const current = headers[key];
+                if (typeof current === 'string') {
+                    headers[key] = [current, value];
+                }
+                else if (Array.isArray(current)) {
+                    current.push(value);
+                }
+                else {
+                    headers[key] = value;
+                }
+            }
+            debug('got proxy server response: %o %o', firstLine, headers);
+            cleanup();
+            resolve({
+                connect: {
+                    statusCode,
+                    statusText,
+                    headers,
+                },
+                buffered,
+            });
+        }
+        socket.on('error', onerror);
+        socket.on('end', onend);
+        read();
+    });
+}
+//# sourceMappingURL=parse-proxy-response.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/proxy-agent-negotiate@1.1.0/node_modules/proxy-agent-negotiate/dist/index.js
+function createNegotiateAuth() {
+    return async ({ response, scheme }) => {
+        if (scheme.toLowerCase() !== 'negotiate') {
+            throw new Error(`Expected Negotiate scheme but got "${scheme}"`);
+        }
+        let kerberos;
+        try {
+            kerberos = await __nccwpck_require__.e(/* import() */ 397).then(__nccwpck_require__.t.bind(__nccwpck_require__, 6397, 19));
+        }
+        catch {
+            throw new Error('The "kerberos" package is required for Negotiate proxy authentication. ' +
+                'Install it with: npm install kerberos');
+        }
+        const proxyAuthenticate = response.headers['proxy-authenticate'] || '';
+        const challengeHeader = Array.isArray(proxyAuthenticate)
+            ? proxyAuthenticate[0]
+            : proxyAuthenticate;
+        const serverToken = typeof challengeHeader === 'string' && challengeHeader.includes(' ')
+            ? challengeHeader.split(' ').slice(1).join(' ')
+            : undefined;
+        const client = await kerberos.initializeClient('HTTP@proxy', {
+            mechOID: kerberos.GSS_MECH_OID_SPNEGO,
+        });
+        const token = await client.step(serverToken || '');
+        if (!token) {
+            throw new Error('Kerberos client.step() returned no token');
+        }
+        return {
+            headers: {
+                'Proxy-Authorization': `Negotiate ${token}`,
+            },
+        };
+    };
+}
+//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/https-proxy-agent@9.1.0/node_modules/https-proxy-agent/dist/index.js
+
+
+
+
+
+
+
+
+const dist_debug = src('https-proxy-agent');
+const setServernameFromNonIpHost = (options) => {
+    if (options.servername === undefined &&
+        options.host &&
+        !external_net_.isIP(options.host)) {
+        return {
+            ...options,
+            servername: options.host,
+        };
+    }
+    return options;
+};
+/**
+ * The `HttpsProxyAgent` implements an HTTP Agent subclass that connects to
+ * the specified "HTTP(s) proxy server" in order to proxy HTTPS requests.
+ *
+ * Outgoing HTTP requests are first tunneled through the proxy server using the
+ * `CONNECT` HTTP request method to establish a connection to the proxy server,
+ * and then the proxy server connects to the destination target and issues the
+ * HTTP request from the proxy server.
+ *
+ * `https:` requests have their socket connection upgraded to TLS once
+ * the connection to the proxy server has been established.
+ */
+class HttpsProxyAgent extends Agent {
+    constructor(proxy, opts) {
+        super(opts);
+        this.options = { path: undefined };
+        this.proxy = typeof proxy === 'string' ? new external_url_.URL(proxy) : proxy;
+        this.proxyHeaders = opts?.headers ?? {};
+        dist_debug('Creating new HttpsProxyAgent instance: %o', this.proxy.href);
+        if (opts?.negotiate) {
+            this.onProxyAuth = createNegotiateAuth();
+        }
+        else if (opts?.onProxyAuth) {
+            this.onProxyAuth = opts.onProxyAuth;
+        }
+        // Trim off the brackets from IPv6 addresses
+        const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, '');
+        const port = this.proxy.port
+            ? parseInt(this.proxy.port, 10)
+            : this.proxy.protocol === 'https:'
+                ? 443
+                : 80;
+        this.connectOpts = {
+            // Attempt to negotiate http/1.1 for proxy servers that support http/2
+            ALPNProtocols: ['http/1.1'],
+            ...(opts
+                ? omit(opts, 'headers', 'onProxyAuth', 'negotiate')
+                : null),
+            host,
+            port,
+        };
+    }
+    /**
+     * Called when the node-core HTTP client library is creating a
+     * new HTTP request.
+     */
+    async connect(req, opts) {
+        const { proxy } = this;
+        if (!opts.host) {
+            throw new TypeError('No "host" provided');
+        }
+        // Create a socket connection to the proxy server.
+        let socket;
+        if (proxy.protocol === 'https:') {
+            dist_debug('Creating `tls.Socket`: %o', this.connectOpts);
+            socket = external_tls_.connect(setServernameFromNonIpHost(this.connectOpts));
+        }
+        else {
+            dist_debug('Creating `net.Socket`: %o', this.connectOpts);
+            socket = external_net_.connect(this.connectOpts);
+        }
+        const headers = typeof this.proxyHeaders === 'function'
+            ? this.proxyHeaders()
+            : { ...this.proxyHeaders };
+        const host = external_net_.isIPv6(opts.host) ? `[${opts.host}]` : opts.host;
+        let payload = `CONNECT ${host}:${opts.port} HTTP/1.1\r\n`;
+        // Inject the `Proxy-Authorization` header if necessary.
+        if (proxy.username || proxy.password) {
+            const auth = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
+            headers['Proxy-Authorization'] = `Basic ${Buffer.from(auth).toString('base64')}`;
+        }
+        headers.Host = `${host}:${opts.port}`;
+        if (!headers['Proxy-Connection']) {
+            headers['Proxy-Connection'] = this.keepAlive
+                ? 'Keep-Alive'
+                : 'close';
+        }
+        for (const name of Object.keys(headers)) {
+            payload += `${name}: ${headers[name]}\r\n`;
+        }
+        const proxyResponsePromise = parseProxyResponse(socket);
+        socket.write(`${payload}\r\n`);
+        const { connect, buffered } = await proxyResponsePromise;
+        req.emit('proxyConnect', connect);
+        this.emit('proxyConnect', connect, req);
+        req.emit('proxy', { proxy: this.proxy.href, socket });
+        if (connect.statusCode === 200) {
+            req.once('socket', resume);
+            if (opts.secureEndpoint) {
+                // The proxy is connecting to a TLS server, so upgrade
+                // this socket connection to a TLS connection.
+                dist_debug('Upgrading socket connection to TLS');
+                return external_tls_.connect({
+                    ...omit(setServernameFromNonIpHost(opts), 'host', 'path', 'port'),
+                    socket,
+                });
+            }
+            return socket;
+        }
+        // Handle 407 Proxy Authentication Required
+        if (connect.statusCode === 407 && this.onProxyAuth) {
+            dist_debug('Got 407 response, invoking onProxyAuth callback');
+            socket.destroy();
+            const proxyAuthenticate = connect.headers['proxy-authenticate'] || '';
+            const scheme = Array.isArray(proxyAuthenticate)
+                ? proxyAuthenticate[0].split(/\s/)[0]
+                : proxyAuthenticate.split(/\s/)[0];
+            const authResponse = await this.onProxyAuth({
+                response: connect,
+                scheme,
+            });
+            // Retry with the auth headers
+            return this._connectWithAuth(req, opts, authResponse.headers);
+        }
+        // Some other status code that's not 200... need to re-play the HTTP
+        // header "data" events onto the socket once the HTTP machinery is
+        // attached so that the node core `http` can parse and handle the
+        // error status code.
+        // Close the original socket, and a new "fake" socket is returned
+        // instead, so that the proxy doesn't get the HTTP request
+        // written to it (which may contain `Authorization` headers or other
+        // sensitive data).
+        //
+        // See: https://hackerone.com/reports/541502
+        socket.destroy();
+        const fakeSocket = new external_net_.Socket({ writable: false });
+        fakeSocket.readable = true;
+        // Need to wait for the "socket" event to re-play the "data" events.
+        req.once('socket', (s) => {
+            dist_debug('Replaying proxy buffer for failed request');
+            external_assert_(s.listenerCount('data') > 0);
+            // Replay the "buffered" Buffer onto the fake `socket`, since at
+            // this point the HTTP module machinery has been hooked up for
+            // the user.
+            s.push(buffered);
+            s.push(null);
+        });
+        return fakeSocket;
+    }
+    /**
+     * Retry a CONNECT request with additional auth headers.
+     */
+    async _connectWithAuth(req, opts, authHeaders) {
+        const { proxy } = this;
+        let socket;
+        if (proxy.protocol === 'https:') {
+            socket = external_tls_.connect(setServernameFromNonIpHost(this.connectOpts));
+        }
+        else {
+            socket = external_net_.connect(this.connectOpts);
+        }
+        const headers = typeof this.proxyHeaders === 'function'
+            ? this.proxyHeaders()
+            : { ...this.proxyHeaders };
+        const host = external_net_.isIPv6(opts.host) ? `[${opts.host}]` : opts.host;
+        let payload = `CONNECT ${host}:${opts.port} HTTP/1.1\r\n`;
+        if (proxy.username || proxy.password) {
+            const auth = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
+            headers['Proxy-Authorization'] = `Basic ${Buffer.from(auth).toString('base64')}`;
+        }
+        // Merge auth headers (overrides existing)
+        Object.assign(headers, authHeaders);
+        headers.Host = `${host}:${opts.port}`;
+        if (!headers['Proxy-Connection']) {
+            headers['Proxy-Connection'] = this.keepAlive
+                ? 'Keep-Alive'
+                : 'close';
+        }
+        for (const name of Object.keys(headers)) {
+            payload += `${name}: ${headers[name]}\r\n`;
+        }
+        const proxyResponsePromise = parseProxyResponse(socket);
+        socket.write(`${payload}\r\n`);
+        const { connect } = await proxyResponsePromise;
+        req.emit('proxyConnect', connect);
+        this.emit('proxyConnect', connect, req);
+        if (connect.statusCode === 200) {
+            req.once('socket', resume);
+            if (opts.secureEndpoint) {
+                dist_debug('Upgrading socket connection to TLS');
+                return external_tls_.connect({
+                    ...omit(setServernameFromNonIpHost(opts), 'host', 'path', 'port'),
+                    socket,
+                });
+            }
+            return socket;
+        }
+        // If still not 200, throw
+        socket.destroy();
+        throw new Error(`Proxy authentication failed with status ${connect.statusCode} after retry`);
+    }
+}
+HttpsProxyAgent.protocols = ['http', 'https'];
+function resume(socket) {
+    // Defer the resume so that all 'socket' event handlers have a chance
+    // to attach their listeners (e.g. the HTTP client's 'data' handler)
+    // before data starts flowing. Without this, buffered proxy-response
+    // data can be emitted synchronously before listeners are ready.
+    // See: https://github.com/nicolo-ribaudo/tc39-proposal-await-dictionary/issues/7
+    setImmediate(() => {
+        socket.resume();
+    });
+}
+function omit(obj, ...keys) {
+    const ret = {};
+    let key;
+    for (key in obj) {
+        if (!keys.includes(key)) {
+            ret[key] = obj[key];
+        }
+    }
+    return ret;
+}
+//# sourceMappingURL=index.js.map
+
 /***/ })
 
 /******/ });
@@ -60773,6 +62138,9 @@ function getIDToken(aud) {
 /******/ 	// Return the exports of the module
 /******/ 	return module.exports;
 /******/ }
+/******/ 
+/******/ // expose the modules object (__webpack_modules__)
+/******/ __nccwpck_require__.m = __webpack_modules__;
 /******/ 
 /************************************************************************/
 /******/ /* webpack/runtime/asset-relocator-loader */
@@ -60859,6 +62227,36 @@ function getIDToken(aud) {
 /******/ 	};
 /******/ })();
 /******/ 
+/******/ /* webpack/runtime/create fake namespace object */
+/******/ (() => {
+/******/ 	var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
+/******/ 	var leafPrototypes;
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 16: return value when it's Promise-like
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__nccwpck_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = this(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if(typeof value === 'object' && value) {
+/******/ 			if((mode & 4) && value.__esModule) return value;
+/******/ 			if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 		}
+/******/ 		var ns = Object.create(null);
+/******/ 		__nccwpck_require__.r(ns);
+/******/ 		var def = {};
+/******/ 		leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 		for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 			Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
+/******/ 		}
+/******/ 		def['default'] = () => (value);
+/******/ 		__nccwpck_require__.d(ns, def);
+/******/ 		return ns;
+/******/ 	};
+/******/ })();
+/******/ 
 /******/ /* webpack/runtime/define property getters */
 /******/ (() => {
 /******/ 	// define getter functions for harmony exports
@@ -60868,6 +62266,28 @@ function getIDToken(aud) {
 /******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 			}
 /******/ 		}
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/ensure chunk */
+/******/ (() => {
+/******/ 	__nccwpck_require__.f = {};
+/******/ 	// This file contains only the entry chunk.
+/******/ 	// The chunk loading function for additional chunks
+/******/ 	__nccwpck_require__.e = (chunkId) => {
+/******/ 		return Promise.all(Object.keys(__nccwpck_require__.f).reduce((promises, key) => {
+/******/ 			__nccwpck_require__.f[key](chunkId, promises);
+/******/ 			return promises;
+/******/ 		}, []));
+/******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/get javascript chunk filename */
+/******/ (() => {
+/******/ 	// This function allow to reference async chunks
+/******/ 	__nccwpck_require__.u = (chunkId) => {
+/******/ 		// return url for filenames based on template
+/******/ 		return "" + chunkId + ".index.js";
 /******/ 	};
 /******/ })();
 /******/ 
@@ -60894,6 +62314,69 @@ function getIDToken(aud) {
 /******/ 		if (!module.children) module.children = [];
 /******/ 		return module;
 /******/ 	};
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/import chunk loading */
+/******/ (() => {
+/******/ 	// no baseURI
+/******/ 	
+/******/ 	// object to store loaded and loading chunks
+/******/ 	// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 	// [resolve, Promise] = chunk loading, 0 = chunk loaded
+/******/ 	var installedChunks = {
+/******/ 		792: 0
+/******/ 	};
+/******/ 	
+/******/ 	var installChunk = (data) => {
+/******/ 		var {ids, modules, runtime} = data;
+/******/ 		// add "modules" to the modules object,
+/******/ 		// then flag all "ids" as loaded and fire callback
+/******/ 		var moduleId, chunkId, i = 0;
+/******/ 		for(moduleId in modules) {
+/******/ 			if(__nccwpck_require__.o(modules, moduleId)) {
+/******/ 				__nccwpck_require__.m[moduleId] = modules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if(runtime) runtime(__nccwpck_require__);
+/******/ 		for(;i < ids.length; i++) {
+/******/ 			chunkId = ids[i];
+/******/ 			if(__nccwpck_require__.o(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 				installedChunks[chunkId][0]();
+/******/ 			}
+/******/ 			installedChunks[ids[i]] = 0;
+/******/ 		}
+/******/ 	
+/******/ 	}
+/******/ 	
+/******/ 	__nccwpck_require__.f.j = (chunkId, promises) => {
+/******/ 			// import() chunk loading for javascript
+/******/ 			var installedChunkData = __nccwpck_require__.o(installedChunks, chunkId) ? installedChunks[chunkId] : undefined;
+/******/ 			if(installedChunkData !== 0) { // 0 means "already installed".
+/******/ 	
+/******/ 				// a Promise means "currently loading".
+/******/ 				if(installedChunkData) {
+/******/ 					promises.push(installedChunkData[1]);
+/******/ 				} else {
+/******/ 					if(true) { // all chunks have JS
+/******/ 						// setup Promise in chunk cache
+/******/ 						var promise = import("./" + __nccwpck_require__.u(chunkId)).then(installChunk, (e) => {
+/******/ 							if(installedChunks[chunkId] !== 0) installedChunks[chunkId] = undefined;
+/******/ 							throw e;
+/******/ 						});
+/******/ 						var promise = Promise.race([promise, new Promise((resolve) => (installedChunkData = installedChunks[chunkId] = [resolve]))])
+/******/ 						promises.push(installedChunkData[1] = promise);
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 	};
+/******/ 	
+/******/ 	// no prefetching
+/******/ 	
+/******/ 	// no preloaded
+/******/ 	
+/******/ 	// no external install chunk
+/******/ 	
+/******/ 	// no on chunks loaded
 /******/ })();
 /******/ 
 /************************************************************************/
