@@ -30,7 +30,7 @@
     "d3-cloud": "^1.2.9",
     "linkedom": "^0.18.13",
     "randomcolor": "^0.6.2",
-    "skia-canvas": "^4.0.0"
+    "skia-canvas": "^3.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -46,5 +46,5 @@
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.71.1"
   },
-  "packageManager": "pnpm@12.8.1"
+  "packageManager": "pnpm@12.11.2"
 }
