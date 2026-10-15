@@ -185,8 +185,8 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2
       skia-canvas:
-        specifier: ^3.0.8
-        version: 3.0.8(debug@4.4.3)
+        specifier: ^4.0.0
+        version: 4.0.0(debug@4.4.3)
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -334,6 +334,50 @@ packages:
 
   '@octokit/types@18.0.0':
     resolution: {integrity: sha512-l6bAF43PNxkJp6g+W4PjoUSSkxHomXw2nOum5CTftJz1NlV3vu93NImgOYtLf6CbBUb5j+fiuzW0PPQ5JTSvZA==}
+
+  '@skia-canvas/darwin-arm64@4.0.0':
+    resolution: {integrity: sha512-0THbyAdihsVc+C8dB44BWDUxYPs8g6XY19Az77Q6F3ExUpod+QpJAkKdZ8fHB8PGtj74WzsjFt+5Ns/R+RD83A==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@skia-canvas/darwin-x64@4.0.0':
+    resolution: {integrity: sha512-cZRlVDjUVlSegG63kyTY0dMG95RUTw0ZwgkUMnMoLzrp73F2T6KcX3QFAmp2CRW/405i04Mo0PLTK5Y24gLMUA==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@skia-canvas/linux-arm64-glibc@4.0.0':
+    resolution: {integrity: sha512-/wJRyiIZjFSPtHf/Zwo7chEM5o2P12mS3+N2h8uckNstSlT3P/CWlOi8HjO9OBSypbLhwz4gJfWW7eS+lY6lyw==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@skia-canvas/linux-arm64-musl@4.0.0':
+    resolution: {integrity: sha512-rbFMxYZ1wgZjF2l+Tx5ve+oTc3ZLHyDyAQRP6dKfbxIUHGUi8zgdpV754jM+VvkuqW9ljzc2sOYe3izrpfYByQ==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@skia-canvas/linux-x64-glibc@4.0.0':
+    resolution: {integrity: sha512-rpgx6WX6OrNFuBNz1tjOnxbNG6il5wfe72HhpA6fOo1ZBWPgzmHEmeAXvSMvhbnsJEdcfBV9akThufzitQ4sgA==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@skia-canvas/linux-x64-musl@4.0.0':
+    resolution: {integrity: sha512-xOh7dt9Z5pAMVc6KNkJEu906usaa5HAUEQ8CwEQHWtiZQNvQx6Ma71+I0c4mEWFEJaA1mwK5xUoGSzONY+wsmw==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@skia-canvas/win32-arm64@4.0.0':
+    resolution: {integrity: sha512-5+yXHAQLp0jacna/zhLKMfesDfKcZBXoKxcu82adLYI6vu5hj5P+iUI2416rfRdeUzX/E9n+mIfKTylEHgIdMA==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@skia-canvas/win32-x64@4.0.0':
+    resolution: {integrity: sha512-qLmlrca+VRR+JZAmN0TYCmztVabi3YWKAbxXD9HLHcUP5HKOk2wh+y/9nMqJsJLQyQqItBeNjnLHLfsDS65RnQ==}
+    cpu: [x64]
+    os: [win32]
 
   '@types/d3-array@3.2.2':
     resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
@@ -649,9 +693,9 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  agent-base@7.1.4:
-    resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
-    engines: {node: '>= 14'}
+  agent-base@9.0.0:
+    resolution: {integrity: sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==}
+    engines: {node: '>= 20'}
 
   ajv@6.15.0:
     resolution: {integrity: sha512-fgFx7Hfoq60ytK2c7DhnF8jIvzYgOMxfugjLOSMHjLIPgenqa7S7oaagATUq99mV6IYvN2tRmC0wnTYX6iPbMw==}
@@ -1002,9 +1046,9 @@ packages:
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
 
-  https-proxy-agent@7.0.6:
-    resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
-    engines: {node: '>= 14'}
+  https-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
+    engines: {node: '>= 20'}
 
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
@@ -1092,9 +1136,6 @@ packages:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
 
-  parenthesis@3.1.8:
-    resolution: {integrity: sha512-KF/U8tk54BgQewkJPvB4s/US3VQY68BRDpH638+7O/n58TpnwiwnOtGIOsT2/i+M78s61BBpeC83STB88d8sqw==}
-
   path-exists@4.0.0:
     resolution: {integrity: sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==}
     engines: {node: '>=8'}
@@ -1110,6 +1151,15 @@ packages:
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
+
+  proxy-agent-negotiate@1.1.0:
+    resolution: {integrity: sha512-N8IBcM3UgCVzz2L2Lqv8DVntDnnC8/hiV4nEDUPkqq72TPUgYWjQc+bdZlBPZK9LzPAvOY//gAt0S0DApoOXWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      kerberos: ^2.0.0
+    peerDependenciesMeta:
+      kerberos:
+        optional: true
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -1144,11 +1194,9 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  skia-canvas@3.0.8:
-    resolution: {integrity: sha512-FSYKxp8Ng2vOeeOBiyPhnn6ui6FirPJXMyjk4PKl8N/OWzVrkMawUgY9zubIWHMdYtyWFn0gfX3QlRwg6HBmdg==}
-
-  string-split-by@1.0.0:
-    resolution: {integrity: sha512-KaJKY+hfpzNyet/emP81PJA9hTVSfxNLS9SFTWxdCnnW1/zOOwiV248+EfoX7IQFcBaOp4G5YE6xTJMF+pLg6A==}
+  skia-canvas@4.0.0:
+    resolution: {integrity: sha512-Y4K2xKy1nxj6fhT/ZTHQ+KJnSqV/oOXqbgjML8ie2Jj8eJ3satsiz9y/L8OWYclpNhEAvBSOIurdZ9hDs6fsGA==}
+    engines: {node: '>=18'}
 
   tinyglobby@0.2.17:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
@@ -1331,6 +1379,30 @@ snapshots:
   '@octokit/types@18.0.0':
     dependencies:
       '@octokit/openapi-types': 29.0.1
+
+  '@skia-canvas/darwin-arm64@4.0.0':
+    optional: true
+
+  '@skia-canvas/darwin-x64@4.0.0':
+    optional: true
+
+  '@skia-canvas/linux-arm64-glibc@4.0.0':
+    optional: true
+
+  '@skia-canvas/linux-arm64-musl@4.0.0':
+    optional: true
+
+  '@skia-canvas/linux-x64-glibc@4.0.0':
+    optional: true
+
+  '@skia-canvas/linux-x64-musl@4.0.0':
+    optional: true
+
+  '@skia-canvas/win32-arm64@4.0.0':
+    optional: true
+
+  '@skia-canvas/win32-x64@4.0.0':
+    optional: true
 
   '@types/d3-array@3.2.2': {}
 
@@ -1632,7 +1704,7 @@ snapshots:
 
   acorn@8.18.0: {}
 
-  agent-base@7.1.4: {}
+  agent-base@9.0.0: {}
 
   ajv@6.15.0:
     dependencies:
@@ -2013,11 +2085,13 @@ snapshots:
       domutils: 3.2.2
       entities: 7.0.1
 
-  https-proxy-agent@7.0.6:
+  https-proxy-agent@9.1.0:
     dependencies:
-      agent-base: 7.1.4
+      agent-base: 9.0.0
       debug: 4.4.3
+      proxy-agent-negotiate: 1.1.0
     transitivePeerDependencies:
+      - kerberos
       - supports-color
 
   iconv-lite@0.6.3:
@@ -2096,8 +2170,6 @@ snapshots:
     dependencies:
       p-limit: 3.1.0
 
-  parenthesis@3.1.8: {}
-
   path-exists@4.0.0: {}
 
   path-key@3.1.1: {}
@@ -2105,6 +2177,8 @@ snapshots:
   picomatch@4.0.7: {}
 
   prelude-ls@1.2.1: {}
+
+  proxy-agent-negotiate@1.1.0: {}
 
   punycode@2.3.1: {}
 
@@ -2128,19 +2202,24 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  skia-canvas@3.0.8(debug@4.4.3):
+  skia-canvas@4.0.0(debug@4.4.3):
     dependencies:
       detect-libc: 2.1.2
       follow-redirects: 1.16.1(debug@4.4.3)
-      https-proxy-agent: 7.0.6
-      string-split-by: 1.0.0
+      https-proxy-agent: 9.1.0
+    optionalDependencies:
+      '@skia-canvas/darwin-arm64': 4.0.0
+      '@skia-canvas/darwin-x64': 4.0.0
+      '@skia-canvas/linux-arm64-glibc': 4.0.0
+      '@skia-canvas/linux-arm64-musl': 4.0.0
+      '@skia-canvas/linux-x64-glibc': 4.0.0
+      '@skia-canvas/linux-x64-musl': 4.0.0
+      '@skia-canvas/win32-arm64': 4.0.0
+      '@skia-canvas/win32-x64': 4.0.0
     transitivePeerDependencies:
       - debug
+      - kerberos
       - supports-color
-
-  string-split-by@1.0.0:
-    dependencies:
-      parenthesis: 3.1.8
 
   tinyglobby@0.2.17:
     dependencies:
