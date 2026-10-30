@@ -1,14 +1,14 @@
 import './sourcemap-register.cjs';import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 /******/ var __webpack_modules__ = ({
 
-/***/ 6811:
+/***/ 7372:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(__nccwpck_require__.ab + "skia.linux-x64-gnu.node")
 
 /***/ }),
 
-/***/ 443:
+/***/ 3704:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const { inspect } = __nccwpck_require__(9023)
@@ -1021,7 +1021,7 @@ module.exports = { DOMPoint, DOMMatrix, DOMRect }
 
 /***/ }),
 
-/***/ 1983:
+/***/ 6586:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const { platform, homedir } = __nccwpck_require__(857)
@@ -1052,11 +1052,11 @@ const {
   _argumentCounts,
   _imageDataConstructor,
   _toNumber: toNumber,
-} = __nccwpck_require__(212)
+} = __nccwpck_require__(5935)
 
-const { DOMPoint, DOMMatrix, DOMRect } = __nccwpck_require__(443)
+const { DOMPoint, DOMMatrix, DOMRect } = __nccwpck_require__(3704)
 
-const loadImage = __nccwpck_require__(8275)
+const loadImage = __nccwpck_require__(1580)
 
 // Add Symbol.dispose support for GifEncoder (ECMAScript 2024 Explicit Resource Management)
 if (GifEncoder && typeof Symbol.dispose !== 'undefined') {
@@ -1129,11 +1129,26 @@ if (!('has' in GlobalFonts)) {
   })
 }
 
-const _toBlob = CanvasElement.prototype.toBlob
-const _convertToBlob = CanvasElement.prototype.convertToBlob
+// Re-evaluating this module (Jest resets its module registry per test
+// file; the .node binding and its prototypes stay loaded) must wrap the
+// native methods again, not the previous wrappers: their argument padding
+// would corrupt the argument count the native methods read.
+const NATIVE_METHODS = Symbol.for('@napi-rs/canvas:native-methods')
+function nativeMethods(proto) {
+  let stash = proto[NATIVE_METHODS]
+  if (stash === undefined) {
+    stash = {}
+    Object.defineProperty(proto, NATIVE_METHODS, { value: stash })
+  }
+  return stash
+}
+
+const canvasNative = nativeMethods(CanvasElement.prototype)
+const _toBlob = (canvasNative.toBlob ??= CanvasElement.prototype.toBlob)
+const _convertToBlob = (canvasNative.convertToBlob ??= CanvasElement.prototype.convertToBlob)
 // A native method of CanvasElement for the receiver check: with no arguments
 // it has no side effects.
-const canvasBrand = CanvasElement.prototype.getContext
+const canvasBrand = (canvasNative.getContext ??= CanvasElement.prototype.getContext)
 if ('Blob' in globalThis) {
   // toBlob(callback, type, quality), as Chrome: the receiver, the argument
   // count and the callback are checked first, then the native method converts
@@ -1181,7 +1196,8 @@ if ('Blob' in globalThis) {
   }
 }
 
-const _getTransform = CanvasRenderingContext2D.prototype.getTransform
+const ctxNative = nativeMethods(CanvasRenderingContext2D.prototype)
+const _getTransform = (ctxNative.getTransform ??= CanvasRenderingContext2D.prototype.getTransform)
 
 CanvasRenderingContext2D.prototype.getTransform = function getTransform() {
   const transform = _getTransform.apply(this, arguments)
@@ -1232,7 +1248,8 @@ function bindingTypeError(brand, self, method, iface, message) {
 // napi pads missing arguments with undefined, so the native method cannot
 // tell f(1) from f(1, undefined); an explicit undefined counts in Chrome.
 function requireArguments(proto, brand, iface, method, required) {
-  const native = proto[method]
+  const stash = nativeMethods(proto)
+  const native = (stash[method] ??= proto[method])
   const wrapper = {
     [method]() {
       if (arguments.length < required) {
@@ -1282,7 +1299,8 @@ for (const [Class, iface] of [
   [CanvasElement, 'HTMLCanvasElement'],
   [SVGCanvas, 'SVGCanvas'],
 ]) {
-  requireArguments(Class.prototype, Class.prototype.getContext, iface, 'getContext', 1)
+  const stash = nativeMethods(Class.prototype)
+  requireArguments(Class.prototype, (stash.getContext ??= Class.prototype.getContext), iface, 'getContext', 1)
 }
 
 const pathBrand = Path2D.prototype.getFillType
@@ -1338,7 +1356,7 @@ function argumentCount(count, last) {
 // These wrappers and drawImage's read only the arguments the call has: past
 // arguments.length, arguments[i] would read Object.prototype[i], which
 // Chrome never reads.
-const _fill = CanvasRenderingContext2D.prototype.fill
+const _fill = (ctxNative.fill ??= CanvasRenderingContext2D.prototype.fill)
 CanvasRenderingContext2D.prototype.fill = function fill() {
   const count = Math.min(arguments.length, 2)
   return _fill.call(
@@ -1349,7 +1367,7 @@ CanvasRenderingContext2D.prototype.fill = function fill() {
   )
 }
 
-const _clip = CanvasRenderingContext2D.prototype.clip
+const _clip = (ctxNative.clip ??= CanvasRenderingContext2D.prototype.clip)
 CanvasRenderingContext2D.prototype.clip = function clip() {
   const count = Math.min(arguments.length, 2)
   return _clip.call(
@@ -1360,7 +1378,7 @@ CanvasRenderingContext2D.prototype.clip = function clip() {
   )
 }
 
-const _stroke = CanvasRenderingContext2D.prototype.stroke
+const _stroke = (ctxNative.stroke ??= CanvasRenderingContext2D.prototype.stroke)
 CanvasRenderingContext2D.prototype.stroke = function stroke() {
   if (arguments.length === 0) {
     return _stroke.call(this, undefined, undefined)
@@ -1369,7 +1387,7 @@ CanvasRenderingContext2D.prototype.stroke = function stroke() {
   return _stroke.call(this, path, argumentCount(1, path))
 }
 
-const _isPointInPath = CanvasRenderingContext2D.prototype.isPointInPath
+const _isPointInPath = (ctxNative.isPointInPath ??= CanvasRenderingContext2D.prototype.isPointInPath)
 CanvasRenderingContext2D.prototype.isPointInPath = function isPointInPath() {
   if (arguments.length < 2) {
     argumentCountError(ctxBrand, this, 'isPointInPath', 'CanvasRenderingContext2D', 2, arguments.length)
@@ -1388,7 +1406,7 @@ CanvasRenderingContext2D.prototype.isPointInPath = function isPointInPath() {
 }
 Object.defineProperty(CanvasRenderingContext2D.prototype.isPointInPath, 'length', { value: 2 })
 
-const _isPointInStroke = CanvasRenderingContext2D.prototype.isPointInStroke
+const _isPointInStroke = (ctxNative.isPointInStroke ??= CanvasRenderingContext2D.prototype.isPointInStroke)
 CanvasRenderingContext2D.prototype.isPointInStroke = function isPointInStroke() {
   if (arguments.length < 2) {
     argumentCountError(ctxBrand, this, 'isPointInStroke', 'CanvasRenderingContext2D', 2, arguments.length)
@@ -1524,7 +1542,7 @@ function matrix2DFromInit(init, prefix, full) {
 // DOMMatrixInit is read above; the native method takes six numbers. It reads
 // a first argument that is not a number as a DOMMatrixInit, the form a raw
 // js-binding call may use, so ToNumber runs here for such an `a`.
-const _setTransform = CanvasRenderingContext2D.prototype.setTransform
+const _setTransform = (ctxNative.setTransform ??= CanvasRenderingContext2D.prototype.setTransform)
 // A cheap native method: on another receiver it throws 'Illegal invocation',
 // which Chrome checks before it converts any argument.
 const ctxReceiver = CanvasRenderingContext2D.prototype.isContextLost
@@ -1552,8 +1570,9 @@ CanvasRenderingContext2D.prototype.setTransform = function setTransform() {
 // transform (undefined or null is `{}`), a native method that takes only the
 // path adds it as it is; Chrome's Path2D has no such method, so it comes off
 // the prototype.
-const _addPath = Path2D.prototype.addPath
-const _addPathWithoutTransform = Path2D.prototype._addPathWithoutTransform
+const pathNative = nativeMethods(Path2D.prototype)
+const _addPath = (pathNative.addPath ??= Path2D.prototype.addPath)
+const _addPathWithoutTransform = (pathNative._addPathWithoutTransform ??= Path2D.prototype._addPathWithoutTransform)
 delete Path2D.prototype._addPathWithoutTransform
 const ADD_PATH = "Failed to execute 'addPath' on 'Path2D': "
 Path2D.prototype.addPath = function addPath() {
@@ -1580,7 +1599,7 @@ Object.defineProperty(Path2D.prototype.addPath, 'length', { value: 1 })
 // createImageData(): WebIDL picks the overload from the argument count, and an
 // explicit undefined counts: createImageData(imagedata, undefined) is the
 // (sw, sh) form.
-const _createImageData = CanvasRenderingContext2D.prototype.createImageData
+const _createImageData = (ctxNative.createImageData ??= CanvasRenderingContext2D.prototype.createImageData)
 
 CanvasRenderingContext2D.prototype.createImageData = function createImageData() {
   const count = arguments.length
@@ -1600,7 +1619,7 @@ Object.defineProperty(CanvasRenderingContext2D.prototype.createImageData, 'lengt
 // putImageData(imagedata, dx, dy) or (imagedata, dx, dy, dirtyX, dirtyY,
 // dirtyWidth, dirtyHeight): as in Chrome, it needs 3 arguments; the native
 // method picks the overload from the argument count (3 or 7).
-const _putImageData = CanvasRenderingContext2D.prototype.putImageData
+const _putImageData = (ctxNative.putImageData ??= CanvasRenderingContext2D.prototype.putImageData)
 
 CanvasRenderingContext2D.prototype.putImageData = function putImageData() {
   const count = arguments.length
@@ -1627,7 +1646,7 @@ Object.defineProperty(CanvasRenderingContext2D.prototype.putImageData, 'length',
 // required, and the image is converted before the repetition, a
 // [LegacyNullToEmptyString] DOMString (canvas_2d_recorder_context.idl), so
 // null is '' and undefined is 'undefined'.
-const _createPattern = CanvasRenderingContext2D.prototype.createPattern
+const _createPattern = (ctxNative.createPattern ??= CanvasRenderingContext2D.prototype.createPattern)
 
 CanvasRenderingContext2D.prototype.createPattern = function createPattern(image, repetition) {
   return _createPattern.call(this, image, repetition, ARGUMENT_COUNTS[Math.min(arguments.length, 4)])
@@ -1636,14 +1655,15 @@ CanvasRenderingContext2D.prototype.createPattern = function createPattern(image,
 // addColorStop(offset, color): both arguments are required. CanvasGradient
 // has no other native method to check the receiver first, so the native
 // method itself reads the real count from the marker after them.
-const _addColorStop = CanvasGradient.prototype.addColorStop
+const gradientNative = nativeMethods(CanvasGradient.prototype)
+const _addColorStop = (gradientNative.addColorStop ??= CanvasGradient.prototype.addColorStop)
 CanvasGradient.prototype.addColorStop = function addColorStop(offset, color) {
   return _addColorStop.call(this, offset, color, ARGUMENT_COUNTS[Math.min(arguments.length, 2)])
 }
 
 // Workaround for webpack bundling issue with drawImage
 // Store the original drawImage method
-const _drawImage = CanvasRenderingContext2D.prototype.drawImage
+const _drawImage = (ctxNative.drawImage ??= CanvasRenderingContext2D.prototype.drawImage)
 
 // Override drawImage to ensure proper type recognition in bundled environments.
 // As in Chrome, it needs 3 arguments; the native method picks the overload
@@ -1757,7 +1777,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 212:
+/***/ 5935:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // prettier-ignore
@@ -1990,7 +2010,7 @@ function requireNative() {
           loadErrors.push(e)
         }
         try {
-          return __nccwpck_require__(6811)
+          return __nccwpck_require__(7372)
         } catch (e) {
           loadErrors.push(e)
         }
@@ -2228,14 +2248,14 @@ module.exports.GifDisposal = nativeBinding.GifDisposal
 
 /***/ }),
 
-/***/ 8275:
+/***/ 1580:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const fs = __nccwpck_require__(9896)
 const { Readable } = __nccwpck_require__(2203)
 const { URL } = __nccwpck_require__(7016)
 
-const { Image } = __nccwpck_require__(212)
+const { Image } = __nccwpck_require__(5935)
 
 let http, https
 
@@ -35739,8 +35759,8 @@ __nccwpck_require__.d(domutils_dist_namespaceObject, {
 // EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.9/node_modules/d3-cloud/build/d3.layout.cloud.js
 var d3_layout_cloud = __nccwpck_require__(6794);
 var d3_layout_cloud_default = /*#__PURE__*/__nccwpck_require__.n(d3_layout_cloud);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@napi-rs+canvas@1.0.12/node_modules/@napi-rs/canvas/index.js
-var canvas = __nccwpck_require__(1983);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@napi-rs+canvas@1.0.13/node_modules/@napi-rs/canvas/index.js
+var canvas = __nccwpck_require__(6586);
 ;// CONCATENATED MODULE: ./lib/build-cloud.ts
 
 
