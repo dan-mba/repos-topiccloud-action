@@ -1,13 +1,10 @@
 import * as d3 from "d3";
-import {Word} from "d3-cloud";
 import randomColor from "randomcolor";
 import * as core from "@actions/core";
+import CloudLayout, { PlacedSprite } from "d3-cloud";
 
-interface Layout {
-  size(): [number, number]
-}
 
-function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
+function drawCloud(words: Array<PlacedSprite>, layout: CloudLayout, document: Document) {
   const colors = ["red", "yellow", "green", "blue", "purple", "pink", "monochrome"];
   const luminosities = ["bright", "light", "dark" ];
 
@@ -16,6 +13,7 @@ function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
   let luminosity = core.getInput("lumosity") || "dark";
   if (!luminosities.includes(luminosity)) luminosity = "dark"  
 
+  console.log(words)
   try {
     const body = d3.select(document.body);
     body.append("svg")
@@ -34,7 +32,7 @@ function drawCloud(words: Array<Word>, layout: Layout, document: Document) {
           .style("fill", () => randomColor({hue: color, luminosity: luminosity}))
           .attr("text-anchor", "middle")
           .attr("opacity","0.0")
-          .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
+          .attr("transform", d => "translate(" + [d.x, d.y] + ") rotate(" + d.rotate + ")")
           .text(d => {return d.text!})
           .append("animate")
             .attr("attributeName","opacity")
