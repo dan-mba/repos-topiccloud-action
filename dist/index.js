@@ -1,7 +1,7 @@
 import './sourcemap-register.cjs';import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 /******/ var __webpack_modules__ = ({
 
-/***/ 7372:
+/***/ 353:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(__nccwpck_require__.ab + "skia.linux-x64-gnu.node")
@@ -7360,7 +7360,7 @@ exports.regexPatterns = regexPatterns;
 
 /***/ }),
 
-/***/ 3704:
+/***/ 6345:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const { inspect } = __nccwpck_require__(9023)
@@ -8373,7 +8373,7 @@ module.exports = { DOMPoint, DOMMatrix, DOMRect }
 
 /***/ }),
 
-/***/ 6586:
+/***/ 3673:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const { platform, homedir } = __nccwpck_require__(857)
@@ -8404,11 +8404,13 @@ const {
   _argumentCounts,
   _imageDataConstructor,
   _toNumber: toNumber,
-} = __nccwpck_require__(5935)
+  setTextRenderer,
+  getTextRenderer,
+} = __nccwpck_require__(7166)
 
-const { DOMPoint, DOMMatrix, DOMRect } = __nccwpck_require__(3704)
+const { DOMPoint, DOMMatrix, DOMRect } = __nccwpck_require__(6345)
 
-const loadImage = __nccwpck_require__(1580)
+const loadImage = __nccwpck_require__(5085)
 
 // Add Symbol.dispose support for GifEncoder (ECMAScript 2024 Explicit Resource Management)
 if (GifEncoder && typeof Symbol.dispose !== 'undefined') {
@@ -9080,24 +9082,24 @@ class Canvas {
 }
 
 if (!process.env.DISABLE_SYSTEM_FONTS_LOAD) {
-  // macOS: CoreText's installed fonts, user fonts included, listed at the
-  // first font lookup.
-  GlobalFonts.enableSystemFonts()
-  const platformName = platform()
+  // Installed fonts and the per-user font folders: FreeType by default;
+  // CoreText's on macOS after setTextRenderer('system'). On macOS that is
+  // /Library/Fonts (all users) and ~/Library/Fonts, after
+  // /System/Library/Fonts, as CoreText lists them.
   const homedirPath = homedir()
-  switch (platformName) {
-    case 'win32':
-      GlobalFonts.loadFontsFromDir(join(homedirPath, 'AppData', 'Local', 'Microsoft', 'Windows', 'Fonts'))
-      break
-    case 'linux':
-      GlobalFonts.loadFontsFromDir(join('usr', 'local', 'share', 'fonts'))
-      GlobalFonts.loadFontsFromDir(join(homedirPath, '.fonts'))
-      break
-  }
+  const userFontDirs =
+    {
+      win32: [join(homedirPath, 'AppData', 'Local', 'Microsoft', 'Windows', 'Fonts')],
+      darwin: ['/Library/Fonts', join(homedirPath, 'Library', 'Fonts')],
+      linux: [join('usr', 'local', 'share', 'fonts'), join(homedirPath, '.fonts')],
+    }[platform()] ?? []
+  GlobalFonts.enableSystemFonts(userFontDirs)
 }
 
 module.exports = {
   clearAllCache,
+  setTextRenderer,
+  getTextRenderer,
   Canvas,
   createCanvas,
   Path2D,
@@ -9129,7 +9131,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 5935:
+/***/ 7166:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // prettier-ignore
@@ -9362,7 +9364,7 @@ function requireNative() {
           loadErrors.push(e)
         }
         try {
-          return __nccwpck_require__(7372)
+          return __nccwpck_require__(353)
         } catch (e) {
           loadErrors.push(e)
         }
@@ -9589,6 +9591,8 @@ module.exports.SVGCanvas = nativeBinding.SVGCanvas
 module.exports.ChromaSubsampling = nativeBinding.ChromaSubsampling
 module.exports.clearAllCache = nativeBinding.clearAllCache
 module.exports.convertSVGTextToPath = nativeBinding.convertSVGTextToPath
+module.exports.setTextRenderer = nativeBinding.setTextRenderer
+module.exports.getTextRenderer = nativeBinding.getTextRenderer
 module.exports.FillType = nativeBinding.FillType
 module.exports.PathOp = nativeBinding.PathOp
 module.exports.StrokeCap = nativeBinding.StrokeCap
@@ -9600,14 +9604,14 @@ module.exports.GifDisposal = nativeBinding.GifDisposal
 
 /***/ }),
 
-/***/ 1580:
+/***/ 5085:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const fs = __nccwpck_require__(9896)
 const { Readable } = __nccwpck_require__(2203)
 const { URL } = __nccwpck_require__(7016)
 
-const { Image } = __nccwpck_require__(5935)
+const { Image } = __nccwpck_require__(7166)
 
 let http, https
 
@@ -40896,8 +40900,8 @@ __nccwpck_require__.d(domutils_dist_namespaceObject, {
 // EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.9/node_modules/d3-cloud/build/d3.layout.cloud.js
 var d3_layout_cloud = __nccwpck_require__(6794);
 var d3_layout_cloud_default = /*#__PURE__*/__nccwpck_require__.n(d3_layout_cloud);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@napi-rs+canvas@1.0.13/node_modules/@napi-rs/canvas/index.js
-var canvas = __nccwpck_require__(6586);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@napi-rs+canvas@1.1.0/node_modules/@napi-rs/canvas/index.js
+var canvas = __nccwpck_require__(3673);
 ;// CONCATENATED MODULE: ./lib/build-cloud.ts
 
 
