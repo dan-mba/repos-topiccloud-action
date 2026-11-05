@@ -182,8 +182,8 @@ importers:
         specifier: ^1.2.9
         version: 1.2.9
       linkedom:
-        specifier: ^0.18.14
-        version: 0.18.14
+        specifier: ^0.18.15
+        version: 0.18.15
       randomcolor:
         specifier: ^0.6.2
         version: 0.6.2
@@ -226,9 +226,6 @@ importers:
         version: 8.72.1(@typescript/typescript6@6.0.2)(eslint@10.13.0)
 
 packages:
-
-  '@acemir/cssom@0.9.32':
-    resolution: {integrity: sha512-OijrAUu7rrJhSIoHNg6LMPS5e344nwUHA+1EFYYjrh64D+GmytUsfBQjci45TjT+rd5Spsp8B5xsZDT+TgyXXQ==}
 
   '@actions/core@3.0.1':
     resolution: {integrity: sha512-a6d/Nwahm9fliVGRhdhofo40HjHQasUPusmc7vBfyky+7Z+P2A1J68zyFVaNcEclc/Se+eO595oAr5nwEIoIUA==}
@@ -765,6 +762,10 @@ packages:
     resolution: {integrity: sha512-DH0Bqq3DNp5tdOReuNyAA+Ev4Y2GS5FMbZpeTLP6C4CDi0h5nL0BmUPChXw3o/qbHLDWHl49sbNqQVY7bMSDdw==}
     engines: {node: '>=20.19.0'}
 
+  cssomnom@0.1.11:
+    resolution: {integrity: sha512-P4RkO1Sq2Ual77xypEmAc4MkM5k2Ha4UwtBPCOpJmXculGCYPgzsU/xnOCy084esZaPePgGkkJg4Il/HE7GS5A==}
+    engines: {node: '>=20.0.0'}
+
   d3-array@3.2.4:
     resolution: {integrity: sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg==}
     engines: {node: '>=12'}
@@ -1174,8 +1175,8 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
-  linkedom@0.18.14:
-    resolution: {integrity: sha512-BRUnkOm4YR5vo+qI3j0EbungB0vZPSCue5AdnTQRaxAGSbsOZiBFRO0rh4zlo8qXUhli8pxvnpEXDklMnlq2Rg==}
+  linkedom@0.18.15:
+    resolution: {integrity: sha512-o0w7eD/SvoCao+pUi6dzocCLuMR11g4Tv/et0W2OUzwWmUcewntSzyl+Ua/K+0yKym0Y/Mav3nFAaI5Av5jvZg==}
     engines: {node: '>=16'}
     peerDependencies:
       canvas: '>= 2'
@@ -1327,8 +1328,6 @@ packages:
     engines: {node: '>=10'}
 
 snapshots:
-
-  '@acemir/cssom@0.9.32': {}
 
   '@actions/core@3.0.1':
     dependencies:
@@ -1836,6 +1835,8 @@ snapshots:
 
   css-what@8.0.0: {}
 
+  cssomnom@0.1.11: {}
+
   d3-array@3.2.4:
     dependencies:
       internmap: 2.0.3
@@ -2260,10 +2261,10 @@ snapshots:
       prelude-ls: 1.2.1
       type-check: 0.4.0
 
-  linkedom@0.18.14:
+  linkedom@0.18.15:
     dependencies:
-      '@acemir/cssom': 0.9.32
       css-select: 7.0.0
+      cssomnom: 0.1.11
       html-escaper: 3.0.3
       htmlparser2: 10.1.0
       uhyphen: 0.2.0
