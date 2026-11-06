@@ -13,7 +13,6 @@ function drawCloud(words: Array<PlacedSprite>, layout: CloudLayout, document: Do
   let luminosity = core.getInput("lumosity") || "dark";
   if (!luminosities.includes(luminosity)) luminosity = "dark"  
 
-  console.log(words)
   try {
     const body = d3.select(document.body);
     body.append("svg")

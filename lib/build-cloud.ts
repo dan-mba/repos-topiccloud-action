@@ -1,5 +1,5 @@
 import CloudLayout, {PlacedSprite} from "d3-cloud";
-import {createCanvas} from "@napi-rs/canvas";
+import {createCanvas} from "canvas";
 import {Word} from "./word-cloud.js";
 
 // Generator function that will flip between returning 1 and 0
@@ -21,7 +21,7 @@ function buildCloud(words: Array<Word>, width: number, height: number) {
     .canvas(() => createCanvas(1, 1))
     .size([width , height])
     .overflow(false)
-    .strategy("rectangular")
+    .strategy("archimedean")
   
   const prepared = words.map((datum, index) => ({
     datum,
@@ -38,7 +38,7 @@ function buildCloud(words: Array<Word>, width: number, height: number) {
       font: "Verdana",
       size: word.size,
       rotate: rotate,
-      padding: 5
+      padding: 3
     });
     if (!sprite) continue;
   
