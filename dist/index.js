@@ -1,57 +1,115 @@
 import './sourcemap-register.cjs';import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 /******/ var __webpack_modules__ = ({
 
-/***/ 353:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 8994:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(__nccwpck_require__.ab + "skia.linux-x64-gnu.node")
+var __webpack_unused_export__;
+const Canvas = __nccwpck_require__(7392)
+const Image = __nccwpck_require__(123)
+const CanvasRenderingContext2D = __nccwpck_require__(127)
+const CanvasPattern = __nccwpck_require__(9028)
+const packageJson = __nccwpck_require__(3583)
+const bindings = __nccwpck_require__(8914)
+const PNGStream = __nccwpck_require__(3685)
+const PDFStream = __nccwpck_require__(6084)
+const JPEGStream = __nccwpck_require__(2534)
+const { DOMPoint, DOMMatrix } = __nccwpck_require__(1907)
+
+bindings.setDOMMatrix(DOMMatrix)
+
+function createCanvas (width, height, type) {
+  return new Canvas(width, height, type)
+}
+
+function createImageData (array, width, height) {
+  return new bindings.ImageData(array, width, height)
+}
+
+function loadImage (src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+
+    function cleanup () {
+      image.onload = null
+      image.onerror = null
+    }
+
+    image.onload = () => { cleanup(); resolve(image) }
+    image.onerror = (err) => { cleanup(); reject(err) }
+
+    image.src = src
+  })
+}
+
+__webpack_unused_export__ = Canvas
+__webpack_unused_export__ = CanvasRenderingContext2D // Legacy/compat export
+__webpack_unused_export__ = CanvasRenderingContext2D
+__webpack_unused_export__ = bindings.CanvasGradient
+__webpack_unused_export__ = CanvasPattern
+__webpack_unused_export__ = bindings.FontFace
+__webpack_unused_export__ = Image
+__webpack_unused_export__ = bindings.ImageData
+__webpack_unused_export__ = PNGStream
+__webpack_unused_export__ = PDFStream
+__webpack_unused_export__ = JPEGStream
+__webpack_unused_export__ = DOMMatrix
+__webpack_unused_export__ = DOMPoint
+
+__webpack_unused_export__ = bindings.fonts
+
+exports.createCanvas = createCanvas
+__webpack_unused_export__ = createImageData
+__webpack_unused_export__ = loadImage
+
+__webpack_unused_export__ = bindings.Backends
+
+/** Library version. */
+__webpack_unused_export__ = packageJson.version
+/** Cairo version. */
+__webpack_unused_export__ = bindings.cairoVersion
+/** jpeglib version. */
+__webpack_unused_export__ = bindings.jpegVersion
+/** gif_lib version. */
+__webpack_unused_export__ = bindings.gifVersion ? bindings.gifVersion.replace(/[^.\d]/g, '') : undefined
+/** freetype version. */
+__webpack_unused_export__ = bindings.freetypeVersion
+/** rsvg version. */
+__webpack_unused_export__ = bindings.rsvgVersion
+/** pango version. */
+__webpack_unused_export__ = bindings.pangoVersion
+
 
 /***/ }),
 
-/***/ 6345:
+/***/ 1907:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const { inspect } = __nccwpck_require__(9023)
-/*
- * vendored in order to fix its dependence on the window global [cds 2020/08/04]
- * otherwise unchanged from https://github.com/jarek-foksa/geometry-polyfill/tree/f36bbc8f4bc43539d980687904ce46c8e915543d
- */
 
-// @info
-//   DOMPoint polyfill
-// @src
-//   https://drafts.fxtf.org/geometry/#DOMPoint
-//   https://github.com/chromium/chromium/blob/master/third_party/blink/renderer/core/geometry/dom_point_read_only.cc
+
+const util = __nccwpck_require__(9023)
+
+// DOMMatrix per https://drafts.fxtf.org/geometry/#DOMMatrix
+
 class DOMPoint {
-  constructor(x = 0, y = 0, z = 0, w = 1) {
-    this.x = x
-    this.y = y
-    this.z = z
-    this.w = w
-  }
-
-  static fromPoint(otherPoint) {
-    return new DOMPoint(
-      otherPoint.x,
-      otherPoint.y,
-      otherPoint.z !== undefined ? otherPoint.z : 0,
-      otherPoint.w !== undefined ? otherPoint.w : 1,
-    )
-  }
-
-  // matrixTransform(optional DOMMatrixInit matrix = {})
-  matrixTransform(matrix) {
-    const { values: m, is2D } = matrixFromInit(matrix, MATRIX_TRANSFORM)
-    if (is2D && this.z === 0 && this.w === 1) {
-      return new DOMPoint(this.x * m[M11] + this.y * m[M21] + m[M41], this.x * m[M12] + this.y * m[M22] + m[M42], 0, 1)
-    } else {
-      return new DOMPoint(
-        this.x * m[M11] + this.y * m[M21] + this.z * m[M31] + this.w * m[M41],
-        this.x * m[M12] + this.y * m[M22] + this.z * m[M32] + this.w * m[M42],
-        this.x * m[M13] + this.y * m[M23] + this.z * m[M33] + this.w * m[M43],
-        this.x * m[M14] + this.y * m[M24] + this.z * m[M34] + this.w * m[M44],
-      )
+  constructor (x, y, z, w) {
+    if (typeof x === 'object' && x !== null) {
+      w = x.w
+      z = x.z
+      y = x.y
+      x = x.x
     }
+    this.x = typeof x === 'number' ? x : 0
+    this.y = typeof y === 'number' ? y : 0
+    this.z = typeof z === 'number' ? z : 0
+    this.w = typeof w === 'number' ? w : 1
+  }
+
+  matrixTransform(init) {
+    // TODO: this next line is wrong. matrixTransform is supposed to only take
+    // an object with the DOMMatrix properties called DOMMatrixInit
+    const m = init instanceof DOMMatrix ? init : new DOMMatrix(init)
+    return m.transformPoint(this)
   }
 
   toJSON() {
@@ -59,548 +117,85 @@ class DOMPoint {
       x: this.x,
       y: this.y,
       z: this.z,
-      w: this.w,
+      w: this.w
     }
   }
-}
 
-// @info
-//   DOMRect polyfill
-// @src
-//   https://drafts.fxtf.org/geometry/#DOMRect
-//   https://github.com/chromium/chromium/blob/master/third_party/blink/renderer/core/geometry/dom_rect_read_only.cc
-
-class DOMRect {
-  constructor(x = 0, y = 0, width = 0, height = 0) {
-    this.x = x
-    this.y = y
-    this.width = width
-    this.height = height
-  }
-
-  static fromRect(otherRect) {
-    return new DOMRect(otherRect.x, otherRect.y, otherRect.width, otherRect.height)
-  }
-
-  get top() {
-    return this.y
-  }
-
-  get left() {
-    return this.x
-  }
-
-  get right() {
-    return this.x + this.width
-  }
-
-  get bottom() {
-    return this.y + this.height
-  }
-
-  toJSON() {
-    return {
-      x: this.x,
-      y: this.y,
-      width: this.width,
-      height: this.height,
-      top: this.top,
-      left: this.left,
-      right: this.right,
-      bottom: this.bottom,
-    }
+  static fromPoint(other) {
+    return new this(other.x, other.y, other.z, other.w)
   }
 }
 
-for (const propertyName of ['top', 'right', 'bottom', 'left']) {
-  const propertyDescriptor = Object.getOwnPropertyDescriptor(DOMRect.prototype, propertyName)
-  propertyDescriptor.enumerable = true
-  Object.defineProperty(DOMRect.prototype, propertyName, propertyDescriptor)
-}
-
-// @info
-//   DOMMatrix polyfill (SVG 2)
-// @src
-//   https://github.com/chromium/chromium/blob/master/third_party/blink/renderer/core/geometry/dom_matrix_read_only.cc
-//   https://github.com/tocharomera/generativecanvas/blob/master/node-canvas/lib/DOMMatrix.js
-
-const M11 = 0,
-  M12 = 1,
-  M13 = 2,
-  M14 = 3
-const M21 = 4,
-  M22 = 5,
-  M23 = 6,
-  M24 = 7
-const M31 = 8,
-  M32 = 9,
-  M33 = 10,
-  M34 = 11
-const M41 = 12,
-  M42 = 13,
-  M43 = 14,
-  M44 = 15
-
-const A = M11,
-  B = M12
-const C = M21,
-  D = M22
-const E = M41,
-  F = M42
+// Constants to index into _values (col-major)
+const M11 = 0; const M12 = 1; const M13 = 2; const M14 = 3
+const M21 = 4; const M22 = 5; const M23 = 6; const M24 = 7
+const M31 = 8; const M32 = 9; const M33 = 10; const M34 = 11
+const M41 = 12; const M42 = 13; const M43 = 14; const M44 = 15
 
 const DEGREE_PER_RAD = 180 / Math.PI
 const RAD_PER_DEGREE = Math.PI / 180
 
-const VALUES = Symbol('values')
-const IS_2D = Symbol('is2D')
-
-function parseMatrix(init) {
-  let parsed = init.replace(/matrix\(/, '').split(/,/, 7)
-
-  if (parsed.length !== 6) {
-    throw new Error(`Failed to parse ${init}`)
-  }
-
+function parseMatrix (init) {
+  let parsed = init.replace('matrix(', '')
+  parsed = parsed.split(',', 7) // 6 + 1 to handle too many params
+  if (parsed.length !== 6) throw new Error(`Failed to parse ${init}`)
   parsed = parsed.map(parseFloat)
-
-  return [parsed[0], parsed[1], 0, 0, parsed[2], parsed[3], 0, 0, 0, 0, 1, 0, parsed[4], parsed[5], 0, 1]
+  return [
+    parsed[0], parsed[1], 0, 0,
+    parsed[2], parsed[3], 0, 0,
+    0, 0, 1, 0,
+    parsed[4], parsed[5], 0, 1
+  ]
 }
 
-function parseMatrix3d(init) {
-  const parsed = init.replace(/matrix3d\(/, '').split(/,/, 17)
-
-  if (parsed.length !== 16) {
-    throw new Error(`Failed to parse ${init}`)
-  }
-
+function parseMatrix3d (init) {
+  let parsed = init.replace('matrix3d(', '')
+  parsed = parsed.split(',', 17) // 16 + 1 to handle too many params
+  if (parsed.length !== 16) throw new Error(`Failed to parse ${init}`)
   return parsed.map(parseFloat)
 }
 
-function parseTransform(tform) {
-  const type = tform.split(/\(/, 1)[0]
-
-  if (type === 'matrix') {
-    return parseMatrix(tform)
-  } else if (type === 'matrix3d') {
-    return parseMatrix3d(tform)
-  } else {
-    throw new Error(`${type} parsing not implemented`)
+function parseTransform (tform) {
+  const type = tform.split('(', 1)[0]
+  switch (type) {
+    case 'matrix':
+      return parseMatrix(tform)
+    case 'matrix3d':
+      return parseMatrix3d(tform)
+    // TODO This is supposed to support any CSS transform value.
+    default:
+      throw new Error(`${type} parsing not implemented`)
   }
-}
-
-const setNumber2D = (receiver, index, value) => {
-  if (typeof value !== 'number') {
-    throw new TypeError('Expected number')
-  }
-
-  receiver[VALUES][index] = value
-}
-
-const setNumber3D = (receiver, index, value) => {
-  if (typeof value !== 'number') {
-    throw new TypeError('Expected number')
-  }
-
-  if (index === M33 || index === M44) {
-    if (value !== 1) {
-      receiver[IS_2D] = false
-    }
-  } else if (value !== 0) {
-    receiver[IS_2D] = false
-  }
-
-  receiver[VALUES][index] = value
-}
-
-const newInstance = (values) => {
-  const instance = Object.create(DOMMatrix.prototype)
-  instance.constructor = DOMMatrix
-  instance[IS_2D] = true
-  instance[VALUES] = values
-
-  return instance
-}
-
-// DOMMatrixInit dictionaries (Geometry Interfaces 1: "validate and fixup",
-// "create a DOMMatrix from the dictionary"), with Chrome's errors.
-//
-//   matrixFromInit(init, prefix)
-//     DOMMatrix          -> its values and is2D
-//     undefined / null   -> {}
-//     other non-object   -> TypeError "not of type 'DOMMatrixInit'"
-//     object             -> read members (toMatrixInit), validate and fix up
-
-const FROM_MATRIX = "Failed to execute 'fromMatrix' on 'DOMMatrix': "
-const MULTIPLY = "Failed to execute 'multiply' on 'DOMMatrixReadOnly': "
-const MULTIPLY_SELF = "Failed to execute 'multiplySelf' on 'DOMMatrix': "
-const PRE_MULTIPLY_SELF = "Failed to execute 'preMultiplySelf' on 'DOMMatrix': "
-const MATRIX_TRANSFORM = "Failed to execute 'matrixTransform' on 'DOMPointReadOnly': "
-
-// The members in the order Chrome reads them: the inherited dictionary's
-// first, each dictionary's in lexicographic order.
-const MATRIX_2D_INIT_MEMBERS = ['a', 'b', 'c', 'd', 'e', 'f', 'm11', 'm12', 'm21', 'm22', 'm41', 'm42']
-const MATRIX_INIT_MEMBERS = ['m13', 'm14', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm43', 'm44']
-// [alias, member, default]: validate and fixup (2D).
-const MATRIX_2D_ALIASES = [
-  ['a', 'm11', 1],
-  ['b', 'm12', 0],
-  ['c', 'm21', 0],
-  ['d', 'm22', 1],
-  ['e', 'm41', 0],
-  ['f', 'm42', 0],
-]
-
-const isObject = (value) => value !== null && (typeof value === 'object' || typeof value === 'function')
-
-// ECMAScript ToNumber, written out so that the errors it throws itself can
-// get Chrome's context (`fail`), while the errors thrown by user code
-// (valueOf, toString, @@toPrimitive) pass through unchanged, as in Chrome.
-// V8's messages; an object in a message is shown as #<Object>.
-function toNumber(value, fail) {
-  if (!isObject(value)) {
-    if (typeof value === 'bigint') throw fail('Cannot convert a BigInt value to a number')
-    if (typeof value === 'symbol') throw fail('Cannot convert a Symbol value to a number')
-    return +value
-  }
-  const toPrimitive = value[Symbol.toPrimitive]
-  if (toPrimitive !== undefined && toPrimitive !== null) {
-    if (typeof toPrimitive !== 'function') {
-      const shown = isObject(toPrimitive) ? '#<Object>' : String(toPrimitive)
-      throw fail(
-        `'${shown}' returned for property 'Symbol(Symbol.toPrimitive)' of object '#<Object>' is not a function`,
-      )
-    }
-    const primitive = toPrimitive.call(value, 'number')
-    if (isObject(primitive)) throw fail('Cannot convert object to primitive value')
-    return toNumber(primitive, fail)
-  }
-  for (const name of ['valueOf', 'toString']) {
-    const method = value[name]
-    if (typeof method === 'function') {
-      const primitive = method.call(value)
-      if (!isObject(primitive)) return toNumber(primitive, fail)
-    }
-  }
-  throw fail('Cannot convert object to primitive value')
-}
-
-// WebIDL conversion to a DOMMatrixInit: the present members only.
-function toMatrixInit(init, prefix) {
-  const dict = Object.create(null)
-  if (init === undefined || init === null) return dict
-  if (!isObject(init)) throw new TypeError(`${prefix}The provided value is not of type 'DOMMatrixInit'.`)
-  const read = (key, dictionary) => {
-    const value = init[key]
-    if (value !== undefined) {
-      dict[key] = toNumber(
-        value,
-        (msg) => new TypeError(`${prefix}Failed to read the '${key}' property from '${dictionary}': ${msg}`),
-      )
-    }
-  }
-  for (const key of MATRIX_2D_INIT_MEMBERS) read(key, 'DOMMatrix2DInit')
-  const is2D = init.is2D
-  if (is2D !== undefined) dict.is2D = Boolean(is2D)
-  for (const key of MATRIX_INIT_MEMBERS) read(key, 'DOMMatrixInit')
-  return dict
-}
-
-const sameValueZero = (x, y) => x === y || (x !== x && y !== y)
-
-// { values, is2D } of the matrix `init` describes. `values` may be the
-// DOMMatrix's own array: read it, do not write it.
-function matrixFromInit(init, prefix) {
-  if (init instanceof DOMMatrix && init[VALUES] instanceof Float64Array) {
-    return { values: init[VALUES], is2D: init[IS_2D] }
-  }
-  const dict = toMatrixInit(init, prefix)
-  // validate and fixup (2D)
-  for (const [alias, member] of MATRIX_2D_ALIASES) {
-    if (alias in dict && member in dict && !sameValueZero(dict[alias], dict[member])) {
-      throw new TypeError(`${prefix}Property mismatch on matrix initialization.`)
-    }
-  }
-  for (const [alias, member, defaultValue] of MATRIX_2D_ALIASES) {
-    if (!(member in dict)) dict[member] = alias in dict ? dict[alias] : defaultValue
-  }
-  // validate and fixup: the members default to the identity.
-  const value = (key) => (key in dict ? dict[key] : key === 'm33' || key === 'm44' ? 1 : 0)
-  const is3D =
-    ['m13', 'm14', 'm23', 'm24', 'm31', 'm32', 'm34', 'm43'].some((key) => value(key) !== 0) ||
-    value('m33') !== 1 ||
-    value('m44') !== 1
-  if (dict.is2D === true && is3D) {
-    throw new TypeError(`${prefix}The is2D member is set to true but the input matrix is a 3d matrix.`)
-  }
-  const is2D = dict.is2D === undefined ? !is3D : dict.is2D
-  const { m11, m12, m21, m22, m41, m42 } = dict
-  const values = is2D
-    ? [m11, m12, 0, 0, m21, m22, 0, 0, 0, 0, 1, 0, m41, m42, 0, 1]
-    : [
-        m11,
-        m12,
-        value('m13'),
-        value('m14'),
-        m21,
-        m22,
-        value('m23'),
-        value('m24'),
-        value('m31'),
-        value('m32'),
-        value('m33'),
-        value('m34'),
-        m41,
-        m42,
-        value('m43'),
-        value('m44'),
-      ]
-  return { values: new Float64Array(values), is2D }
-}
-
-// `target` times (post) or after (pre) the matrix `other` describes.
-function multiplyByInit(target, other, prefix, post) {
-  const { values, is2D } = matrixFromInit(other, prefix)
-  target[VALUES] = post ? multiply(values, target[VALUES]) : multiply(target[VALUES], values)
-  if (!is2D) {
-    target[IS_2D] = false
-  }
-  return target
-}
-
-const multiply = (first, second) => {
-  const dest = new Float64Array(16)
-
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
-      let sum = 0
-
-      for (let k = 0; k < 4; k++) {
-        sum += first[i * 4 + k] * second[k * 4 + j]
-      }
-
-      dest[i * 4 + j] = sum
-    }
-  }
-
-  return dest
 }
 
 class DOMMatrix {
-  get m11() {
-    return this[VALUES][M11]
-  }
-  set m11(value) {
-    setNumber2D(this, M11, value)
-  }
-  get m12() {
-    return this[VALUES][M12]
-  }
-  set m12(value) {
-    setNumber2D(this, M12, value)
-  }
-  get m13() {
-    return this[VALUES][M13]
-  }
-  set m13(value) {
-    setNumber3D(this, M13, value)
-  }
-  get m14() {
-    return this[VALUES][M14]
-  }
-  set m14(value) {
-    setNumber3D(this, M14, value)
-  }
-  get m21() {
-    return this[VALUES][M21]
-  }
-  set m21(value) {
-    setNumber2D(this, M21, value)
-  }
-  get m22() {
-    return this[VALUES][M22]
-  }
-  set m22(value) {
-    setNumber2D(this, M22, value)
-  }
-  get m23() {
-    return this[VALUES][M23]
-  }
-  set m23(value) {
-    setNumber3D(this, M23, value)
-  }
-  get m24() {
-    return this[VALUES][M24]
-  }
-  set m24(value) {
-    setNumber3D(this, M24, value)
-  }
-  get m31() {
-    return this[VALUES][M31]
-  }
-  set m31(value) {
-    setNumber3D(this, M31, value)
-  }
-  get m32() {
-    return this[VALUES][M32]
-  }
-  set m32(value) {
-    setNumber3D(this, M32, value)
-  }
-  get m33() {
-    return this[VALUES][M33]
-  }
-  set m33(value) {
-    setNumber3D(this, M33, value)
-  }
-  get m34() {
-    return this[VALUES][M34]
-  }
-  set m34(value) {
-    setNumber3D(this, M34, value)
-  }
-  get m41() {
-    return this[VALUES][M41]
-  }
-  set m41(value) {
-    setNumber2D(this, M41, value)
-  }
-  get m42() {
-    return this[VALUES][M42]
-  }
-  set m42(value) {
-    setNumber2D(this, M42, value)
-  }
-  get m43() {
-    return this[VALUES][M43]
-  }
-  set m43(value) {
-    setNumber3D(this, M43, value)
-  }
-  get m44() {
-    return this[VALUES][M44]
-  }
-  set m44(value) {
-    setNumber3D(this, M44, value)
-  }
+  constructor (init) {
+    this._is2D = true
+    this._values = new Float64Array([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ])
 
-  get a() {
-    return this[VALUES][A]
-  }
-  set a(value) {
-    setNumber2D(this, A, value)
-  }
-  get b() {
-    return this[VALUES][B]
-  }
-  set b(value) {
-    setNumber2D(this, B, value)
-  }
-  get c() {
-    return this[VALUES][C]
-  }
-  set c(value) {
-    setNumber2D(this, C, value)
-  }
-  get d() {
-    return this[VALUES][D]
-  }
-  set d(value) {
-    setNumber2D(this, D, value)
-  }
-  get e() {
-    return this[VALUES][E]
-  }
-  set e(value) {
-    setNumber2D(this, E, value)
-  }
-  get f() {
-    return this[VALUES][F]
-  }
-  set f(value) {
-    setNumber2D(this, F, value)
-  }
+    let i
 
-  get is2D() {
-    return this[IS_2D]
-  }
-
-  get isIdentity() {
-    const values = this[VALUES]
-
-    return (
-      values[M11] === 1 &&
-      values[M12] === 0 &&
-      values[M13] === 0 &&
-      values[M14] === 0 &&
-      values[M21] === 0 &&
-      values[M22] === 1 &&
-      values[M23] === 0 &&
-      values[M24] === 0 &&
-      values[M31] === 0 &&
-      values[M32] === 0 &&
-      values[M33] === 1 &&
-      values[M34] === 0 &&
-      values[M41] === 0 &&
-      values[M42] === 0 &&
-      values[M43] === 0 &&
-      values[M44] === 1
-    )
-  }
-
-  // fromMatrix(optional DOMMatrixInit other = {})
-  static fromMatrix(init) {
-    const { values, is2D } = matrixFromInit(init, FROM_MATRIX)
-    const matrix = new DOMMatrix()
-    matrix[VALUES] = new Float64Array(values)
-    matrix[IS_2D] = is2D
-    return matrix
-  }
-
-  static fromFloat32Array(init) {
-    if (!(init instanceof Float32Array)) throw new TypeError('Expected Float32Array')
-    return new DOMMatrix(init)
-  }
-
-  static fromFloat64Array(init) {
-    if (!(init instanceof Float64Array)) throw new TypeError('Expected Float64Array')
-    return new DOMMatrix(init)
-  }
-
-  // @type
-  // (Float64Array) => void
-  constructor(init) {
-    this[IS_2D] = true
-
-    this[VALUES] = new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
-
-    // Parse CSS transformList
-    if (typeof init === 'string') {
-      if (init === '') {
-        return
-      } else {
-        const tforms = init.split(/\)\s+/, 20).map(parseTransform)
-
-        if (tforms.length === 0) {
-          return
-        }
-
-        init = tforms[0]
-
-        for (let i = 1; i < tforms.length; i++) {
-          init = multiply(tforms[i], init)
-        }
-      }
+    if (typeof init === 'string') { // parse CSS transformList
+      if (init === '') return // default identity matrix
+      const tforms = init.split(/\)\s+/, 20).map(parseTransform)
+      if (tforms.length === 0) return
+      init = tforms[0]
+      for (i = 1; i < tforms.length; i++) init = multiply(tforms[i], init)
     }
 
-    let i = 0
-
+    i = 0
     if (init && init.length === 6) {
-      setNumber2D(this, A, init[i++])
-      setNumber2D(this, B, init[i++])
-      setNumber2D(this, C, init[i++])
-      setNumber2D(this, D, init[i++])
-      setNumber2D(this, E, init[i++])
-      setNumber2D(this, F, init[i++])
+      setNumber2D(this, M11, init[i++])
+      setNumber2D(this, M12, init[i++])
+      setNumber2D(this, M21, init[i++])
+      setNumber2D(this, M22, init[i++])
+      setNumber2D(this, M41, init[i++])
+      setNumber2D(this, M42, init[i++])
     } else if (init && init.length === 16) {
       setNumber2D(this, M11, init[i++])
       setNumber2D(this, M12, init[i++])
@@ -623,2312 +218,1104 @@ class DOMMatrix {
     }
   }
 
-  dump() {
-    const mat = this[VALUES]
-    console.info([mat.slice(0, 4), mat.slice(4, 8), mat.slice(8, 12), mat.slice(12, 16)])
+  toString () {
+    return this.is2D
+      ? `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`
+      : `matrix3d(${this._values.join(', ')})`
   }
 
-  [inspect.custom](depth) {
-    if (depth < 0) return '[DOMMatrix]'
-
-    const { a, b, c, d, e, f, is2D, isIdentity } = this
-    if (this.is2D) {
-      return `DOMMatrix ${inspect({ a, b, c, d, e, f, is2D, isIdentity }, { colors: true })}`
-    } else {
-      const { m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44, is2D, isIdentity } = this
-      return `DOMMatrix ${inspect(
-        {
-          a,
-          b,
-          c,
-          d,
-          e,
-          f,
-          m11,
-          m12,
-          m13,
-          m14,
-          m21,
-          m22,
-          m23,
-          m24,
-          m31,
-          m32,
-          m33,
-          m34,
-          m41,
-          m42,
-          m43,
-          m44,
-          is2D,
-          isIdentity,
-        },
-        { colors: true },
-      )}`
-    }
+  multiply (other) {
+    return newInstance(this._values).multiplySelf(other)
   }
 
-  // multiply, multiplySelf, preMultiplySelf(optional DOMMatrixInit other = {})
-  multiply(other) {
-    const result = newInstance(this[VALUES])
-    result[IS_2D] = this[IS_2D]
-    return multiplyByInit(result, other, MULTIPLY, true)
-  }
-
-  multiplySelf(other) {
-    return multiplyByInit(this, other, MULTIPLY_SELF, true)
-  }
-
-  preMultiplySelf(other) {
-    return multiplyByInit(this, other, PRE_MULTIPLY_SELF, false)
-  }
-
-  translate(tx, ty, tz) {
-    return newInstance(this[VALUES]).translateSelf(tx, ty, tz)
-  }
-
-  translateSelf(tx = 0, ty = 0, tz = 0) {
-    this[VALUES] = multiply([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, tx, ty, tz, 1], this[VALUES])
-
-    if (tz !== 0) {
-      this[IS_2D] = false
-    }
-
+  multiplySelf (other) {
+    this._values = multiply(other._values, this._values)
+    if (!other.is2D) this._is2D = false
     return this
   }
 
-  scale(scaleX, scaleY, scaleZ, originX, originY, originZ) {
-    return newInstance(this[VALUES]).scaleSelf(scaleX, scaleY, scaleZ, originX, originY, originZ)
+  preMultiplySelf (other) {
+    this._values = multiply(this._values, other._values)
+    if (!other.is2D) this._is2D = false
+    return this
   }
 
-  scale3d(scale, originX, originY, originZ) {
-    return newInstance(this[VALUES]).scale3dSelf(scale, originX, originY, originZ)
+  translate (tx, ty, tz) {
+    return newInstance(this._values).translateSelf(tx, ty, tz)
   }
 
-  scale3dSelf(scale, originX, originY, originZ) {
+  translateSelf (tx, ty, tz) {
+    if (typeof tx !== 'number') tx = 0
+    if (typeof ty !== 'number') ty = 0
+    if (typeof tz !== 'number') tz = 0
+    this._values = multiply([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      tx, ty, tz, 1
+    ], this._values)
+    if (tz !== 0) this._is2D = false
+    return this
+  }
+
+  scale (scaleX, scaleY, scaleZ, originX, originY, originZ) {
+    return newInstance(this._values).scaleSelf(scaleX, scaleY, scaleZ, originX, originY, originZ)
+  }
+
+  scale3d (scale, originX, originY, originZ) {
+    return newInstance(this._values).scale3dSelf(scale, originX, originY, originZ)
+  }
+
+  scale3dSelf (scale, originX, originY, originZ) {
     return this.scaleSelf(scale, scale, scale, originX, originY, originZ)
   }
 
-  scaleSelf(scaleX, scaleY, scaleZ, originX, originY, originZ) {
+  /**
+   * @deprecated
+   */
+  scaleNonUniform(scaleX, scaleY) {
+    return this.scale(scaleX, scaleY)
+  }
+
+  scaleSelf (scaleX, scaleY, scaleZ, originX, originY, originZ) {
     // Not redundant with translate's checks because we need to negate the values later.
     if (typeof originX !== 'number') originX = 0
     if (typeof originY !== 'number') originY = 0
     if (typeof originZ !== 'number') originZ = 0
-
     this.translateSelf(originX, originY, originZ)
-
     if (typeof scaleX !== 'number') scaleX = 1
     if (typeof scaleY !== 'number') scaleY = scaleX
     if (typeof scaleZ !== 'number') scaleZ = 1
-
-    this[VALUES] = multiply([scaleX, 0, 0, 0, 0, scaleY, 0, 0, 0, 0, scaleZ, 0, 0, 0, 0, 1], this[VALUES])
-
+    this._values = multiply([
+      scaleX, 0, 0, 0,
+      0, scaleY, 0, 0,
+      0, 0, scaleZ, 0,
+      0, 0, 0, 1
+    ], this._values)
     this.translateSelf(-originX, -originY, -originZ)
-
-    if (scaleZ !== 1 || originZ !== 0) {
-      this[IS_2D] = false
-    }
-
+    if (scaleZ !== 1 || originZ !== 0) this._is2D = false
     return this
   }
 
-  rotateFromVector(x, y) {
-    return newInstance(this[VALUES]).rotateFromVectorSelf(x, y)
+  rotateFromVector (x, y) {
+    return newInstance(this._values).rotateFromVectorSelf(x, y)
   }
 
-  rotateFromVectorSelf(x = 0, y = 0) {
-    const theta = x === 0 && y === 0 ? 0 : Math.atan2(y, x) * DEGREE_PER_RAD
+  rotateFromVectorSelf (x, y) {
+    if (typeof x !== 'number') x = 0
+    if (typeof y !== 'number') y = 0
+    const theta = (x === 0 && y === 0) ? 0 : Math.atan2(y, x) * DEGREE_PER_RAD
     return this.rotateSelf(theta)
   }
 
-  rotate(rotX, rotY, rotZ) {
-    return newInstance(this[VALUES]).rotateSelf(rotX, rotY, rotZ)
+  rotate (rotX, rotY, rotZ) {
+    return newInstance(this._values).rotateSelf(rotX, rotY, rotZ)
   }
 
-  rotateSelf(rotX, rotY, rotZ) {
+  rotateSelf (rotX, rotY, rotZ) {
     if (rotY === undefined && rotZ === undefined) {
       rotZ = rotX
       rotX = rotY = 0
     }
-
     if (typeof rotY !== 'number') rotY = 0
     if (typeof rotZ !== 'number') rotZ = 0
-
-    if (rotX !== 0 || rotY !== 0) {
-      this[IS_2D] = false
-    }
-
+    if (rotX !== 0 || rotY !== 0) this._is2D = false
     rotX *= RAD_PER_DEGREE
     rotY *= RAD_PER_DEGREE
     rotZ *= RAD_PER_DEGREE
-
-    let c = Math.cos(rotZ)
-    let s = Math.sin(rotZ)
-
-    this[VALUES] = multiply([c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], this[VALUES])
-
+    let c, s
+    c = Math.cos(rotZ)
+    s = Math.sin(rotZ)
+    this._values = multiply([
+      c, s, 0, 0,
+      -s, c, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ], this._values)
     c = Math.cos(rotY)
     s = Math.sin(rotY)
-
-    this[VALUES] = multiply([c, 0, -s, 0, 0, 1, 0, 0, s, 0, c, 0, 0, 0, 0, 1], this[VALUES])
-
+    this._values = multiply([
+      c, 0, -s, 0,
+      0, 1, 0, 0,
+      s, 0, c, 0,
+      0, 0, 0, 1
+    ], this._values)
     c = Math.cos(rotX)
     s = Math.sin(rotX)
-
-    this[VALUES] = multiply([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1], this[VALUES])
-
+    this._values = multiply([
+      1, 0, 0, 0,
+      0, c, s, 0,
+      0, -s, c, 0,
+      0, 0, 0, 1
+    ], this._values)
     return this
   }
 
-  rotateAxisAngle(x, y, z, angle) {
-    return newInstance(this[VALUES]).rotateAxisAngleSelf(x, y, z, angle)
+  rotateAxisAngle (x, y, z, angle) {
+    return newInstance(this._values).rotateAxisAngleSelf(x, y, z, angle)
   }
 
-  rotateAxisAngleSelf(x = 0, y = 0, z = 0, angle = 0) {
+  rotateAxisAngleSelf (x, y, z, angle) {
+    if (typeof x !== 'number') x = 0
+    if (typeof y !== 'number') y = 0
+    if (typeof z !== 'number') z = 0
+    // Normalize axis
     const length = Math.sqrt(x * x + y * y + z * z)
-
-    if (length === 0) {
-      return this
-    }
-
+    if (length === 0) return this
     if (length !== 1) {
       x /= length
       y /= length
       z /= length
     }
-
     angle *= RAD_PER_DEGREE
-
     const c = Math.cos(angle)
     const s = Math.sin(angle)
     const t = 1 - c
     const tx = t * x
     const ty = t * y
-
-    this[VALUES] = multiply(
-      [
-        tx * x + c,
-        tx * y + s * z,
-        tx * z - s * y,
-        0,
-        tx * y - s * z,
-        ty * y + c,
-        ty * z + s * x,
-        0,
-        tx * z + s * y,
-        ty * z - s * x,
-        t * z * z + c,
-        0,
-        0,
-        0,
-        0,
-        1,
-      ],
-      this[VALUES],
-    )
-
-    if (x !== 0 || y !== 0) {
-      this[IS_2D] = false
-    }
-
+    // NB: This is the generic transform. If the axis is a major axis, there are
+    // faster transforms.
+    this._values = multiply([
+      tx * x + c, tx * y + s * z, tx * z - s * y, 0,
+      tx * y - s * z, ty * y + c, ty * z + s * x, 0,
+      tx * z + s * y, ty * z - s * x, t * z * z + c, 0,
+      0, 0, 0, 1
+    ], this._values)
+    if (x !== 0 || y !== 0) this._is2D = false
     return this
   }
 
-  skewX(sx) {
-    return newInstance(this[VALUES]).skewXSelf(sx)
+  skewX (sx) {
+    return newInstance(this._values).skewXSelf(sx)
   }
 
-  skewXSelf(sx) {
-    if (typeof sx !== 'number') {
-      return this
-    }
-
+  skewXSelf (sx) {
+    if (typeof sx !== 'number') return this
     const t = Math.tan(sx * RAD_PER_DEGREE)
-
-    this[VALUES] = multiply([1, 0, 0, 0, t, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], this[VALUES])
-
+    this._values = multiply([
+      1, 0, 0, 0,
+      t, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ], this._values)
     return this
   }
 
-  skewY(sy) {
-    return newInstance(this[VALUES]).skewYSelf(sy)
+  skewY (sy) {
+    return newInstance(this._values).skewYSelf(sy)
   }
 
-  skewYSelf(sy) {
-    if (typeof sy !== 'number') {
+  skewYSelf (sy) {
+    if (typeof sy !== 'number') return this
+    const t = Math.tan(sy * RAD_PER_DEGREE)
+    this._values = multiply([
+      1, t, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ], this._values)
+    return this
+  }
+
+  flipX () {
+    return newInstance(multiply([
+      -1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ], this._values))
+  }
+
+  flipY () {
+    return newInstance(multiply([
+      1, 0, 0, 0,
+      0, -1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ], this._values))
+  }
+
+  inverse () {
+    return newInstance(this._values).invertSelf()
+  }
+
+  invertSelf () {
+    const m = this._values
+    const inv = m.map(v => 0)
+
+    inv[0] = m[5] * m[10] * m[15] -
+            m[5] * m[11] * m[14] -
+            m[9] * m[6] * m[15] +
+            m[9] * m[7] * m[14] +
+            m[13] * m[6] * m[11] -
+            m[13] * m[7] * m[10]
+
+    inv[4] = -m[4] * m[10] * m[15] +
+            m[4] * m[11] * m[14] +
+            m[8] * m[6] * m[15] -
+            m[8] * m[7] * m[14] -
+            m[12] * m[6] * m[11] +
+            m[12] * m[7] * m[10]
+
+    inv[8] = m[4] * m[9] * m[15] -
+            m[4] * m[11] * m[13] -
+            m[8] * m[5] * m[15] +
+            m[8] * m[7] * m[13] +
+            m[12] * m[5] * m[11] -
+            m[12] * m[7] * m[9]
+
+    inv[12] = -m[4] * m[9] * m[14] +
+            m[4] * m[10] * m[13] +
+            m[8] * m[5] * m[14] -
+            m[8] * m[6] * m[13] -
+            m[12] * m[5] * m[10] +
+            m[12] * m[6] * m[9]
+
+    // If the determinant is zero, this matrix cannot be inverted, and all
+    // values should be set to NaN, with the is2D flag set to false.
+
+    const det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12]
+
+    if (det === 0) {
+      this._values = m.map(v => NaN)
+      this._is2D = false
       return this
     }
 
-    const t = Math.tan(sy * RAD_PER_DEGREE)
+    inv[1] = -m[1] * m[10] * m[15] +
+            m[1] * m[11] * m[14] +
+            m[9] * m[2] * m[15] -
+            m[9] * m[3] * m[14] -
+            m[13] * m[2] * m[11] +
+            m[13] * m[3] * m[10]
 
-    this[VALUES] = multiply([1, t, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], this[VALUES])
+    inv[5] = m[0] * m[10] * m[15] -
+            m[0] * m[11] * m[14] -
+            m[8] * m[2] * m[15] +
+            m[8] * m[3] * m[14] +
+            m[12] * m[2] * m[11] -
+            m[12] * m[3] * m[10]
 
+    inv[9] = -m[0] * m[9] * m[15] +
+            m[0] * m[11] * m[13] +
+            m[8] * m[1] * m[15] -
+            m[8] * m[3] * m[13] -
+            m[12] * m[1] * m[11] +
+            m[12] * m[3] * m[9]
+
+    inv[13] = m[0] * m[9] * m[14] -
+            m[0] * m[10] * m[13] -
+            m[8] * m[1] * m[14] +
+            m[8] * m[2] * m[13] +
+            m[12] * m[1] * m[10] -
+            m[12] * m[2] * m[9]
+
+    inv[2] = m[1] * m[6] * m[15] -
+            m[1] * m[7] * m[14] -
+            m[5] * m[2] * m[15] +
+            m[5] * m[3] * m[14] +
+            m[13] * m[2] * m[7] -
+            m[13] * m[3] * m[6]
+
+    inv[6] = -m[0] * m[6] * m[15] +
+            m[0] * m[7] * m[14] +
+            m[4] * m[2] * m[15] -
+            m[4] * m[3] * m[14] -
+            m[12] * m[2] * m[7] +
+            m[12] * m[3] * m[6]
+
+    inv[10] = m[0] * m[5] * m[15] -
+            m[0] * m[7] * m[13] -
+            m[4] * m[1] * m[15] +
+            m[4] * m[3] * m[13] +
+            m[12] * m[1] * m[7] -
+            m[12] * m[3] * m[5]
+
+    inv[14] = -m[0] * m[5] * m[14] +
+            m[0] * m[6] * m[13] +
+            m[4] * m[1] * m[14] -
+            m[4] * m[2] * m[13] -
+            m[12] * m[1] * m[6] +
+            m[12] * m[2] * m[5]
+
+    inv[3] = -m[1] * m[6] * m[11] +
+            m[1] * m[7] * m[10] +
+            m[5] * m[2] * m[11] -
+            m[5] * m[3] * m[10] -
+            m[9] * m[2] * m[7] +
+            m[9] * m[3] * m[6]
+
+    inv[7] = m[0] * m[6] * m[11] -
+            m[0] * m[7] * m[10] -
+            m[4] * m[2] * m[11] +
+            m[4] * m[3] * m[10] +
+            m[8] * m[2] * m[7] -
+            m[8] * m[3] * m[6]
+
+    inv[11] = -m[0] * m[5] * m[11] +
+            m[0] * m[7] * m[9] +
+            m[4] * m[1] * m[11] -
+            m[4] * m[3] * m[9] -
+            m[8] * m[1] * m[7] +
+            m[8] * m[3] * m[5]
+
+    inv[15] = m[0] * m[5] * m[10] -
+            m[0] * m[6] * m[9] -
+            m[4] * m[1] * m[10] +
+            m[4] * m[2] * m[9] +
+            m[8] * m[1] * m[6] -
+            m[8] * m[2] * m[5]
+
+    inv.forEach((v, i) => { inv[i] = v / det })
+    this._values = inv
     return this
   }
 
-  flipX() {
-    return newInstance(multiply([-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], this[VALUES]))
-  }
-
-  flipY() {
-    return newInstance(multiply([1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], this[VALUES]))
-  }
-
-  inverse() {
-    return newInstance(this[VALUES].slice()).invertSelf()
-  }
-
-  invertSelf() {
-    if (this[IS_2D]) {
-      const det = this[VALUES][A] * this[VALUES][D] - this[VALUES][B] * this[VALUES][C]
-
-      // Invertable
-      if (det !== 0) {
-        const newA = this[VALUES][D] / det
-        const newB = -this[VALUES][B] / det
-        const newC = -this[VALUES][C] / det
-        const newD = this[VALUES][A] / det
-        const newE = (this[VALUES][C] * this[VALUES][F] - this[VALUES][D] * this[VALUES][E]) / det
-        const newF = (this[VALUES][B] * this[VALUES][E] - this[VALUES][A] * this[VALUES][F]) / det
-
-        this.a = newA
-        this.b = newB
-        this.c = newC
-        this.d = newD
-        this.e = newE
-        this.f = newF
-
-        return this
-      }
-
-      // Not invertable
-      else {
-        this[IS_2D] = false
-
-        this[VALUES] = [NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN]
-
-        return this
-      }
-    } else {
-      throw new Error('3D matrix inversion is not implemented.')
-    }
-  }
-
-  setMatrixValue(transformList) {
+  setMatrixValue (transformList) {
     const temp = new DOMMatrix(transformList)
-
-    this[VALUES] = temp[VALUES]
-    this[IS_2D] = temp[IS_2D]
-
+    this._values = temp._values
+    this._is2D = temp._is2D
     return this
   }
 
-  transformPoint(point) {
-    const x = point.x || 0
-    const y = point.y || 0
-    const z = point.z || 0
-    const w = point.w || 1
-
-    const values = this[VALUES]
-
+  transformPoint (point) {
+    point = new DOMPoint(point)
+    const x = point.x
+    const y = point.y
+    const z = point.z
+    const w = point.w
+    const values = this._values
     const nx = values[M11] * x + values[M21] * y + values[M31] * z + values[M41] * w
     const ny = values[M12] * x + values[M22] * y + values[M32] * z + values[M42] * w
     const nz = values[M13] * x + values[M23] * y + values[M33] * z + values[M43] * w
     const nw = values[M14] * x + values[M24] * y + values[M34] * z + values[M44] * w
-
     return new DOMPoint(nx, ny, nz, nw)
   }
 
-  toFloat32Array() {
-    return Float32Array.from(this[VALUES])
+  toFloat32Array () {
+    return Float32Array.from(this._values)
   }
 
-  toFloat64Array() {
-    return this[VALUES].slice(0)
+  toFloat64Array () {
+    return this._values.slice(0)
   }
 
-  toJSON() {
-    return {
-      a: this.a,
-      b: this.b,
-      c: this.c,
-      d: this.d,
-      e: this.e,
-      f: this.f,
-      m11: this.m11,
-      m12: this.m12,
-      m13: this.m13,
-      m14: this.m14,
-      m21: this.m21,
-      m22: this.m22,
-      m23: this.m23,
-      m24: this.m24,
-      m31: this.m31,
-      m32: this.m32,
-      m33: this.m33,
-      m34: this.m34,
-      m41: this.m41,
-      m42: this.m42,
-      m43: this.m43,
-      m44: this.m44,
-      is2D: this.is2D,
-      isIdentity: this.isIdentity,
-    }
+  static fromMatrix (init) {
+    if (!(init instanceof DOMMatrix)) throw new TypeError('Expected DOMMatrix')
+    return new DOMMatrix(init._values)
   }
 
-  toString() {
-    if (this.is2D) {
-      return `matrix(${this.a}, ${this.b}, ${this.c}, ${this.d}, ${this.e}, ${this.f})`
-    } else {
-      return `matrix3d(${this[VALUES].join(', ')})`
-    }
-  }
-}
-
-for (const propertyName of [
-  'a',
-  'b',
-  'c',
-  'd',
-  'e',
-  'f',
-  'm11',
-  'm12',
-  'm13',
-  'm14',
-  'm21',
-  'm22',
-  'm23',
-  'm24',
-  'm31',
-  'm32',
-  'm33',
-  'm34',
-  'm41',
-  'm42',
-  'm43',
-  'm44',
-  'is2D',
-  'isIdentity',
-]) {
-  const propertyDescriptor = Object.getOwnPropertyDescriptor(DOMMatrix.prototype, propertyName)
-  propertyDescriptor.enumerable = true
-  Object.defineProperty(DOMMatrix.prototype, propertyName, propertyDescriptor)
-}
-
-module.exports = { DOMPoint, DOMMatrix, DOMRect }
-
-
-/***/ }),
-
-/***/ 3673:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const { platform, homedir } = __nccwpck_require__(857)
-const { join } = __nccwpck_require__(6928)
-
-const {
-  clearAllCache,
-  CanvasRenderingContext2D,
-  CanvasElement,
-  CanvasGradient,
-  CanvasPattern,
-  SVGCanvas,
-  Path: Path2D,
-  ImageData: NativeImageData,
-  Image,
-  FontKey,
-  GlobalFonts,
-  PathOp,
-  FillType,
-  StrokeJoin,
-  StrokeCap,
-  convertSVGTextToPath,
-  PdfDocument,
-  GifEncoder,
-  GifDisposal,
-  LottieAnimation,
-  TextMetrics,
-  _argumentCounts,
-  _imageDataConstructor,
-  _toNumber: toNumber,
-  setTextRenderer,
-  getTextRenderer,
-} = __nccwpck_require__(7166)
-
-const { DOMPoint, DOMMatrix, DOMRect } = __nccwpck_require__(6345)
-
-const loadImage = __nccwpck_require__(5085)
-
-// Add Symbol.dispose support for GifEncoder (ECMAScript 2024 Explicit Resource Management)
-if (GifEncoder && typeof Symbol.dispose !== 'undefined') {
-  GifEncoder.prototype[Symbol.dispose] = function () {
-    this.dispose()
-  }
-}
-
-// napi-rs defines a class's accessors in name order. Chrome's TextMetrics
-// prototype has them in IDL order (text_metrics.idl), which for...in shows,
-// then the constructor: define them again in that order.
-for (const name of [
-  'width',
-  'actualBoundingBoxLeft',
-  'actualBoundingBoxRight',
-  'fontBoundingBoxAscent',
-  'fontBoundingBoxDescent',
-  'actualBoundingBoxAscent',
-  'actualBoundingBoxDescent',
-  'hangingBaseline',
-  'alphabeticBaseline',
-  'ideographicBaseline',
-  'emHeightAscent',
-  'emHeightDescent',
-  'constructor',
-]) {
-  const descriptor = Object.getOwnPropertyDescriptor(TextMetrics.prototype, name)
-  delete TextMetrics.prototype[name]
-  Object.defineProperty(TextMetrics.prototype, name, descriptor)
-}
-
-// Chrome's Symbol.toStringTag, an own property of each prototype. The
-// canvas and Image classes take their HTML element names; SVGCanvas has no
-// counterpart and no tag.
-for (const [Class, tag] of [
-  [CanvasRenderingContext2D, 'CanvasRenderingContext2D'],
-  [CanvasGradient, 'CanvasGradient'],
-  [CanvasPattern, 'CanvasPattern'],
-  [Path2D, 'Path2D'],
-  [NativeImageData, 'ImageData'],
-  [TextMetrics, 'TextMetrics'],
-  [CanvasElement, 'HTMLCanvasElement'],
-  [Image, 'HTMLImageElement'],
-]) {
-  Object.defineProperty(Class.prototype, Symbol.toStringTag, { value: tag, configurable: true })
-}
-
-const SvgExportFlag = {
-  ConvertTextToPaths: 0x01,
-  NoPrettyXML: 0x02,
-  RelativePathEncoding: 0x04,
-}
-
-if (!('families' in GlobalFonts)) {
-  Object.defineProperty(GlobalFonts, 'families', {
-    get: function () {
-      return JSON.parse(GlobalFonts.getFamilies().toString())
-    },
-  })
-}
-
-if (!('has' in GlobalFonts)) {
-  Object.defineProperty(GlobalFonts, 'has', {
-    value: function has(name) {
-      return !!JSON.parse(GlobalFonts.getFamilies().toString()).find(({ family }) => family === name)
-    },
-    configurable: false,
-    enumerable: false,
-    writable: false,
-  })
-}
-
-// Re-evaluating this module (Jest resets its module registry per test
-// file; the .node binding and its prototypes stay loaded) must wrap the
-// native methods again, not the previous wrappers: their argument padding
-// would corrupt the argument count the native methods read.
-const NATIVE_METHODS = Symbol.for('@napi-rs/canvas:native-methods')
-function nativeMethods(proto) {
-  let stash = proto[NATIVE_METHODS]
-  if (stash === undefined) {
-    stash = {}
-    Object.defineProperty(proto, NATIVE_METHODS, { value: stash })
-  }
-  return stash
-}
-
-const canvasNative = nativeMethods(CanvasElement.prototype)
-const _toBlob = (canvasNative.toBlob ??= CanvasElement.prototype.toBlob)
-const _convertToBlob = (canvasNative.convertToBlob ??= CanvasElement.prototype.convertToBlob)
-// A native method of CanvasElement for the receiver check: with no arguments
-// it has no side effects.
-const canvasBrand = (canvasNative.getContext ??= CanvasElement.prototype.getContext)
-if ('Blob' in globalThis) {
-  // toBlob(callback, type, quality), as Chrome: the receiver, the argument
-  // count and the callback are checked first, then the native method converts
-  // the type and encodes. The callback gets the Blob, or null without pixels
-  // or when the encoder fails, from a task. A throw in it is an uncaught
-  // exception, as in Chrome (window.onerror).
-  CanvasElement.prototype.toBlob = function toBlob(callback) {
-    if (arguments.length < 1) {
-      argumentCountError(canvasBrand, this, 'toBlob', 'HTMLCanvasElement', 1, 0)
-    }
-    if (typeof callback !== 'function') {
-      bindingTypeError(canvasBrand, this, 'toBlob', 'HTMLCanvasElement', "parameter 1 is not of type 'Function'.")
-    }
-    // Only the arguments that were passed: past arguments.length,
-    // arguments[i] reads Object.prototype[i], which Chrome never reads.
-    const type = arguments.length > 1 ? arguments[1] : undefined
-    const quality = arguments.length > 2 ? arguments[2] : undefined
-    _toBlob.call(this, type, quality).then(
-      (result) => {
-        const blob = result === null ? null : new Blob([result.data], { type: result.type })
-        queueMicrotask(() => callback(blob))
-      },
-      () => queueMicrotask(() => callback(null)),
-    )
-  }
-  // convertToBlob(options): Chrome's OffscreenCanvas method. An options error
-  // rejects the promise, as a WebIDL conversion error of a promise method.
-  CanvasElement.prototype.convertToBlob = function convertToBlob() {
-    let pending
-    try {
-      pending = _convertToBlob.call(this, arguments.length > 0 ? arguments[0] : undefined)
-    } catch (error) {
-      return Promise.reject(error)
-    }
-    return pending.then((result) => new Blob([result.data], { type: result.type }))
-  }
-} else {
-  // oxlint-disable-next-line no-unused-vars
-  CanvasElement.prototype.toBlob = function toBlob(callback, mimeType, quality) {
-    callback(null)
-  }
-  // oxlint-disable-next-line no-unused-vars
-  CanvasElement.prototype.convertToBlob = function convertToBlob(options) {
-    return Promise.reject(new Error('Blob is not supported in this environment'))
-  }
-}
-
-const ctxNative = nativeMethods(CanvasRenderingContext2D.prototype)
-const _getTransform = (ctxNative.getTransform ??= CanvasRenderingContext2D.prototype.getTransform)
-
-CanvasRenderingContext2D.prototype.getTransform = function getTransform() {
-  const transform = _getTransform.apply(this, arguments)
-  // monkey patched, skip
-  if (transform instanceof DOMMatrix) {
-    return transform
-  }
-  const { a, b, c, d, e, f } = transform
-  return new DOMMatrix([a, b, c, d, e, f])
-}
-
-// Chrome checks the receiver ('Illegal invocation'), then the argument count,
-// before it converts any argument. `brand` is a native method of the class: a
-// call on another receiver throws 'Illegal invocation'. As Blink's binding
-// errors, the stack keeps the bare message and `message` gets the prefix, as
-// an enumerable own property.
-function argumentCountError(brand, self, method, iface, required, present) {
-  brand.call(self)
-  const message = `${required} argument${required === 1 ? '' : 's'} required, but only ${present} present.`
-  const error = new TypeError(message)
-  void error.stack
-  Object.defineProperty(error, 'message', {
-    value: `Failed to execute '${method}' on '${iface}': ${message}`,
-    writable: true,
-    enumerable: true,
-    configurable: true,
-  })
-  throw error
-}
-
-// A TypeError as Blink's bindings throw it after the receiver check, with the
-// message formatted as argumentCountError does.
-function bindingTypeError(brand, self, method, iface, message) {
-  brand.call(self)
-  const error = new TypeError(message)
-  void error.stack
-  Object.defineProperty(error, 'message', {
-    value: `Failed to execute '${method}' on '${iface}': ${message}`,
-    writable: true,
-    enumerable: true,
-    configurable: true,
-  })
-  throw error
-}
-
-// Wraps `proto[method]` with Chrome's argument count check; the wrapper's
-// `length` is the required argument count, as Chrome's Function.length.
-// napi pads missing arguments with undefined, so the native method cannot
-// tell f(1) from f(1, undefined); an explicit undefined counts in Chrome.
-function requireArguments(proto, brand, iface, method, required) {
-  const stash = nativeMethods(proto)
-  const native = (stash[method] ??= proto[method])
-  const wrapper = {
-    [method]() {
-      if (arguments.length < required) {
-        argumentCountError(brand, this, method, iface, required, arguments.length)
-      }
-      return native.apply(this, arguments)
-    },
-  }[method]
-  Object.defineProperty(wrapper, 'length', { value: required })
-  proto[method] = wrapper
-}
-
-const ctxBrand = CanvasRenderingContext2D.prototype.getContextAttributes
-for (const [method, required] of [
-  ['arc', 5],
-  ['arcTo', 5],
-  ['bezierCurveTo', 6],
-  ['clearRect', 4],
-  ['createConicGradient', 3],
-  ['createLinearGradient', 4],
-  ['createRadialGradient', 6],
-  ['ellipse', 7],
-  ['fillRect', 4],
-  ['fillText', 3],
-  ['getImageData', 4],
-  ['lineTo', 2],
-  ['measureText', 1],
-  ['moveTo', 2],
-  ['quadraticCurveTo', 4],
-  ['rect', 4],
-  ['rotate', 1],
-  ['roundRect', 4],
-  ['scale', 2],
-  ['setLineDash', 1],
-  ['strokeRect', 4],
-  ['strokeText', 3],
-  ['transform', 6],
-  ['translate', 2],
-]) {
-  requireArguments(CanvasRenderingContext2D.prototype, ctxBrand, 'CanvasRenderingContext2D', method, required)
-}
-
-// getContext(contextId, options): Chrome needs the id. The native method is
-// its own brand: with no arguments it converts undefined to 'undefined' and
-// returns null, without side effects.
-for (const [Class, iface] of [
-  [CanvasElement, 'HTMLCanvasElement'],
-  [SVGCanvas, 'SVGCanvas'],
-]) {
-  const stash = nativeMethods(Class.prototype)
-  requireArguments(Class.prototype, (stash.getContext ??= Class.prototype.getContext), iface, 'getContext', 1)
-}
-
-const pathBrand = Path2D.prototype.getFillType
-for (const [method, required] of [
-  ['arc', 5],
-  ['arcTo', 5],
-  ['bezierCurveTo', 6],
-  ['ellipse', 7],
-  ['lineTo', 2],
-  ['moveTo', 2],
-  ['quadraticCurveTo', 4],
-  ['rect', 4],
-  ['roundRect', 4],
-]) {
-  requireArguments(Path2D.prototype, pathBrand, 'Path2D', method, required)
-}
-
-// The argument-count markers for 0 to 9 arguments. napi pads missing
-// arguments with undefined, so the wrappers below pass the real count after
-// the positional arguments, as one of these markers: the native methods read
-// a count only from a marker, and any other value there (from a raw
-// js-binding call) is an extra argument.
-const ARGUMENT_COUNTS = _argumentCounts()
-
-// new ImageData(): Chrome checks `new` and the real argument count before it
-// picks an overload (image_data.idl). The class napi-rs makes sees neither,
-// so a native function checks them and builds the instance itself, from
-// new.target.prototype. Instances share the class prototype, so instanceof
-// works for those that createImageData and getImageData return.
-const ImageData = _imageDataConstructor()
-Object.defineProperty(ImageData, 'length', { value: 2 })
-Object.defineProperty(ImageData, 'prototype', { value: NativeImageData.prototype, writable: false })
-Object.defineProperty(NativeImageData.prototype, 'constructor', {
-  value: ImageData,
-  writable: true,
-  enumerable: false,
-  configurable: true,
-})
-
-// What the wrappers below pass after their `n` positional arguments, for a
-// call with `count` (1 to `n`) of them, the last one `last`. Without a marker
-// the native method counts up to the last argument that is not undefined:
-// that is `count` unless `last` is an explicit undefined, and only then is
-// the marker needed.
-function argumentCount(count, last) {
-  return last === undefined ? ARGUMENT_COUNTS[count] : undefined
-}
-
-// fill(), clip(), stroke(), isPointInPath() and isPointInStroke(): WebIDL
-// picks the overload from the argument count (canvas_2d_recorder_context.idl),
-// and an explicit undefined counts: fill(path, undefined) is the nonzero
-// fill of path, fill(undefined, 'evenodd') a TypeError.
-// These wrappers and drawImage's read only the arguments the call has: past
-// arguments.length, arguments[i] would read Object.prototype[i], which
-// Chrome never reads.
-const _fill = (ctxNative.fill ??= CanvasRenderingContext2D.prototype.fill)
-CanvasRenderingContext2D.prototype.fill = function fill() {
-  const count = Math.min(arguments.length, 2)
-  return _fill.call(
-    this,
-    count > 0 ? arguments[0] : undefined,
-    count > 1 ? arguments[1] : undefined,
-    count === 0 ? undefined : argumentCount(count, arguments[count - 1]),
-  )
-}
-
-const _clip = (ctxNative.clip ??= CanvasRenderingContext2D.prototype.clip)
-CanvasRenderingContext2D.prototype.clip = function clip() {
-  const count = Math.min(arguments.length, 2)
-  return _clip.call(
-    this,
-    count > 0 ? arguments[0] : undefined,
-    count > 1 ? arguments[1] : undefined,
-    count === 0 ? undefined : argumentCount(count, arguments[count - 1]),
-  )
-}
-
-const _stroke = (ctxNative.stroke ??= CanvasRenderingContext2D.prototype.stroke)
-CanvasRenderingContext2D.prototype.stroke = function stroke() {
-  if (arguments.length === 0) {
-    return _stroke.call(this, undefined, undefined)
-  }
-  const path = arguments[0]
-  return _stroke.call(this, path, argumentCount(1, path))
-}
-
-const _isPointInPath = (ctxNative.isPointInPath ??= CanvasRenderingContext2D.prototype.isPointInPath)
-CanvasRenderingContext2D.prototype.isPointInPath = function isPointInPath() {
-  if (arguments.length < 2) {
-    argumentCountError(ctxBrand, this, 'isPointInPath', 'CanvasRenderingContext2D', 2, arguments.length)
-  }
-  const count = Math.min(arguments.length, 4)
-  return _isPointInPath.call(
-    this,
-    arguments[0],
-    arguments[1],
-    count > 2 ? arguments[2] : undefined,
-    count > 3 ? arguments[3] : undefined,
-    // (x, y, undefined) converts as (x, y) when x is not an object (only an
-    // object can be a Path2D), so the count is not needed.
-    count === 3 && typeof arguments[0] !== 'object' ? undefined : argumentCount(count, arguments[count - 1]),
-  )
-}
-Object.defineProperty(CanvasRenderingContext2D.prototype.isPointInPath, 'length', { value: 2 })
-
-const _isPointInStroke = (ctxNative.isPointInStroke ??= CanvasRenderingContext2D.prototype.isPointInStroke)
-CanvasRenderingContext2D.prototype.isPointInStroke = function isPointInStroke() {
-  if (arguments.length < 2) {
-    argumentCountError(ctxBrand, this, 'isPointInStroke', 'CanvasRenderingContext2D', 2, arguments.length)
-  }
-  const count = Math.min(arguments.length, 3)
-  return _isPointInStroke.call(
-    this,
-    arguments[0],
-    arguments[1],
-    count > 2 ? arguments[2] : undefined,
-    argumentCount(count, arguments[count - 1]),
-  )
-}
-Object.defineProperty(CanvasRenderingContext2D.prototype.isPointInStroke, 'length', { value: 2 })
-
-// A TypeError as Chrome's bindings throw it, as in argumentCountError: the
-// stack keeps the bare message, and `message` gets the prefix.
-function contextTypeError(prefix, message) {
-  const error = new TypeError(message)
-  void error.stack
-  Object.defineProperty(error, 'message', {
-    value: prefix + message,
-    writable: true,
-    enumerable: true,
-    configurable: true,
-  })
-  return error
-}
-
-// An `unrestricted double` member of a matrix dictionary; undefined when it
-// is absent. The native ToNumber keeps the engine's texts, and the error
-// names the member, as in Chrome.
-function matrixMember(value, key, dictionary, prefix) {
-  if (typeof value === 'number' || value === undefined) return value
-  return toNumber(value, `${prefix}Failed to read the '${key}' property from '${dictionary}': `)
-}
-
-// a and m11 (and so on) disagree: both given and not equal. Two NaNs agree.
-const mismatch = (x, y) => x !== undefined && y !== undefined && x !== y && (x === x || y === y)
-// A 3D member against its identity value; absent is the identity. As C++
-// truthiness, NaN counts as 3D and -0 as 0.
-const notZero = (v) => v !== undefined && v !== 0
-const notOne = (v) => v !== undefined && v !== 1
-
-// The matrix of a DOMMatrix2DInit, or of a DOMMatrixInit when `full`, as
-// [m11, m12, m21, m22, m41, m42]; undefined and null are {}. As Blink's
-// bindings, every member is read with [[Get]], in order (a..f, m11, m12,
-// m21, m22, m41, m42, then is2D and m13..m44), then checked as
-// DOMMatrixReadOnly::ValidateAndFixup (dom_matrix_read_only.cc). A DOMMatrix
-// is read the same way: an own property, a patched getter or a Proxy may
-// make its members disagree. The result is one shared array: read it before
-// any other user code runs.
-const MATRIX = [1, 0, 0, 1, 0, 0]
-function matrix2DFromInit(init, prefix, full) {
-  if (init === undefined || init === null) {
-    MATRIX[0] = 1
-    MATRIX[1] = 0
-    MATRIX[2] = 0
-    MATRIX[3] = 1
-    MATRIX[4] = 0
-    MATRIX[5] = 0
-    return MATRIX
-  }
-  if (typeof init !== 'object' && typeof init !== 'function') {
-    throw contextTypeError(prefix, `The provided value is not of type '${full ? 'DOMMatrixInit' : 'DOMMatrix2DInit'}'.`)
-  }
-  const D2 = 'DOMMatrix2DInit'
-  const a = matrixMember(init.a, 'a', D2, prefix)
-  const b = matrixMember(init.b, 'b', D2, prefix)
-  const c = matrixMember(init.c, 'c', D2, prefix)
-  const d = matrixMember(init.d, 'd', D2, prefix)
-  const e = matrixMember(init.e, 'e', D2, prefix)
-  const f = matrixMember(init.f, 'f', D2, prefix)
-  const m11 = matrixMember(init.m11, 'm11', D2, prefix)
-  const m12 = matrixMember(init.m12, 'm12', D2, prefix)
-  const m21 = matrixMember(init.m21, 'm21', D2, prefix)
-  const m22 = matrixMember(init.m22, 'm22', D2, prefix)
-  const m41 = matrixMember(init.m41, 'm41', D2, prefix)
-  const m42 = matrixMember(init.m42, 'm42', D2, prefix)
-  let is3DIn2D = false
-  if (full) {
-    const D = 'DOMMatrixInit'
-    const is2D = init.is2D
-    const m13 = matrixMember(init.m13, 'm13', D, prefix)
-    const m14 = matrixMember(init.m14, 'm14', D, prefix)
-    const m23 = matrixMember(init.m23, 'm23', D, prefix)
-    const m24 = matrixMember(init.m24, 'm24', D, prefix)
-    const m31 = matrixMember(init.m31, 'm31', D, prefix)
-    const m32 = matrixMember(init.m32, 'm32', D, prefix)
-    const m33 = matrixMember(init.m33, 'm33', D, prefix)
-    const m34 = matrixMember(init.m34, 'm34', D, prefix)
-    const m43 = matrixMember(init.m43, 'm43', D, prefix)
-    const m44 = matrixMember(init.m44, 'm44', D, prefix)
-    // is2D is a boolean member: ToBoolean when present.
-    is3DIn2D =
-      is2D !== undefined &&
-      !!is2D &&
-      (notZero(m31) ||
-        notZero(m32) ||
-        notZero(m13) ||
-        notZero(m23) ||
-        notZero(m43) ||
-        notZero(m14) ||
-        notZero(m24) ||
-        notZero(m34) ||
-        notOne(m33) ||
-        notOne(m44))
-  }
-  if (
-    mismatch(a, m11) ||
-    mismatch(b, m12) ||
-    mismatch(c, m21) ||
-    mismatch(d, m22) ||
-    mismatch(e, m41) ||
-    mismatch(f, m42)
-  ) {
-    throw contextTypeError(prefix, 'Property mismatch on matrix initialization.')
-  }
-  if (is3DIn2D) {
-    throw contextTypeError(prefix, 'The is2D member is set to true but the input matrix is a 3d matrix.')
-  }
-  MATRIX[0] = m11 !== undefined ? m11 : a !== undefined ? a : 1
-  MATRIX[1] = m12 !== undefined ? m12 : b !== undefined ? b : 0
-  MATRIX[2] = m21 !== undefined ? m21 : c !== undefined ? c : 0
-  MATRIX[3] = m22 !== undefined ? m22 : d !== undefined ? d : 1
-  MATRIX[4] = m41 !== undefined ? m41 : e !== undefined ? e : 0
-  MATRIX[5] = m42 !== undefined ? m42 : f !== undefined ? f : 0
-  return MATRIX
-}
-
-// setTransform(): six or more arguments are six numbers, fewer a DOMMatrixInit
-// (canvas_2d_recorder_context.idl), and an explicit undefined counts. The
-// DOMMatrixInit is read above; the native method takes six numbers. It reads
-// a first argument that is not a number as a DOMMatrixInit, the form a raw
-// js-binding call may use, so ToNumber runs here for such an `a`.
-const _setTransform = (ctxNative.setTransform ??= CanvasRenderingContext2D.prototype.setTransform)
-// A cheap native method: on another receiver it throws 'Illegal invocation',
-// which Chrome checks before it converts any argument.
-const ctxReceiver = CanvasRenderingContext2D.prototype.isContextLost
-const SET_TRANSFORM = "Failed to execute 'setTransform' on 'CanvasRenderingContext2D': "
-CanvasRenderingContext2D.prototype.setTransform = function setTransform() {
-  if (arguments.length >= 6) {
-    let a = arguments[0]
-    if (typeof a !== 'number') {
-      ctxReceiver.call(this)
-      a = toNumber(a, SET_TRANSFORM)
-    }
-    return _setTransform.call(this, a, arguments[1], arguments[2], arguments[3], arguments[4], arguments[5])
-  }
-  // Past arguments.length, arguments[0] would read Object.prototype[0].
-  const init = arguments.length > 0 ? arguments[0] : undefined
-  if (init !== undefined && init !== null) ctxReceiver.call(this)
-  const m = matrix2DFromInit(init, SET_TRANSFORM, true)
-  return _setTransform.call(this, m[0], m[1], m[2], m[3], m[4], m[5])
-}
-
-// addPath(path, transform = {}): Chrome checks the receiver, the argument
-// count and the path, then reads the DOMMatrix2DInit, read above. The native
-// method takes six numbers after the path; anything else there is a
-// DOMMatrix2DInit, which only a raw js-binding call passes. Without a
-// transform (undefined or null is `{}`), a native method that takes only the
-// path adds it as it is; Chrome's Path2D has no such method, so it comes off
-// the prototype.
-const pathNative = nativeMethods(Path2D.prototype)
-const _addPath = (pathNative.addPath ??= Path2D.prototype.addPath)
-const _addPathWithoutTransform = (pathNative._addPathWithoutTransform ??= Path2D.prototype._addPathWithoutTransform)
-delete Path2D.prototype._addPathWithoutTransform
-const ADD_PATH = "Failed to execute 'addPath' on 'Path2D': "
-Path2D.prototype.addPath = function addPath() {
-  if (arguments.length < 1) {
-    argumentCountError(pathBrand, this, 'addPath', 'Path2D', 1, arguments.length)
-  }
-  const path = arguments[0]
-  // Past arguments.length, arguments[1] would read Object.prototype[1].
-  const transform = arguments.length > 1 ? arguments[1] : undefined
-  if (transform === undefined || transform === null) {
-    return _addPathWithoutTransform.call(this, path)
-  }
-  pathBrand.call(this)
-  try {
-    pathBrand.call(path)
-  } catch {
-    throw contextTypeError(ADD_PATH, "parameter 1 is not of type 'Path2D'.")
-  }
-  const m = matrix2DFromInit(transform, ADD_PATH, false)
-  return _addPath.call(this, path, m[0], m[1], m[2], m[3], m[4], m[5])
-}
-Object.defineProperty(Path2D.prototype.addPath, 'length', { value: 1 })
-
-// createImageData(): WebIDL picks the overload from the argument count, and an
-// explicit undefined counts: createImageData(imagedata, undefined) is the
-// (sw, sh) form.
-const _createImageData = (ctxNative.createImageData ??= CanvasRenderingContext2D.prototype.createImageData)
-
-CanvasRenderingContext2D.prototype.createImageData = function createImageData() {
-  const count = arguments.length
-  // Past arguments.length, arguments[i] would read Object.prototype[i]: pass
-  // undefined there, as napi pads missing arguments.
-  return _createImageData.call(
-    this,
-    count > 0 ? arguments[0] : undefined,
-    count > 1 ? arguments[1] : undefined,
-    count > 2 ? arguments[2] : undefined,
-    count > 3 ? arguments[3] : undefined,
-    ARGUMENT_COUNTS[Math.min(count, 4)],
-  )
-}
-Object.defineProperty(CanvasRenderingContext2D.prototype.createImageData, 'length', { value: 1 })
-
-// putImageData(imagedata, dx, dy) or (imagedata, dx, dy, dirtyX, dirtyY,
-// dirtyWidth, dirtyHeight): as in Chrome, it needs 3 arguments; the native
-// method picks the overload from the argument count (3 or 7).
-const _putImageData = (ctxNative.putImageData ??= CanvasRenderingContext2D.prototype.putImageData)
-
-CanvasRenderingContext2D.prototype.putImageData = function putImageData() {
-  const count = arguments.length
-  if (count < 3) {
-    argumentCountError(ctxBrand, this, 'putImageData', 'CanvasRenderingContext2D', 3, count)
-  }
-  // Past arguments.length, arguments[i] would read Object.prototype[i]: pass
-  // undefined there, as napi pads missing arguments.
-  return _putImageData.call(
-    this,
-    arguments[0],
-    arguments[1],
-    arguments[2],
-    count > 3 ? arguments[3] : undefined,
-    count > 4 ? arguments[4] : undefined,
-    count > 5 ? arguments[5] : undefined,
-    count > 6 ? arguments[6] : undefined,
-    ARGUMENT_COUNTS[Math.min(count, 7)],
-  )
-}
-Object.defineProperty(CanvasRenderingContext2D.prototype.putImageData, 'length', { value: 3 })
-
-// createPattern(image, repetitionType): as in Chrome, both arguments are
-// required, and the image is converted before the repetition, a
-// [LegacyNullToEmptyString] DOMString (canvas_2d_recorder_context.idl), so
-// null is '' and undefined is 'undefined'.
-const _createPattern = (ctxNative.createPattern ??= CanvasRenderingContext2D.prototype.createPattern)
-
-CanvasRenderingContext2D.prototype.createPattern = function createPattern(image, repetition) {
-  return _createPattern.call(this, image, repetition, ARGUMENT_COUNTS[Math.min(arguments.length, 4)])
-}
-
-// addColorStop(offset, color): both arguments are required. CanvasGradient
-// has no other native method to check the receiver first, so the native
-// method itself reads the real count from the marker after them.
-const gradientNative = nativeMethods(CanvasGradient.prototype)
-const _addColorStop = (gradientNative.addColorStop ??= CanvasGradient.prototype.addColorStop)
-CanvasGradient.prototype.addColorStop = function addColorStop(offset, color) {
-  return _addColorStop.call(this, offset, color, ARGUMENT_COUNTS[Math.min(arguments.length, 2)])
-}
-
-// Workaround for webpack bundling issue with drawImage
-// Store the original drawImage method
-const _drawImage = (ctxNative.drawImage ??= CanvasRenderingContext2D.prototype.drawImage)
-
-// Override drawImage to ensure proper type recognition in bundled environments.
-// As in Chrome, it needs 3 arguments; the native method picks the overload
-// from the argument count (3, 5 or 9).
-CanvasRenderingContext2D.prototype.drawImage = function drawImage() {
-  if (arguments.length < 3) {
-    argumentCountError(ctxBrand, this, 'drawImage', 'CanvasRenderingContext2D', 3, arguments.length)
-  }
-  let image = arguments[0]
-  // If the image is a Canvas-like object but not recognized due to bundling,
-  // we need to ensure it's properly identified
-  if (image && typeof image === 'object') {
-    // First check if it's a wrapped canvas object
-    if (image.canvas instanceof CanvasElement || image.canvas instanceof SVGCanvas) {
-      image = image.canvas
-    } else if (image._canvas instanceof CanvasElement || image._canvas instanceof SVGCanvas) {
-      image = image._canvas
-    }
-    // Then check if it's a Canvas-like object by checking for getContext method
-    else if (typeof image.getContext === 'function' && image.width && image.height) {
-      // If it has canvas properties but isn't recognized as CanvasElement or SVGCanvas,
-      // try to correct the prototype chain
-      if (!(image instanceof CanvasElement) && !(image instanceof SVGCanvas)) {
-        // Try to create a proper CanvasElement from the canvas-like object
-        // This helps when webpack has transformed the prototype chain
-        Object.setPrototypeOf(image, CanvasElement.prototype)
-      }
-    }
+  static fromFloat32Array (init) {
+    if (!(init instanceof Float32Array)) throw new TypeError('Expected Float32Array')
+    return new DOMMatrix(init)
   }
 
-  // Call the original drawImage with the potentially corrected image
-  const count = Math.min(arguments.length, 9)
-  return _drawImage.call(
-    this,
-    image,
-    arguments[1],
-    arguments[2],
-    count > 3 ? arguments[3] : undefined,
-    count > 4 ? arguments[4] : undefined,
-    count > 5 ? arguments[5] : undefined,
-    count > 6 ? arguments[6] : undefined,
-    count > 7 ? arguments[7] : undefined,
-    count > 8 ? arguments[8] : undefined,
-    argumentCount(count, arguments[count - 1]),
-  )
-}
-Object.defineProperty(CanvasRenderingContext2D.prototype.drawImage, 'length', { value: 3 })
-
-function createCanvas(width, height, flag) {
-  const isSvgBackend = typeof flag !== 'undefined'
-  return isSvgBackend ? new SVGCanvas(width, height, flag) : new CanvasElement(width, height)
-}
-
-class Canvas {
-  constructor(width, height, flag) {
-    return createCanvas(width, height, flag)
+  static fromFloat64Array (init) {
+    if (!(init instanceof Float64Array)) throw new TypeError('Expected Float64Array')
+    return new DOMMatrix(init)
   }
 
-  static [Symbol.hasInstance](instance) {
-    return instance instanceof CanvasElement || instance instanceof SVGCanvas
-  }
-}
+  [util.inspect.custom || 'inspect'] (depth, options) {
+    if (depth < 0) return '[DOMMatrix]'
 
-if (!process.env.DISABLE_SYSTEM_FONTS_LOAD) {
-  // Installed fonts and the per-user font folders: FreeType by default;
-  // CoreText's on macOS after setTextRenderer('system'). On macOS that is
-  // /Library/Fonts (all users) and ~/Library/Fonts, after
-  // /System/Library/Fonts, as CoreText lists them.
-  const homedirPath = homedir()
-  const userFontDirs =
-    {
-      win32: [join(homedirPath, 'AppData', 'Local', 'Microsoft', 'Windows', 'Fonts')],
-      darwin: ['/Library/Fonts', join(homedirPath, 'Library', 'Fonts')],
-      linux: [join('usr', 'local', 'share', 'fonts'), join(homedirPath, '.fonts')],
-    }[platform()] ?? []
-  GlobalFonts.enableSystemFonts(userFontDirs)
-}
-
-module.exports = {
-  clearAllCache,
-  setTextRenderer,
-  getTextRenderer,
-  Canvas,
-  createCanvas,
-  Path2D,
-  ImageData,
-  Image,
-  PathOp,
-  FillType,
-  StrokeCap,
-  StrokeJoin,
-  SvgExportFlag,
-  GlobalFonts: GlobalFonts,
-  convertSVGTextToPath,
-  DOMPoint,
-  DOMMatrix,
-  DOMRect,
-  loadImage,
-  FontKey,
-  // Export these for better webpack compatibility
-  CanvasElement,
-  SVGCanvas,
-  PDFDocument: PdfDocument,
-  // GIF encoding
-  GifEncoder,
-  GifDisposal,
-  // Lottie animation
-  LottieAnimation,
-}
-
-
-/***/ }),
-
-/***/ 7166:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-// prettier-ignore
-/* eslint-disable */
-// @ts-nocheck
-/* auto-generated by NAPI-RS */
-
-const { readFileSync } = __nccwpck_require__(9896)
-let nativeBinding = null
-const loadErrors = []
-
-const isMusl = () => {
-  let musl = false
-  if (process.platform === 'linux') {
-    musl = isMuslFromFilesystem()
-    if (musl === null) {
-      musl = isMuslFromReport()
-    }
-    if (musl === null) {
-      musl = isMuslFromChildProcess()
-    }
-  }
-  return musl
-}
-
-const isFileMusl = (f) => f.includes('libc.musl-') || f.includes('ld-musl-')
-
-const isMuslFromFilesystem = () => {
-  try {
-    return readFileSync('/usr/bin/ldd', 'utf-8').includes('musl')
-  } catch {
-    return null
+    return `DOMMatrix [
+      a: ${this.a}
+      b: ${this.b}
+      c: ${this.c}
+      d: ${this.d}
+      e: ${this.e}
+      f: ${this.f}
+      m11: ${this.m11}
+      m12: ${this.m12}
+      m13: ${this.m13}
+      m14: ${this.m14}
+      m21: ${this.m21}
+      m22: ${this.m22}
+      m23: ${this.m23}
+      m23: ${this.m23}
+      m31: ${this.m31}
+      m32: ${this.m32}
+      m33: ${this.m33}
+      m34: ${this.m34}
+      m41: ${this.m41}
+      m42: ${this.m42}
+      m43: ${this.m43}
+      m44: ${this.m44}
+      is2D: ${this.is2D}
+      isIdentity: ${this.isIdentity} ]`
   }
 }
-
-const isMuslFromReport = () => {
-  let report = null
-  if (typeof process.report?.getReport === 'function') {
-    process.report.excludeNetwork = true
-    report = process.report.getReport()
-  }
-  if (!report) {
-    return null
-  }
-  if (report.header && report.header.glibcVersionRuntime) {
-    return false
-  }
-  if (Array.isArray(report.sharedObjects)) {
-    if (report.sharedObjects.some(isFileMusl)) {
-      return true
-    }
-  }
-  return false
-}
-
-const isMuslFromChildProcess = () => {
-  try {
-    return (__nccwpck_require__(5317).execSync)('ldd --version', { encoding: 'utf8' }).includes('musl')
-  } catch (e) {
-    // If we reach this case, we don't know if the system is musl or not, so is better to just fallback to false
-    return false
-  }
-}
-
-function requireNative() {
-  if (process.env.NAPI_RS_NATIVE_LIBRARY_PATH) {
-    try {
-      return __WEBPACK_EXTERNAL_createRequire(import.meta.url)(process.env.NAPI_RS_NATIVE_LIBRARY_PATH)
-    } catch (err) {
-      loadErrors.push(err)
-    }
-  } else if (process.platform === 'android') {
-    if (process.arch === 'arm64') {
-      try {
-        return __nccwpck_require__(123)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(2178)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 'arm') {
-      try {
-        return __nccwpck_require__(3683)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(6976)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else {
-      loadErrors.push(new Error(`Unsupported architecture on Android ${process.arch}`))
-    }
-  } else if (process.platform === 'win32') {
-    if (process.arch === 'x64') {
-      if (
-        process.config?.variables?.shlib_suffix === 'dll.a' ||
-        process.config?.variables?.node_target_type === 'shared_library'
-      ) {
-        try {
-          return __nccwpck_require__(9780)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(75)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      } else {
-        try {
-          return __nccwpck_require__(6063)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(4980)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      }
-    } else if (process.arch === 'ia32') {
-      try {
-        return __nccwpck_require__(6830)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(2393)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 'arm64') {
-      try {
-        return __nccwpck_require__(5425)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(370)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else {
-      loadErrors.push(new Error(`Unsupported architecture on Windows: ${process.arch}`))
-    }
-  } else if (process.platform === 'darwin') {
-    try {
-      return __nccwpck_require__(508)
-    } catch (e) {
-      loadErrors.push(e)
-    }
-    try {
-      return __nccwpck_require__(6725)
-    } catch (e) {
-      loadErrors.push(e)
-    }
-    if (process.arch === 'x64') {
-      try {
-        return __nccwpck_require__(5847)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(4159)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 'arm64') {
-      try {
-        return __nccwpck_require__(2165)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(4418)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else {
-      loadErrors.push(new Error(`Unsupported architecture on macOS: ${process.arch}`))
-    }
-  } else if (process.platform === 'freebsd') {
-    if (process.arch === 'x64') {
-      try {
-        return __nccwpck_require__(7841)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(2968)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 'arm64') {
-      try {
-        return __nccwpck_require__(5347)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(5526)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else {
-      loadErrors.push(new Error(`Unsupported architecture on FreeBSD: ${process.arch}`))
-    }
-  } else if (process.platform === 'linux') {
-    if (process.arch === 'x64') {
-      if (isMusl()) {
-        try {
-          return __nccwpck_require__(3654)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(907)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      } else {
-        try {
-          return __nccwpck_require__(8429)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(353)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      }
-    } else if (process.arch === 'arm64') {
-      if (isMusl()) {
-        try {
-          return __nccwpck_require__(1408)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(201)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      } else {
-        try {
-          return __nccwpck_require__(5127)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(9026)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      }
-    } else if (process.arch === 'arm') {
-      if (isMusl()) {
-        try {
-          return __nccwpck_require__(8535)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(9411)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      } else {
-        try {
-          return __nccwpck_require__(1104)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(7859)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      }
-    } else if (process.arch === 'loong64') {
-      if (isMusl()) {
-        try {
-          return __nccwpck_require__(7637)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(8238)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      } else {
-        try {
-          return __nccwpck_require__(1132)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(3059)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      }
-    } else if (process.arch === 'riscv64') {
-      if (isMusl()) {
-        try {
-          return __nccwpck_require__(7675)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(1308)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      } else {
-        try {
-          return __nccwpck_require__(1506)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-        try {
-          return __nccwpck_require__(889)
-        } catch (e) {
-          loadErrors.push(e)
-        }
-      }
-    } else if (process.arch === 'ppc64') {
-      try {
-        return __nccwpck_require__(9052)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(7983)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 's390x') {
-      try {
-        return __nccwpck_require__(7162)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(7937)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else {
-      loadErrors.push(new Error(`Unsupported architecture on Linux: ${process.arch}`))
-    }
-  } else if (process.platform === 'openharmony') {
-    if (process.arch === 'arm64') {
-      try {
-        return __nccwpck_require__(5334)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(1213)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 'x64') {
-      try {
-        return __nccwpck_require__(964)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        return __nccwpck_require__(2967)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else if (process.arch === 'arm') {
-      try {
-        return __nccwpck_require__(4060)
-      } catch (e) {
-        loadErrors.push(e)
-      }
-      try {
-        const binding = __nccwpck_require__(423)
-        return binding
-      } catch (e) {
-        loadErrors.push(e)
-      }
-    } else {
-      loadErrors.push(new Error(`Unsupported architecture on OpenHarmony: ${process.arch}`))
-    }
-  } else {
-    loadErrors.push(new Error(`Unsupported OS: ${process.platform}, architecture: ${process.arch}`))
-  }
-}
-
-nativeBinding = requireNative()
-
-if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
-  let wasiBinding = null
-  let wasiBindingError = null
-  try {
-    wasiBinding = __nccwpck_require__(9759)
-    nativeBinding = wasiBinding
-  } catch (err) {
-    if (process.env.NAPI_RS_FORCE_WASI) {
-      wasiBindingError = err
-    }
-  }
-  if (!nativeBinding) {
-    try {
-      wasiBinding = __nccwpck_require__(2948)
-      nativeBinding = wasiBinding
-    } catch (err) {
-      if (process.env.NAPI_RS_FORCE_WASI) {
-        wasiBindingError.cause = err
-        loadErrors.push(err)
-      }
-    }
-  }
-}
-
-if (!nativeBinding) {
-  if (loadErrors.length > 0) {
-    throw new Error(
-      `Cannot find native binding. ` +
-        `npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). ` +
-        'Please try `npm i` again after removing both package-lock.json and node_modules directory.',
-      {
-        cause: loadErrors.reduce((err, cur) => {
-          cur.cause = err
-          return cur
-        }),
-      },
-    )
-  }
-  throw new Error(`Failed to load native binding`)
-}
-
-module.exports = nativeBinding
-module.exports.GlobalFonts = nativeBinding.GlobalFonts
-module.exports.CanvasElement = nativeBinding.CanvasElement
-module.exports.CanvasGradient = nativeBinding.CanvasGradient
-module.exports.CanvasPattern = nativeBinding.CanvasPattern
-module.exports.CanvasRenderingContext2D = nativeBinding.CanvasRenderingContext2D
-module.exports.FontKey = nativeBinding.FontKey
-module.exports.Image = nativeBinding.Image
-module.exports.ImageData = nativeBinding.ImageData
-module.exports.Path = nativeBinding.Path
-module.exports.PdfDocument = nativeBinding.PdfDocument
-module.exports.SVGCanvas = nativeBinding.SVGCanvas
-module.exports.ChromaSubsampling = nativeBinding.ChromaSubsampling
-module.exports.clearAllCache = nativeBinding.clearAllCache
-module.exports.convertSVGTextToPath = nativeBinding.convertSVGTextToPath
-module.exports.setTextRenderer = nativeBinding.setTextRenderer
-module.exports.getTextRenderer = nativeBinding.getTextRenderer
-module.exports.FillType = nativeBinding.FillType
-module.exports.PathOp = nativeBinding.PathOp
-module.exports.StrokeCap = nativeBinding.StrokeCap
-module.exports.StrokeJoin = nativeBinding.StrokeJoin
-module.exports.SvgExportFlag = nativeBinding.SvgExportFlag
-module.exports.GifEncoder = nativeBinding.GifEncoder
-module.exports.GifDisposal = nativeBinding.GifDisposal
-
-
-/***/ }),
-
-/***/ 5085:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const fs = __nccwpck_require__(9896)
-const { Readable } = __nccwpck_require__(2203)
-const { URL } = __nccwpck_require__(7016)
-
-const { Image } = __nccwpck_require__(7166)
-
-let http, https
-
-const MAX_REDIRECTS = 20
-// Image fires onerror with an Event, as browsers do; the Error behind it is
-// under this key.
-const IMAGE_ERROR = Symbol.for('@napi-rs/canvas/image-error')
-const REDIRECT_STATUSES = new Set([301, 302])
 
 /**
- * Loads the given source into canvas Image
- * @param {string|URL|Image|Buffer} source The image source to be loaded
- * @param {object} options Options passed to the loader
+ * Checks that `value` is a number and sets the value.
  */
-module.exports = async function loadImage(source, options = {}) {
-  // use the same buffer without copying if the source is a buffer
-  if (Buffer.isBuffer(source) || source instanceof Uint8Array) return createImage(source, options.alt)
-  // load readable stream as image
-  if (source instanceof Readable) return createImage(await consumeStream(source), options.alt)
-  // construct a Uint8Array if the source is ArrayBuffer or SharedArrayBuffer
-  if (source instanceof ArrayBuffer || source instanceof SharedArrayBuffer)
-    return createImage(new Uint8Array(source), options.alt)
-  // construct a buffer if the source is buffer-like
-  if (isBufferLike(source)) return createImage(Buffer.from(source), options.alt)
-  // if the source is Image instance, copy the image src to new image
-  if (source instanceof Image) return createImage(source.src, options.alt)
-  // A data: URL (the URL parser drops leading C0 controls and spaces) is
-  // the image's src, as in a browser: Image parses it with the Fetch data:
-  // URL processor. A URL object with the data: scheme too.
-  // An empty body fires onerror, so the promise settles (issue #1255).
-  if (typeof source === 'string' && isDataUrl(source)) return createImage(source, options.alt)
-  if (source instanceof URL && source.protocol === 'data:') return createImage(source.href, options.alt)
-  // if source is a string or URL instance
-  if (typeof source === 'string') {
-    // if the source exists as a file, construct image from that file
-    if (!source.startsWith('http') && !source.startsWith('https') && (await exists(source))) {
-      return createImage(source, options.alt)
-    } else {
-      // the source is a remote url here
-      source = new URL(source)
-      // attempt to download the remote source and construct image
-      const data = await new Promise((resolve, reject) =>
-        makeRequest(
-          source,
-          resolve,
-          reject,
-          typeof options.maxRedirects === 'number' && options.maxRedirects >= 0 ? options.maxRedirects : MAX_REDIRECTS,
-          options.requestOptions,
-        ),
-      )
-      return createImage(data, options.alt)
-    }
-  }
-
-  if (source instanceof URL) {
-    if (source.protocol === 'file:') {
-      // remove the leading slash on windows
-      return createImage(process.platform === 'win32' ? source.pathname.substring(1) : source.pathname, options.alt)
-    } else {
-      const data = await new Promise((resolve, reject) =>
-        makeRequest(
-          source,
-          resolve,
-          reject,
-          typeof options.maxRedirects === 'number' && options.maxRedirects >= 0 ? options.maxRedirects : MAX_REDIRECTS,
-          options.requestOptions,
-        ),
-      )
-      return createImage(data, options.alt)
-    }
-  }
-
-  // throw error as don't support that source
-  throw new TypeError('unsupported image source')
+function setNumber2D (receiver, index, value) {
+  if (typeof value !== 'number') throw new TypeError('Expected number')
+  return (receiver._values[index] = value)
 }
 
-function makeRequest(url, resolve, reject, redirectCount, requestOptions) {
-  const isHttps = url.protocol === 'https:'
-  // lazy load the lib
-  const lib = isHttps ? (!https ? (https = __nccwpck_require__(5692)) : https) : !http ? (http = __nccwpck_require__(8611)) : http
+/**
+ * Checks that `value` is a number, sets `_is2D = false` if necessary and sets
+ * the value.
+ */
+function setNumber3D (receiver, index, value) {
+  if (typeof value !== 'number') throw new TypeError('Expected number')
+  if (index === M33 || index === M44) {
+    if (value !== 1) receiver._is2D = false
+  } else if (value !== 0) receiver._is2D = false
+  return (receiver._values[index] = value)
+}
 
-  lib
-    .get(url.toString(), requestOptions || {}, (res) => {
-      try {
-        const shouldRedirect = REDIRECT_STATUSES.has(res.statusCode) && typeof res.headers.location === 'string'
-        if (shouldRedirect && redirectCount > 0)
-          return makeRequest(
-            new URL(res.headers.location, url.origin),
-            resolve,
-            reject,
-            redirectCount - 1,
-            requestOptions,
-          )
-        if (typeof res.statusCode === 'number' && (res.statusCode < 200 || res.statusCode >= 300)) {
-          return reject(new Error(`remote source rejected with status code ${res.statusCode}`))
-        }
+Object.defineProperties(DOMMatrix.prototype, {
+  m11: { get () { return this._values[M11] }, set (v) { return setNumber2D(this, M11, v) } },
+  m12: { get () { return this._values[M12] }, set (v) { return setNumber2D(this, M12, v) } },
+  m13: { get () { return this._values[M13] }, set (v) { return setNumber3D(this, M13, v) } },
+  m14: { get () { return this._values[M14] }, set (v) { return setNumber3D(this, M14, v) } },
+  m21: { get () { return this._values[M21] }, set (v) { return setNumber2D(this, M21, v) } },
+  m22: { get () { return this._values[M22] }, set (v) { return setNumber2D(this, M22, v) } },
+  m23: { get () { return this._values[M23] }, set (v) { return setNumber3D(this, M23, v) } },
+  m24: { get () { return this._values[M24] }, set (v) { return setNumber3D(this, M24, v) } },
+  m31: { get () { return this._values[M31] }, set (v) { return setNumber3D(this, M31, v) } },
+  m32: { get () { return this._values[M32] }, set (v) { return setNumber3D(this, M32, v) } },
+  m33: { get () { return this._values[M33] }, set (v) { return setNumber3D(this, M33, v) } },
+  m34: { get () { return this._values[M34] }, set (v) { return setNumber3D(this, M34, v) } },
+  m41: { get () { return this._values[M41] }, set (v) { return setNumber2D(this, M41, v) } },
+  m42: { get () { return this._values[M42] }, set (v) { return setNumber2D(this, M42, v) } },
+  m43: { get () { return this._values[M43] }, set (v) { return setNumber3D(this, M43, v) } },
+  m44: { get () { return this._values[M44] }, set (v) { return setNumber3D(this, M44, v) } },
 
-        consumeStream(res).then(resolve, reject)
-      } catch (err) {
-        reject(err)
+  a: { get () { return this.m11 }, set (v) { return (this.m11 = v) } },
+  b: { get () { return this.m12 }, set (v) { return (this.m12 = v) } },
+  c: { get () { return this.m21 }, set (v) { return (this.m21 = v) } },
+  d: { get () { return this.m22 }, set (v) { return (this.m22 = v) } },
+  e: { get () { return this.m41 }, set (v) { return (this.m41 = v) } },
+  f: { get () { return this.m42 }, set (v) { return (this.m42 = v) } },
+
+  is2D: { get () { return this._is2D } }, // read-only
+
+  isIdentity: {
+    get () {
+      const values = this._values
+      return (values[M11] === 1 && values[M12] === 0 && values[M13] === 0 && values[M14] === 0 &&
+             values[M21] === 0 && values[M22] === 1 && values[M23] === 0 && values[M24] === 0 &&
+             values[M31] === 0 && values[M32] === 0 && values[M33] === 1 && values[M34] === 0 &&
+             values[M41] === 0 && values[M42] === 0 && values[M43] === 0 && values[M44] === 1)
+    }
+  },
+
+  toJSON: {
+    value() {
+      return {
+        a: this.a,
+        b: this.b,
+        c: this.c,
+        d: this.d,
+        e: this.e,
+        f: this.f,
+        m11: this.m11,
+        m12: this.m12,
+        m13: this.m13,
+        m14: this.m14,
+        m21: this.m21,
+        m22: this.m22,
+        m23: this.m23,
+        m23: this.m23,
+        m31: this.m31,
+        m32: this.m32,
+        m33: this.m33,
+        m34: this.m34,
+        m41: this.m41,
+        m42: this.m42,
+        m43: this.m43,
+        m44: this.m44,
+        is2D: this.is2D,
+        isIdentity: this.isIdentity,
       }
-    })
-    .on('error', reject)
+    }
+  }
+})
+
+/**
+ * Instantiates a DOMMatrix, bypassing the constructor.
+ * @param {Float64Array} values Value to assign to `_values`. This is assigned
+ *   without copying (okay because all usages are followed by a  multiply).
+ */
+function newInstance (values) {
+  const instance = Object.create(DOMMatrix.prototype)
+  instance.constructor = DOMMatrix
+  instance._is2D = true
+  instance._values = values
+  return instance
 }
 
-// use stream/consumers in the future?
-function consumeStream(res) {
-  return new Promise((resolve, reject) => {
-    const chunks = []
-
-    res.on('data', (chunk) => chunks.push(chunk))
-    res.on('end', () => resolve(Buffer.concat(chunks)))
-    res.on('error', reject)
-  })
+function multiply (A, B) {
+  const dest = new Float64Array(16)
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      let sum = 0
+      for (let k = 0; k < 4; k++) {
+        sum += A[i * 4 + k] * B[k * 4 + j]
+      }
+      dest[i * 4 + j] = sum
+    }
+  }
+  return dest
 }
 
-async function createImage(src, alt) {
-  // Empty Buffer / Uint8Array: Image follows the HTML spec (silent completion,
-  // no events) so the promise below would hang. Reject upfront.
-  // See https://github.com/Brooooooklyn/canvas/issues/1255
-  if ((Buffer.isBuffer(src) || src instanceof Uint8Array) && src.length === 0) {
-    throw new Error('loadImage: empty image data')
+module.exports = { DOMMatrix, DOMPoint }
+
+
+/***/ }),
+
+/***/ 8914:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+const fs = __nccwpck_require__(9896);
+// https://github.com/yarnpkg/berry/blob/fe0418084777ccd7a1524b3315102da9d5ce6a9f/packages/yarnpkg-core/sources/nodeUtils.ts#L28
+function getLibc() {
+  // As of 2025, linux is the only possible process.platform value that does not
+  // imply the libc for Node's purposes. Technically mingw32 (a way to build and
+  // run software using glibc on Windows) exists and even has a node.js port,
+  // but no one in the broader node.js ecosystem seems to care about it. There
+  // have been issues in the past running getReport() on Windows.
+  if (process.platform !== 'linux') return null
+
+  let header
+  try {
+    header = fs.readFileSync('/usr/bin/ldd')
+  } catch {}
+
+  // Since the getReport can be prohibitely expensive (it also queries DNS
+  // which, if misconfigured, can take a long time to timeout), we first check
+  // if the ldd binary is glibc or musl, and only then run the getReport() if we
+  // can't determine the libc variant.
+  if (typeof header !== 'undefined') {
+    if (header && (header.includes('GLIBC') || header.includes('GNU libc') || header.includes('GNU C Library')))
+      return 'glibc'
+    if (header && header.includes('musl')) {
+      return 'musl'
+    }
   }
 
-  const image = new Image()
-  if (typeof alt === 'string') image.alt = alt
+  const report = process.report?.getReport() ?? {}
+  const sharedObjects = report.sharedObjects ?? []
 
-  return new Promise((resolve, reject) => {
-    image.onload = () => {
-      // Wait for bitmap decode before resolving. SVG sources fire onload
-      // synchronously inside the src setter, where napi >= 3.12 rejects
-      // reentrant &mut borrows of the Image, so decode on a microtask.
-      Promise.resolve()
-        .then(() => image.decode())
-        .then(() => resolve(image), reject)
+  // Matches the first group if libc, second group if musl
+  const libcRegExp = /\/(?:(ld-linux-|[^/]+-linux-gnu\/)|(libc.musl-|ld-musl-))/
+
+  for (const entry of sharedObjects) {
+    const match = entry.match(libcRegExp)
+
+    if (match) {
+      if (match[1]) return 'glibc'
+      if (match[2]) return 'musl'
+      throw new Error('Assertion failed: Expected the libc variant to have been detected')
     }
-    image.onerror = (event) => reject((event && event[IMAGE_ERROR]) || event)
-    image.src = src
-  })
+  }
 }
 
-// The URL parser skips leading C0 controls and spaces; the scheme is
-// ASCII case-insensitive.
-function isDataUrl(src) {
-  let i = 0
-  while (i < src.length && src.charCodeAt(i) <= 0x20) i++
-  return src.slice(i, i + 5).toLowerCase() === 'data:'
+// mirror changes here with build.zig
+function requireAddon() {
+  switch (process.platform) {
+    case 'darwin':
+      switch (process.arch) {
+        case 'arm64': return __nccwpck_require__(829);
+        case 'x64': return __nccwpck_require__(4711);
+      }
+      break;
+    case 'linux':
+      switch (process.arch) {
+        case 'arm': return __nccwpck_require__(6274);
+        case 'ia32':
+          switch (getLibc()) {
+            case 'musl': return __nccwpck_require__(2216);
+            default: return __nccwpck_require__(8509);
+          }
+        case 'arm64':
+          switch (getLibc()) {
+            case 'musl': return __nccwpck_require__(8442);
+            default: return __nccwpck_require__(2487);
+          }
+        case 'riscv64': return __nccwpck_require__(2636);
+        case 'x64':
+          switch (getLibc()) {
+            case 'musl': return __nccwpck_require__(1408);
+            default: return __nccwpck_require__(2752);
+          }
+      }
+      break;
+    case 'win32':
+      switch (process.arch) {
+        case 'arm64': return __nccwpck_require__(1579);
+        case 'x64': return __nccwpck_require__(7457);
+        case 'ia32': return __nccwpck_require__(7213);
+      }
+      break;
+  }
+
+  return __nccwpck_require__(5187);
 }
 
-function isBufferLike(src) {
-  return (src && src.type === 'Buffer') || Array.isArray(src)
+const bindings = requireAddon()
+
+module.exports = bindings
+
+Object.defineProperty(bindings.Canvas.prototype, Symbol.toStringTag, {
+  value: 'HTMLCanvasElement',
+  configurable: true
+})
+
+Object.defineProperty(bindings.Image.prototype, Symbol.toStringTag, {
+  value: 'HTMLImageElement',
+  configurable: true
+})
+
+bindings.ImageData.prototype.toString = function () {
+	return '[object ImageData]'
 }
 
-async function exists(path) {
-  try {
-    await fs.promises.access(path, fs.constants.F_OK)
-    return true
-  } catch {
-    return false
+Object.defineProperty(bindings.ImageData.prototype, Symbol.toStringTag, {
+  value: 'ImageData',
+  configurable: true
+})
+
+bindings.CanvasGradient.prototype.toString = function () {
+	return '[object CanvasGradient]'
+}
+
+Object.defineProperty(bindings.CanvasGradient.prototype, Symbol.toStringTag, {
+  value: 'CanvasGradient',
+  configurable: true
+})
+
+Object.defineProperty(bindings.CanvasPattern.prototype, Symbol.toStringTag, {
+  value: 'CanvasPattern',
+  configurable: true
+})
+
+Object.defineProperty(bindings.CanvasRenderingContext2d.prototype, Symbol.toStringTag, {
+  value: 'CanvasRenderingContext2d',
+  configurable: true
+})
+
+Object.defineProperty(bindings.FontFace.prototype, Symbol.toStringTag, {
+  value: 'FontFace',
+  configurable: true
+})
+
+
+/***/ }),
+
+/***/ 7392:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+/*!
+ * Canvas
+ * Copyright (c) 2010 LearnBoost <tj@learnboost.com>
+ * MIT Licensed
+ */
+
+const bindings = __nccwpck_require__(8914)
+const Canvas = module.exports = bindings.Canvas
+const Context2d = __nccwpck_require__(127)
+const PNGStream = __nccwpck_require__(3685)
+const PDFStream = __nccwpck_require__(6084)
+const JPEGStream = __nccwpck_require__(2534)
+const FORMATS = ['image/png', 'image/jpeg']
+const util = __nccwpck_require__(9023)
+
+// TODO || is for Node.js pre-v6.6.0
+Canvas.prototype[util.inspect.custom || 'inspect'] = function () {
+  return `[Canvas ${this.width}x${this.height}]`
+}
+
+Canvas.prototype.getContext = function (contextType, contextAttributes) {
+  if (contextType == '2d') {
+    const ctx = this._context2d || (this._context2d = new Context2d(this, contextAttributes))
+    this.context = ctx
+    ctx.canvas = this
+    return ctx
+  }
+}
+
+Canvas.prototype.pngStream =
+Canvas.prototype.createPNGStream = function (options) {
+  return new PNGStream(this, options)
+}
+
+Canvas.prototype.pdfStream =
+Canvas.prototype.createPDFStream = function (options) {
+  return new PDFStream(this, options)
+}
+
+Canvas.prototype.jpegStream =
+Canvas.prototype.createJPEGStream = function (options) {
+  return new JPEGStream(this, options)
+}
+
+Canvas.prototype.toDataURL = function (a1, a2, a3) {
+  // valid arg patterns (args -> [type, opts, fn]):
+  // [] -> ['image/png', null, null]
+  // [qual] -> ['image/png', null, null]
+  // [undefined] -> ['image/png', null, null]
+  // ['image/png'] -> ['image/png', null, null]
+  // ['image/png', qual] -> ['image/png', null, null]
+  // [fn] -> ['image/png', null, fn]
+  // [type, fn] -> [type, null, fn]
+  // [undefined, fn] -> ['image/png', null, fn]
+  // ['image/png', qual, fn] -> ['image/png', null, fn]
+  // ['image/jpeg', fn] -> ['image/jpeg', null, fn]
+  // ['image/jpeg', opts, fn] -> ['image/jpeg', opts, fn]
+  // ['image/jpeg', qual, fn] -> ['image/jpeg', {quality: qual}, fn]
+  // ['image/jpeg', undefined, fn] -> ['image/jpeg', null, fn]
+  // ['image/jpeg'] -> ['image/jpeg', null, fn]
+  // ['image/jpeg', opts] -> ['image/jpeg', opts, fn]
+  // ['image/jpeg', qual] -> ['image/jpeg', {quality: qual}, fn]
+
+  let type = 'image/png'
+  let opts = {}
+  let fn
+
+  if (typeof a1 === 'function') {
+    fn = a1
+  } else {
+    if (typeof a1 === 'string' && FORMATS.includes(a1.toLowerCase())) {
+      type = a1.toLowerCase()
+    }
+
+    if (typeof a2 === 'function') {
+      fn = a2
+    } else {
+      if (typeof a2 === 'object') {
+        opts = a2
+      } else if (typeof a2 === 'number') {
+        opts = { quality: Math.max(0, Math.min(1, a2)) }
+      }
+
+      if (typeof a3 === 'function') {
+        fn = a3
+      } else if (undefined !== a3) {
+        throw new TypeError(`${typeof a3} is not a function`)
+      }
+    }
+  }
+
+  if (this.width === 0 || this.height === 0) {
+    // Per spec, if the bitmap has no pixels, return this string:
+    const str = 'data:,'
+    if (fn) {
+      setTimeout(() => fn(null, str))
+      return
+    } else {
+      return str
+    }
+  }
+
+  if (fn) {
+    this.toBuffer((err, buf) => {
+      if (err) return fn(err)
+      fn(null, `data:${type};base64,${buf.toString('base64')}`)
+    }, type, opts)
+  } else {
+    return `data:${type};base64,${this.toBuffer(type, opts).toString('base64')}`
   }
 }
 
 
 /***/ }),
 
-/***/ 6794:
-/***/ ((module) => {
+/***/ 127:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-(function(f){if(true){module.exports=f()}else { var g; }})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c=__WEBPACK_EXTERNAL_createRequire(import.meta.url);if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u=__WEBPACK_EXTERNAL_createRequire(import.meta.url),i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-// Word cloud layout by Jason Davies, https://www.jasondavies.com/wordcloud/
-// Algorithm due to Jonathan Feinberg, https://s3.amazonaws.com/static.mrfeinberg.com/bv_ch03.pdf
 
-const dispatch = require("d3-dispatch").dispatch;
 
-const RADIANS = Math.PI / 180;
+/*!
+ * Canvas - Context2d
+ * Copyright (c) 2010 LearnBoost <tj@learnboost.com>
+ * MIT Licensed
+ */
 
-const SPIRALS = {
-  archimedean: archimedeanSpiral,
-  rectangular: rectangularSpiral
-};
+const bindings = __nccwpck_require__(8914)
 
-const cw = 1 << 11 >> 5;
-const ch = 1 << 11;
+module.exports = bindings.CanvasRenderingContext2d
 
-module.exports = function() {
-  var size = [256, 256],
-      text = cloudText,
-      font = cloudFont,
-      fontSize = cloudFontSize,
-      fontStyle = cloudFontNormal,
-      fontWeight = cloudFontNormal,
-      padding = cloudPadding,
-      spiral = archimedeanSpiral,
-      words = [],
-      timeInterval = Infinity,
-      event = dispatch("word", "end"),
-      timer = null,
-      random = Math.random,
-      rotate = () => (~~(random() * 6) - 3) * 30,
-      cloud = {},
-      canvas = cloudCanvas;
 
-  cloud.canvas = function(_) {
-    return arguments.length ? (canvas = functor(_), cloud) : canvas;
-  };
+/***/ }),
 
-  cloud.start = function() {
-    var contextAndRatio = getContext(canvas()),
-        board = zeroArray((size[0] >> 5) * size[1]),
-        bounds = null,
-        n = words.length,
-        i = -1,
-        tags = [],
-        data = words.map(function(d, i) {
-          d.text = text.call(this, d, i);
-          d.font = font.call(this, d, i);
-          d.style = fontStyle.call(this, d, i);
-          d.weight = fontWeight.call(this, d, i);
-          d.rotate = rotate.call(this, d, i);
-          d.size = ~~fontSize.call(this, d, i);
-          d.padding = padding.call(this, d, i);
-          return d;
-        }).sort(function(a, b) { return b.size - a.size; });
+/***/ 123:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-    if (timer) clearInterval(timer);
-    timer = setInterval(step, 0);
-    step();
 
-    return cloud;
 
-    function step() {
-      var start = Date.now();
-      while (Date.now() - start < timeInterval && ++i < n && timer) {
-        var d = data[i];
-        d.x = (size[0] * (random() + .5)) >> 1;
-        d.y = (size[1] * (random() + .5)) >> 1;
-        cloudSprite(contextAndRatio, d, data, i);
-        if (d.hasText && place(board, d, bounds)) {
-          tags.push(d);
-          event.call("word", cloud, d);
-          if (bounds) cloudBounds(bounds, d);
-          else bounds = [{x: d.x + d.x0, y: d.y + d.y0}, {x: d.x + d.x1, y: d.y + d.y1}];
-          // Temporary hack
-          d.x -= size[0] >> 1;
-          d.y -= size[1] >> 1;
+/*!
+ * Canvas - Image
+ * Copyright (c) 2010 LearnBoost <tj@learnboost.com>
+ * MIT Licensed
+ */
+
+/**
+ * Module dependencies.
+ */
+
+const bindings = __nccwpck_require__(8914)
+const Image = module.exports = bindings.Image
+const util = __nccwpck_require__(9023)
+const { resolveObjectURL } = __nccwpck_require__(4573)
+
+const { GetSource, SetSource } = bindings
+
+Object.defineProperty(Image.prototype, 'src', {
+  /**
+   * src setter. Valid values:
+   *  * `data:` URI
+   *  * Node.js object URL
+   *  * Local file path
+   *  * HTTP or HTTPS URL
+   *  * Buffer containing image data (i.e. not a `data:` URI stored in a Buffer)
+   *
+   * @param {String|Buffer} val filename, buffer, data URI, URL
+   * @api public
+   */
+  set (val) {
+    const onerror = err => {
+      if (typeof this.onerror === 'function') {
+        this.onerror(err)
+      } else {
+        throw err
+      }
+    }
+
+    if (typeof val === 'string') {
+      if (/^\s*data:/.test(val)) { // data: URI
+        const commaI = val.indexOf(',')
+        // 'base64' must come before the comma
+        const isBase64 = val.lastIndexOf('base64', commaI) !== -1
+        const content = val.slice(commaI + 1)
+        setSource(this, Buffer.from(content, isBase64 ? 'base64' : 'utf8'), val)
+      } else if (/^\s*blob:nodedata:/.test(val)) { // Node.js object URL
+        const blob = resolveObjectURL(val)
+        if (!blob) {
+          onerror(new Error('Invalid object URL'))
+          return
         }
-      }
-      if (i >= n) {
-        cloud.stop();
-        event.call("end", cloud, tags, bounds);
-      }
-    }
-  }
 
-  cloud.stop = function() {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
-    for (const d of words) {
-      delete d.sprite;
-    }
-    return cloud;
-  };
-
-  function getContext(canvas) {
-    const context = canvas.getContext("2d", {willReadFrequently: true});
-
-    canvas.width = canvas.height = 1;
-    const ratio = Math.sqrt(context.getImageData(0, 0, 1, 1).data.length >> 2);
-    canvas.width = (cw << 5) / ratio;
-    canvas.height = ch / ratio;
-
-    context.fillStyle = context.strokeStyle = "red";
-
-    return {context, ratio};
-  }
-
-  function place(board, tag, bounds) {
-    var perimeter = [{x: 0, y: 0}, {x: size[0], y: size[1]}],
-        startX = tag.x,
-        startY = tag.y,
-        maxDelta = Math.sqrt(size[0] * size[0] + size[1] * size[1]),
-        s = spiral(size),
-        dt = random() < .5 ? 1 : -1,
-        t = -dt,
-        dxdy,
-        dx,
-        dy;
-
-    while (dxdy = s(t += dt)) {
-      dx = ~~dxdy[0];
-      dy = ~~dxdy[1];
-
-      if (Math.min(Math.abs(dx), Math.abs(dy)) >= maxDelta) break;
-
-      tag.x = startX + dx;
-      tag.y = startY + dy;
-
-      if (tag.x + tag.x0 < 0 || tag.y + tag.y0 < 0 ||
-          tag.x + tag.x1 > size[0] || tag.y + tag.y1 > size[1]) continue;
-      // TODO only check for collisions within current bounds.
-      if (!bounds || collideRects(tag, bounds)) {
-        if (!cloudCollide(tag, board, size[0])) {
-          var sprite = tag.sprite,
-              w = tag.width >> 5,
-              sw = size[0] >> 5,
-              lx = tag.x - (w << 4),
-              sx = lx & 0x7f,
-              msx = 32 - sx,
-              h = tag.y1 - tag.y0,
-              x = (tag.y + tag.y0) * sw + (lx >> 5),
-              last;
-          for (var j = 0; j < h; j++) {
-            last = 0;
-            for (var i = 0; i <= w; i++) {
-              board[x + i] |= (last << msx) | (i < w ? (last = sprite[j * w + i]) >>> sx : 0);
+        blob.arrayBuffer()
+          .then(data => {
+            setSource(this, Buffer.from(data), val)
+          })
+          .catch(onerror)
+      } else if (/^\s*https?:\/\//.test(val)) { // remote URL
+        fetch(val, {
+          method: 'GET',
+          headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36' }
+        })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`Server responded with ${res.status}`)
             }
-            x += sw;
-          }
-          return true;
-        }
+            return res.arrayBuffer()
+          })
+          .then(data => {
+            setSource(this, Buffer.from(data))
+          })
+          .catch(onerror)
+      } else { // local file path assumed
+        setSource(this, val)
       }
-    }
-    return false;
-  }
-
-  cloud.timeInterval = function(_) {
-    return arguments.length ? (timeInterval = _ == null ? Infinity : _, cloud) : timeInterval;
-  };
-
-  cloud.words = function(_) {
-    return arguments.length ? (words = _, cloud) : words;
-  };
-
-  cloud.size = function(_) {
-    return arguments.length ? (size = [+_[0], +_[1]], cloud) : size;
-  };
-
-  cloud.font = function(_) {
-    return arguments.length ? (font = functor(_), cloud) : font;
-  };
-
-  cloud.fontStyle = function(_) {
-    return arguments.length ? (fontStyle = functor(_), cloud) : fontStyle;
-  };
-
-  cloud.fontWeight = function(_) {
-    return arguments.length ? (fontWeight = functor(_), cloud) : fontWeight;
-  };
-
-  cloud.rotate = function(_) {
-    return arguments.length ? (rotate = functor(_), cloud) : rotate;
-  };
-
-  cloud.text = function(_) {
-    return arguments.length ? (text = functor(_), cloud) : text;
-  };
-
-  cloud.spiral = function(_) {
-    return arguments.length ? (spiral = SPIRALS[_] || _, cloud) : spiral;
-  };
-
-  cloud.fontSize = function(_) {
-    return arguments.length ? (fontSize = functor(_), cloud) : fontSize;
-  };
-
-  cloud.padding = function(_) {
-    return arguments.length ? (padding = functor(_), cloud) : padding;
-  };
-
-  cloud.random = function(_) {
-    return arguments.length ? (random = _, cloud) : random;
-  };
-
-  cloud.on = function() {
-    var value = event.on.apply(event, arguments);
-    return value === event ? cloud : value;
-  };
-
-  return cloud;
-};
-
-function cloudText(d) {
-  return d.text;
-}
-
-function cloudFont() {
-  return "serif";
-}
-
-function cloudFontNormal() {
-  return "normal";
-}
-
-function cloudFontSize(d) {
-  return Math.sqrt(d.value);
-}
-
-function cloudPadding() {
-  return 1;
-}
-
-// Fetches a monochrome sprite bitmap for the specified text.
-// Load in batches for speed.
-function cloudSprite(contextAndRatio, d, data, di) {
-  if (d.sprite) return;
-  var c = contextAndRatio.context,
-      ratio = contextAndRatio.ratio;
-
-  c.clearRect(0, 0, (cw << 5) / ratio, ch / ratio);
-  var x = 0,
-      y = 0,
-      maxh = 0,
-      n = data.length;
-  --di;
-  while (++di < n) {
-    d = data[di];
-    c.save();
-    c.font = d.style + " " + d.weight + " " + ~~((d.size + 1) / ratio) + "px " + d.font;
-    const metrics = c.measureText(d.text);
-    const anchor = -Math.floor(metrics.width / 2);
-    let w = (metrics.width + 1) * ratio;
-    let h = d.size << 1;
-    if (d.rotate) {
-      var sr = Math.sin(d.rotate * RADIANS),
-          cr = Math.cos(d.rotate * RADIANS),
-          wcr = w * cr,
-          wsr = w * sr,
-          hcr = h * cr,
-          hsr = h * sr;
-      w = (Math.max(Math.abs(wcr + hsr), Math.abs(wcr - hsr)) + 0x1f) >> 5 << 5;
-      h = ~~Math.max(Math.abs(wsr + hcr), Math.abs(wsr - hcr));
+    } else if (Buffer.isBuffer(val)) {
+      setSource(this, val)
     } else {
-      w = (w + 0x1f) >> 5 << 5;
+      const err = new Error('Invalid image source')
+      onerror(err)
     }
-    if (h > maxh) maxh = h;
-    if (x + w >= (cw << 5)) {
-      x = 0;
-      y += maxh;
-      maxh = 0;
-    }
-    if (y + h >= ch) break;
-    c.translate((x + (w >> 1)) / ratio, (y + (h >> 1)) / ratio);
-    if (d.rotate) c.rotate(d.rotate * RADIANS);
-    c.fillText(d.text, anchor, 0);
-    if (d.padding) c.lineWidth = 2 * d.padding, c.strokeText(d.text, anchor, 0);
-    c.restore();
-    d.width = w;
-    d.height = h;
-    d.xoff = x;
-    d.yoff = y;
-    d.x1 = w >> 1;
-    d.y1 = h >> 1;
-    d.x0 = -d.x1;
-    d.y0 = -d.y1;
-    d.hasText = true;
-    x += w;
+  },
+
+  get () {
+    // TODO https://github.com/Automattic/node-canvas/issues/118
+    return getSource(this)
+  },
+
+  configurable: true
+})
+
+// TODO || is for Node.js pre-v6.6.0
+Image.prototype[util.inspect.custom || 'inspect'] = function () {
+  return '[Image' +
+    (this.complete ? ':' + this.width + 'x' + this.height : '') +
+    (this.src ? ' ' + this.src : '') +
+    (this.complete ? ' complete' : '') +
+    ']'
+}
+
+function getSource (img) {
+  return img._originalSource || GetSource.call(img)
+}
+
+function setSource (img, src, origSrc) {
+  SetSource.call(img, src)
+  img._originalSource = origSrc
+}
+
+
+/***/ }),
+
+/***/ 2534:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+/*!
+ * Canvas - JPEGStream
+ * Copyright (c) 2010 LearnBoost <tj@learnboost.com>
+ * MIT Licensed
+ */
+
+const { Readable } = __nccwpck_require__(2203)
+function noop () {}
+
+class JPEGStream extends Readable {
+  constructor (canvas, options) {
+    super()
+
+    this.options = options
+    this.canvas = canvas
   }
-  var pixels = c.getImageData(0, 0, (cw << 5) / ratio, ch / ratio).data,
-      sprite = [];
-  while (--di >= 0) {
-    d = data[di];
-    if (!d.hasText) continue;
-    var w = d.width,
-        w32 = w >> 5,
-        h = d.y1 - d.y0;
-    // Zero the buffer
-    for (var i = 0; i < h * w32; i++) sprite[i] = 0;
-    x = d.xoff;
-    if (x == null) return;
-    y = d.yoff;
-    var seen = 0,
-        seenRow = -1;
-    for (var j = 0; j < h; j++) {
-      for (var i = 0; i < w; i++) {
-        var k = w32 * j + (i >> 5),
-            m = pixels[((y + j) * (cw << 5) + (x + i)) << 2] ? 1 << (31 - (i % 32)) : 0;
-        sprite[k] |= m;
-        seen |= m;
+
+  _read () {
+    // For now we're not controlling the c++ code's data emission, so we only
+    // call canvas.streamJPEGSync once and let it emit data at will.
+    this._read = noop
+
+    this.canvas.streamJPEGSync(this.options, (err, chunk) => {
+      if (err) {
+        this.emit('error', err)
+      } else if (chunk) {
+        this.push(chunk)
+      } else {
+        this.push(null)
       }
-      if (seen) seenRow = j;
-      else {
-        d.y0++;
-        h--;
-        j--;
-        y++;
-      }
-    }
-    d.y1 = d.y0 + seenRow;
-    d.sprite = sprite.slice(0, (d.y1 - d.y0) * w32);
-  }
-}
-
-// Use mask-based collision detection.
-function cloudCollide(tag, board, sw) {
-  sw >>= 5;
-  var sprite = tag.sprite,
-      w = tag.width >> 5,
-      lx = tag.x - (w << 4),
-      sx = lx & 0x7f,
-      msx = 32 - sx,
-      h = tag.y1 - tag.y0,
-      x = (tag.y + tag.y0) * sw + (lx >> 5),
-      last;
-  for (var j = 0; j < h; j++) {
-    last = 0;
-    for (var i = 0; i <= w; i++) {
-      if (((last << msx) | (i < w ? (last = sprite[j * w + i]) >>> sx : 0))
-          & board[x + i]) return true;
-    }
-    x += sw;
-  }
-  return false;
-}
-
-function cloudBounds(bounds, d) {
-  var b0 = bounds[0],
-      b1 = bounds[1];
-  if (d.x + d.x0 < b0.x) b0.x = d.x + d.x0;
-  if (d.y + d.y0 < b0.y) b0.y = d.y + d.y0;
-  if (d.x + d.x1 > b1.x) b1.x = d.x + d.x1;
-  if (d.y + d.y1 > b1.y) b1.y = d.y + d.y1;
-}
-
-function collideRects(a, b) {
-  return a.x + a.x1 > b[0].x && a.x + a.x0 < b[1].x && a.y + a.y1 > b[0].y && a.y + a.y0 < b[1].y;
-}
-
-function archimedeanSpiral(size) {
-  var e = size[0] / size[1];
-  return function(t) {
-    return [e * (t *= .1) * Math.cos(t), t * Math.sin(t)];
-  };
-}
-
-function rectangularSpiral(size) {
-  var dy = 4,
-      dx = dy * size[0] / size[1],
-      x = 0,
-      y = 0;
-  return function(t) {
-    var sign = t < 0 ? -1 : 1;
-    // See triangular numbers: T_n = n * (n + 1) / 2.
-    switch ((Math.sqrt(1 + 4 * sign * t) - sign) & 3) {
-      case 0:  x += dx; break;
-      case 1:  y += dy; break;
-      case 2:  x -= dx; break;
-      default: y -= dy; break;
-    }
-    return [x, y];
-  };
-}
-
-// TODO reuse arrays?
-function zeroArray(n) {
-  var a = [],
-      i = -1;
-  while (++i < n) a[i] = 0;
-  return a;
-}
-
-function cloudCanvas() {
-  return document.createElement("canvas");
-}
-
-function functor(d) {
-  return typeof d === "function" ? d : function() { return d; };
-}
-
-},{"d3-dispatch":2}],2:[function(require,module,exports){
-// https://d3js.org/d3-dispatch/ v1.0.6 Copyright 2019 Mike Bostock
-(function (global, factory) {
-typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(global = global || self, factory(global.d3 = global.d3 || {}));
-}(this, function (exports) { 'use strict';
-
-var noop = {value: function() {}};
-
-function dispatch() {
-  for (var i = 0, n = arguments.length, _ = {}, t; i < n; ++i) {
-    if (!(t = arguments[i] + "") || (t in _) || /[\s.]/.test(t)) throw new Error("illegal type: " + t);
-    _[t] = [];
-  }
-  return new Dispatch(_);
-}
-
-function Dispatch(_) {
-  this._ = _;
-}
-
-function parseTypenames(typenames, types) {
-  return typenames.trim().split(/^|\s+/).map(function(t) {
-    var name = "", i = t.indexOf(".");
-    if (i >= 0) name = t.slice(i + 1), t = t.slice(0, i);
-    if (t && !types.hasOwnProperty(t)) throw new Error("unknown type: " + t);
-    return {type: t, name: name};
-  });
-}
-
-Dispatch.prototype = dispatch.prototype = {
-  constructor: Dispatch,
-  on: function(typename, callback) {
-    var _ = this._,
-        T = parseTypenames(typename + "", _),
-        t,
-        i = -1,
-        n = T.length;
-
-    // If no callback was specified, return the callback of the given type and name.
-    if (arguments.length < 2) {
-      while (++i < n) if ((t = (typename = T[i]).type) && (t = get(_[t], typename.name))) return t;
-      return;
-    }
-
-    // If a type was specified, set the callback for the given type and name.
-    // Otherwise, if a null callback was specified, remove callbacks of the given name.
-    if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback);
-    while (++i < n) {
-      if (t = (typename = T[i]).type) _[t] = set(_[t], typename.name, callback);
-      else if (callback == null) for (t in _) _[t] = set(_[t], typename.name, null);
-    }
-
-    return this;
-  },
-  copy: function() {
-    var copy = {}, _ = this._;
-    for (var t in _) copy[t] = _[t].slice();
-    return new Dispatch(copy);
-  },
-  call: function(type, that) {
-    if ((n = arguments.length - 2) > 0) for (var args = new Array(n), i = 0, n, t; i < n; ++i) args[i] = arguments[i + 2];
-    if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type);
-    for (t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args);
-  },
-  apply: function(type, that, args) {
-    if (!this._.hasOwnProperty(type)) throw new Error("unknown type: " + type);
-    for (var t = this._[type], i = 0, n = t.length; i < n; ++i) t[i].value.apply(that, args);
+    })
   }
 };
 
-function get(type, name) {
-  for (var i = 0, n = type.length, c; i < n; ++i) {
-    if ((c = type[i]).name === name) {
-      return c.value;
-    }
+module.exports = JPEGStream
+
+
+/***/ }),
+
+/***/ 9028:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+/*!
+ * Canvas - CanvasPattern
+ * Copyright (c) 2010 LearnBoost <tj@learnboost.com>
+ * MIT Licensed
+ */
+
+const bindings = __nccwpck_require__(8914)
+
+module.exports = bindings.CanvasPattern
+
+bindings.CanvasPattern.prototype.toString = function () {
+	return '[object CanvasPattern]'
+}
+
+
+/***/ }),
+
+/***/ 6084:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+/*!
+ * Canvas - PDFStream
+ */
+
+const { Readable } = __nccwpck_require__(2203)
+function noop () {}
+
+class PDFStream extends Readable {
+  constructor (canvas, options) {
+    super()
+
+    this.canvas = canvas
+    this.options = options
+  }
+
+  _read () {
+    // For now we're not controlling the c++ code's data emission, so we only
+    // call canvas.streamPDFSync once and let it emit data at will.
+    this._read = noop
+
+    this.canvas.streamPDFSync((err, chunk, len) => {
+      if (err) {
+        this.emit('error', err)
+      } else if (len) {
+        this.push(chunk)
+      } else {
+        this.push(null)
+      }
+    }, this.options)
   }
 }
 
-function set(type, name, callback) {
-  for (var i = 0, n = type.length; i < n; ++i) {
-    if (type[i].name === name) {
-      type[i] = noop, type = type.slice(0, i).concat(type.slice(i + 1));
-      break;
+module.exports = PDFStream
+
+
+/***/ }),
+
+/***/ 3685:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+/*!
+ * Canvas - PNGStream
+ * Copyright (c) 2010 LearnBoost <tj@learnboost.com>
+ * MIT Licensed
+ */
+
+const { Readable } = __nccwpck_require__(2203)
+function noop () {}
+
+class PNGStream extends Readable {
+  constructor (canvas, options) {
+    super()
+
+    if (options &&
+      options.palette instanceof Uint8ClampedArray &&
+      options.palette.length % 4 !== 0) {
+      throw new Error('Palette length must be a multiple of 4.')
     }
+    this.canvas = canvas
+    this.options = options || {}
   }
-  if (callback != null) type.push({name: name, value: callback});
-  return type;
+
+  _read () {
+    // For now we're not controlling the c++ code's data emission, so we only
+    // call canvas.streamPNGSync once and let it emit data at will.
+    this._read = noop
+
+    this.canvas.streamPNGSync((err, chunk, len) => {
+      if (err) {
+        this.emit('error', err)
+      } else if (len) {
+        this.push(chunk)
+      } else {
+        this.push(null)
+      }
+    }, this.options)
+  }
 }
 
-exports.dispatch = dispatch;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-}));
-
-},{}]},{},[1])(1)
-});
+module.exports = PNGStream
 
 
 /***/ }),
@@ -28385,7 +26772,7 @@ const {
   staticPropertyDescriptors,
   readOperation,
   fireAProgressEvent
-} = __nccwpck_require__(3238)
+} = __nccwpck_require__(857)
 const {
   kState,
   kError,
@@ -28829,7 +27216,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 3238:
+/***/ 857:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
@@ -31830,9 +30217,9 @@ module.exports = {
 __nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9896);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(fs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(4768);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(4213);
 /* harmony import */ var _lib_topics_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(351);
-/* harmony import */ var _lib_word_cloud_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(1523);
+/* harmony import */ var _lib_word_cloud_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(8113);
 
 
 
@@ -33592,7 +31979,7 @@ async function getTopics(login, myToken) {
 
 /***/ }),
 
-/***/ 1523:
+/***/ 8113:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -33649,11 +32036,1245 @@ __nccwpck_require__.d(domutils_dist_namespaceObject, {
   uniqueSort: () => (helpers_uniqueSort)
 });
 
-// EXTERNAL MODULE: ./node_modules/.pnpm/d3-cloud@1.2.9/node_modules/d3-cloud/build/d3.layout.cloud.js
-var d3_layout_cloud = __nccwpck_require__(6794);
-var d3_layout_cloud_default = /*#__PURE__*/__nccwpck_require__.n(d3_layout_cloud);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@napi-rs+canvas@1.1.0/node_modules/@napi-rs/canvas/index.js
-var canvas = __nccwpck_require__(3673);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/d3-cloud@2.0.0/node_modules/d3-cloud/src/sprite.js
+const RADIANS = Math.PI / 180;
+const SCRATCH_WIDTH = 1 << 11;
+const SCRATCH_HEIGHT = 1 << 11;
+const IMAGE_SLACK = 4;
+const CREATE = Symbol("CloudSprite");
+
+// The mask and geometry used for placement, keyed by each sprite this module
+// created. Placement reads only this private copy, so changing a sprite's
+// public mask cannot corrupt a layout, and objects missing from this map were
+// not created by getSprite().
+//
+// Mask data is row-major, with the leftmost pixel in the most significant
+// bit of each 32-bit word; words is the padded row stride in words. Geometry
+// is in pixels relative to the placement origin, with inclusive x0/y0 and
+// exclusive x1/y1. The envelope uses the same coordinates but may extend past
+// the ink: it limits searches to positions adjoining the cloud, while the
+// mask itself controls pixel collisions, fixed-box containment, and bounds.
+const MASKS = new WeakMap();
+
+// Context and clearing state for each scratch canvas, shared by every layout
+// that draws to it.
+const CANVAS_STATES = new WeakMap();
+
+// An immutable, rasterized mask for a text or image source. Sprites are only
+// created by CloudLayout.getSprite() and can be placed any number of times.
+class CloudSprite {
+  constructor(token, fields) {
+    if (token !== CREATE) {
+      throw new TypeError("CloudSprite instances are created by CloudLayout.getSprite()");
+    }
+    Object.assign(this, fields);
+    Object.freeze(this);
+  }
+}
+
+function spriteMask(sprite) {
+  return MASKS.get(sprite);
+}
+
+// Validates the source and options, returning the fields to rasterize, or
+// null if there is nothing to draw.
+function spriteFields(source, options) {
+  const image = isImageSource(source) ? source : null;
+  if (!image && !isTextSource(source)) {
+    throw new TypeError("getSprite() expects text or an image-like source");
+  }
+
+  const size = finiteOption(options.size ?? options.fontSize, "size", 1);
+  const padding = finiteOption(options.padding, "padding", image ? 0 : 1);
+  if (padding < 0) {
+    throw new RangeError("getSprite() expects a nonnegative padding");
+  }
+  const fields = {
+    text: String(image ? options.text ?? source.alt ?? "" : source),
+    image,
+    imageWidth: image ? imageDimensionOption(options.width, "width") : null,
+    imageHeight: image ? imageDimensionOption(options.height, "height") : null,
+    font: String(options.font ?? "serif"),
+    style: String(options.style ?? options.fontStyle ?? "normal"),
+    weight: fontWeightOption(options.weight ?? options.fontWeight ?? "normal"),
+    rotate: finiteOption(options.rotate, "rotate", 0),
+    size: Math.trunc(size),
+    padding,
+    datum: options.datum
+  };
+
+  const empty = image ? fields.imageWidth === 0 || fields.imageHeight === 0 : fields.size < 1;
+  return empty ? null : fields;
+}
+
+function rasterizeSprite(fields, state) {
+  // Image getters could call getSprite() again mid-draw, which would leave ink
+  // that neither call clears.
+  if (state.drawing) {
+    throw new Error("getSprite() cannot be called while a sprite is being drawn to the same canvas");
+  }
+  // Check the font before drawing: a rejected font is an argument error, not
+  // a canvas failure.
+  const font = fields.image ? null : textFont(fields, state);
+  let raster;
+  state.drawing = true;
+  try {
+    raster = fields.image
+      ? rasterizeImageSprite(fields, state)
+      : rasterizeTextSprite(fields, font, state);
+  } catch (error) {
+    // A failed draw or readback, for example after a cross-origin image
+    // taints the canvas, must not break later sprites, so every layout using
+    // this canvas asks its factory for a canvas again.
+    state.invalid = true;
+    throw error;
+  } finally {
+    state.drawing = false;
+  }
+  if (!raster) {
+    return null;
+  }
+
+  const { data, spriteWidth, x0, y0, x1, y1 } = raster;
+  const sprite = new CloudSprite(CREATE, {
+    ...fields,
+    imageWidth: raster.imageWidth ?? fields.imageWidth,
+    imageHeight: raster.imageHeight ?? fields.imageHeight,
+    width: raster.width,
+    height: raster.height,
+    x0,
+    y0,
+    x1,
+    y1,
+    spriteWidth,
+    sprite: data.slice()
+  });
+  MASKS.set(sprite, { data, words: spriteWidth >>> 5, x0, y0, x1, y1, envelope: raster.envelope });
+  return sprite;
+}
+
+function createSpriteContext(canvas) {
+  let state = CANVAS_STATES.get(canvas);
+  if (state && !state.invalid) {
+    return state;
+  }
+
+  // Check the context before resetting the canvas, which may be shared.
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) {
+    throw new TypeError("canvas() factories must return a canvas with a 2d context");
+  }
+  // Setting the dimensions also clears the canvas, even if they are unchanged.
+  canvas.width = SCRATCH_WIDTH;
+  canvas.height = SCRATCH_HEIGHT;
+  // Masks are read one pixel per canvas unit, as the canvas specification
+  // requires.
+  if (context.getImageData(0, 0, 1, 1).data.length !== 4) {
+    throw new TypeError("canvas() factories must return a canvas that reads back one pixel per unit");
+  }
+
+  context.fillStyle = context.strokeStyle = "red";
+
+  // Keep the state object shared by layouts, including those that already
+  // hold a reference to it when another layout invalidates the context.
+  state = Object.assign(state || {}, {
+    context,
+    invalid: false,
+    drawing: false,
+    clearWidth: 0,
+    clearHeight: 0
+  });
+  CANVAS_STATES.set(canvas, state);
+  return state;
+}
+
+function finiteOption(value, name, defaultValue) {
+  if (value == null) {
+    return defaultValue;
+  }
+  value = +value;
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`getSprite() expects a finite ${name}`);
+  }
+  return value;
+}
+
+// Numeric weights are kept as numbers; anything else is converted to a string
+// before drawing, so a toString() cannot run mid-draw.
+function fontWeightOption(value) {
+  return typeof value === "number" ? value : String(value);
+}
+
+function imageDimensionOption(value, name) {
+  value = finiteOption(value, name, null);
+  return value == null ? null : Math.max(0, Math.trunc(value));
+}
+
+function clearContext(state, width = state.clearWidth, height = state.clearHeight) {
+  const context = state.context;
+  if (width && height) {
+    context.clearRect(0, 0, width, height);
+  }
+  return context;
+}
+
+// Records the region the next sprite must clear before drawing.
+function setClearExtent(state, width, height) {
+  state.clearWidth = width;
+  state.clearHeight = height;
+}
+
+// Calls draw with the origin at the center of the raster, rotated to the
+// sprite's angle, and restores the context afterwards.
+function drawAtRasterCenter(context, rasterWidth, rasterHeight, rotate, draw) {
+  context.save();
+  try {
+    context.translate(rasterWidth >> 1, rasterHeight >> 1);
+    if (rotate) {
+      context.rotate(rotate * RADIANS);
+    }
+    draw();
+  } finally {
+    context.restore();
+  }
+}
+
+// Returns the CSS font for a text sprite. Canvases ignore fonts they cannot
+// parse and keep drawing with the previous one, which would leave a mask that
+// does not match the rendered text. Set a font of a different size first, so a
+// rejected font is detectable before drawing.
+function textFont(sprite, state) {
+  const context = state.context;
+  const font = `${sprite.style} ${sprite.weight} ${sprite.size}px ${sprite.font}`;
+  context.font = `${sprite.size + 1}px serif`;
+  const previousFont = context.font;
+  context.font = font;
+  if (context.font === previousFont) {
+    throw new TypeError(`getSprite() font "${font}" was rejected by the canvas`);
+  }
+  return font;
+}
+
+// The font and alignment are set for every text sprite, and drawing restores
+// the transform and stroke settings, so a failed draw cannot affect the next
+// sprite.
+function rasterizeTextSprite(sprite, font, state) {
+  const context = clearContext(state);
+  context.font = font;
+  // Match the documented rendering contract exactly: some canvases position
+  // centered glyphs differently from a manually offset left-aligned run.
+  context.textAlign = "center";
+
+  const { width, height, hasInkBounds } = textRasterSize(sprite, context.measureText(sprite.text));
+  const overscan = Math.max(4, Math.ceil((sprite.padding + 2) * 2));
+  // Width-only canvas adapters cannot tell us how far glyphs actually drew,
+  // so clear two extra ems past the raster before the next sprite.
+  const overhang = hasInkBounds ? 0 : 2 * sprite.size;
+  // The horizontal search envelope keeps the measured raster width, even if
+  // under-reported metrics force the ink into a larger raster.
+  const envelopeWidth = Math.ceil(width + overscan * 2);
+  let rasterWidth = envelopeWidth;
+  let rasterHeight = Math.ceil(height + overscan * 2);
+  let redrawn = false;
+  let pixels;
+  let alphaBounds;
+
+  for (;;) {
+    if (rasterWidth > SCRATCH_WIDTH || rasterHeight > SCRATCH_HEIGHT) {
+      setClearExtent(state, 0, 0);
+      return null;
+    }
+
+    try {
+      drawAtRasterCenter(context, rasterWidth, rasterHeight, sprite.rotate, () => {
+        context.fillText(sprite.text, 0, 0);
+        if (sprite.padding) {
+          context.lineWidth = 2 * sprite.padding;
+          context.lineJoin = "round";
+          context.strokeText(sprite.text, 0, 0);
+        }
+      });
+    } finally {
+      // Clear any partial drawing before the next sprite, even after failure.
+      setClearExtent(state,
+        redrawn ? SCRATCH_WIDTH : Math.min(SCRATCH_WIDTH, rasterWidth + overhang),
+        redrawn ? SCRATCH_HEIGHT : Math.min(SCRATCH_HEIGHT, rasterHeight + overhang));
+    }
+
+    pixels = context.getImageData(0, 0, rasterWidth, rasterHeight).data;
+    alphaBounds = findAlphaBounds(pixels, rasterWidth, rasterHeight);
+
+    if (!alphaBounds) {
+      return null;
+    }
+    const growWidth = alphaBounds.x0 === 0 || alphaBounds.x0 + alphaBounds.width === rasterWidth;
+    const growHeight = alphaBounds.y0 === 0 || alphaBounds.y0 + alphaBounds.height === rasterHeight;
+    if (!growWidth && !growHeight) {
+      break;
+    }
+
+    // Ink reaching the raster edge may have been clipped because the font
+    // metrics underestimated it, so redraw larger along each axis the ink
+    // reached. Metrics that under-reported once cannot bound where the ink
+    // went, so the whole scratch canvas is cleared before the next sprite.
+    const nextWidth = growWidth ? Math.min(SCRATCH_WIDTH, rasterWidth * 2) : rasterWidth;
+    const nextHeight = growHeight ? Math.min(SCRATCH_HEIGHT, rasterHeight * 2) : rasterHeight;
+    if (nextWidth === rasterWidth && nextHeight === rasterHeight) {
+      return null;
+    }
+    redrawn = true;
+    setClearExtent(state, SCRATCH_WIDTH, SCRATCH_HEIGHT);
+    clearContext(state, nextWidth, nextHeight);
+    rasterWidth = nextWidth;
+    rasterHeight = nextHeight;
+  }
+
+  const raster = extractSpritePixels(pixels, rasterWidth, rasterHeight, alphaBounds);
+  // Rectangle checks against the cloud use the measured raster width,
+  // centered on the origin and widened only to contain the ink.
+  const left = -(envelopeWidth >> 1);
+  raster.envelope = {
+    x0: Math.min(raster.x0, left),
+    y0: raster.y0,
+    x1: Math.max(raster.x1, left + envelopeWidth),
+    y1: raster.y1
+  };
+  return raster;
+}
+
+// Returns the size of a raster that encloses the text's ink and padding at
+// the sprite's rotation, and whether the canvas reported ink bounds.
+function textRasterSize(sprite, metrics) {
+  let width = metrics.width + 1;
+  let height = sprite.size * 2;
+  const hasInkBounds = Number.isFinite(metrics.actualBoundingBoxLeft) &&
+    Number.isFinite(metrics.actualBoundingBoxRight) &&
+    Number.isFinite(metrics.actualBoundingBoxAscent) &&
+    Number.isFinite(metrics.actualBoundingBoxDescent);
+
+  if (hasInkBounds) {
+    // Advance width and font size do not bound italic overhang or accents.
+    // Enclose the ink symmetrically around the rendering origin before
+    // rotation; round stroke joins extend at most padding beyond the ink.
+    width = Math.max(width, 2 * (sprite.padding + Math.max(
+      Math.abs(metrics.actualBoundingBoxLeft),
+      Math.abs(metrics.actualBoundingBoxRight)
+    )));
+    height = Math.max(height, 2 * (sprite.padding + Math.max(
+      Math.abs(metrics.actualBoundingBoxAscent),
+      Math.abs(metrics.actualBoundingBoxDescent)
+    )));
+  }
+
+  return { ...rotatedExtent(width, height, sprite.rotate), hasInkBounds };
+}
+
+function rasterizeImageSprite(sprite, state) {
+  const context = clearContext(state);
+  const imageSize = resolveImageSize(sprite.image, sprite.imageWidth, sprite.imageHeight);
+
+  if (!imageSize) {
+    setClearExtent(state, 0, 0);
+    return null;
+  }
+
+  const { drawWidth, drawHeight, intrinsic } = imageSize;
+  const bounds = rotatedExtent(drawWidth, drawHeight, sprite.rotate);
+  // Leave room on both sides of the integer raster origin for half-pixel
+  // image edges and antialiasing after rotation or resizing.
+  const rasterWidth = Math.ceil(bounds.width + 2);
+  const rasterHeight = Math.ceil(bounds.height + 2);
+
+  if (rasterWidth > SCRATCH_WIDTH || rasterHeight > SCRATCH_HEIGHT) {
+    setClearExtent(state, 0, 0);
+    return null;
+  }
+
+  try {
+    drawAtRasterCenter(context, rasterWidth, rasterHeight, sprite.rotate, () => {
+      context.drawImage(sprite.image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    });
+  } catch (error) {
+    // Without intrinsic dimensions, the source may be broken rather than
+    // merely unsized, and browsers refuse to draw broken images.
+    if (intrinsic) {
+      throw error;
+    }
+    return null;
+  } finally {
+    // A failed draw must not leave pixels for the next sprite.
+    setClearExtent(state, rasterWidth, rasterHeight);
+  }
+
+  const pixels = context.getImageData(0, 0, rasterWidth, rasterHeight).data;
+  const alphaBounds = findAlphaBounds(pixels, rasterWidth, rasterHeight);
+
+  if (!alphaBounds) {
+    return null;
+  }
+
+  const raster = extractSpritePixels(pixels, rasterWidth, rasterHeight, alphaBounds);
+  raster.imageWidth = drawWidth;
+  raster.imageHeight = drawHeight;
+  // Opaque image masks get a small envelope on every side, so they can be
+  // placed beside the cloud without their pixels overlapping it.
+  raster.envelope = {
+    x0: raster.x0 - IMAGE_SLACK,
+    y0: raster.y0 - IMAGE_SLACK,
+    x1: raster.x1 + IMAGE_SLACK,
+    y1: raster.y1 + IMAGE_SLACK
+  };
+  return raster;
+}
+
+function extractSpritePixels(pixels, rasterWidth, rasterHeight, alphaBounds) {
+  const width = alphaBounds.width;
+  const height = alphaBounds.height;
+  const spriteWidth = ((width + 31) >>> 5) << 5;
+  const wordsPerRow = spriteWidth >>> 5;
+  const x0 = alphaBounds.x0 - (rasterWidth >> 1);
+  const y0 = alphaBounds.y0 - (rasterHeight >> 1);
+  const data = new Uint32Array(wordsPerRow * height);
+
+  for (let row = 0; row < height; row += 1) {
+    const sourceRow = alphaBounds.y0 + row;
+    const rowOffset = row * wordsPerRow;
+    for (let column = 0; column < width; column += 1) {
+      const sourceColumn = alphaBounds.x0 + column;
+      if (pixels[((sourceRow * rasterWidth + sourceColumn) << 2) + 3]) {
+        data[rowOffset + (column >>> 5)] |= 1 << (31 - (column & 31));
+      }
+    }
+  }
+
+  return {
+    data,
+    spriteWidth,
+    width,
+    height,
+    x0,
+    y0,
+    x1: x0 + width,
+    y1: y0 + height
+  };
+}
+
+function resolveImageSize(image, imageWidth, imageHeight) {
+  const sourceWidth = resolveImageDimension(image, "naturalWidth", "videoWidth", "width");
+  const sourceHeight = resolveImageDimension(image, "naturalHeight", "videoHeight", "height");
+
+  if (!(sourceWidth > 0) || !(sourceHeight > 0)) {
+    // Images without intrinsic dimensions, such as SVGs with only a viewBox,
+    // can still be drawn at an explicit size once they have loaded.
+    if (imageWidth != null && imageHeight != null &&
+        typeof image.naturalWidth === "number" && image.complete === true) {
+      return { drawWidth: imageWidth, drawHeight: imageHeight, intrinsic: false };
+    }
+    return null;
+  }
+
+  let drawWidth = imageWidth;
+  let drawHeight = imageHeight;
+
+  if (drawWidth == null && drawHeight == null) {
+    drawWidth = sourceWidth;
+    drawHeight = sourceHeight;
+  } else if (drawWidth == null) {
+    drawWidth = Math.max(1, Math.round(sourceWidth * (drawHeight / sourceHeight)));
+  } else if (drawHeight == null) {
+    drawHeight = Math.max(1, Math.round(sourceHeight * (drawWidth / sourceWidth)));
+  }
+
+  return { drawWidth, drawHeight, intrinsic: true };
+}
+
+function resolveImageDimension(image, ...keys) {
+  for (const key of keys) {
+    const value = image?.[key];
+    if (typeof value === "number") {
+      // Intrinsic dimensions are authoritative, including zero for unloaded
+      // or broken sources; display dimensions must not make them drawable.
+      return value > 0 && Number.isFinite(value) ? Math.trunc(value) : 0;
+    }
+  }
+  return 0;
+}
+
+function rotatedExtent(width, height, rotate) {
+  if (!rotate) {
+    return { width, height };
+  }
+
+  const sine = Math.sin(rotate * RADIANS);
+  const cosine = Math.cos(rotate * RADIANS);
+  const widthCosine = width * cosine;
+  const widthSine = width * sine;
+  const heightCosine = height * cosine;
+  const heightSine = height * sine;
+
+  return {
+    width: Math.max(Math.abs(widthCosine + heightSine), Math.abs(widthCosine - heightSine)),
+    height: Math.max(Math.abs(widthSine + heightCosine), Math.abs(widthSine - heightCosine))
+  };
+}
+
+function findAlphaBounds(pixels, width, height) {
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let row = 0; row < height; row += 1) {
+    for (let column = 0; column < width; column += 1) {
+      if (!pixels[((row * width + column) << 2) + 3]) {
+        continue;
+      }
+      if (column < minX) minX = column;
+      if (row < minY) minY = row;
+      if (column > maxX) maxX = column;
+      if (row > maxY) maxY = row;
+    }
+  }
+
+  if (maxX < minX || maxY < minY) {
+    return null;
+  }
+
+  return {
+    x0: minX,
+    y0: minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1
+  };
+}
+
+function isTextSource(source) {
+  return typeof source === "string" || typeof source === "number" || typeof source === "boolean" || source instanceof String;
+}
+
+function isImageSource(source) {
+  return !!source &&
+    typeof source === "object" &&
+    !Array.isArray(source) &&
+    (
+      typeof source.width === "number" ||
+      typeof source.naturalWidth === "number" ||
+      typeof source.videoWidth === "number"
+    );
+}
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/d3-cloud@2.0.0/node_modules/d3-cloud/src/layout.js
+// Word cloud layout by Jason Davies, https://www.jasondavies.com/wordcloud/
+// Algorithm due to Jonathan Feinberg, https://s3.amazonaws.com/static.mrfeinberg.com/bv_ch03.pdf
+
+
+
+// Coordinates and layout sizes are limited so that block indices and strategy
+// offsets remain exact integers.
+const MAX_COORDINATE = 1 << 24;
+const MAX_BLOCK_SIZE = 4096;
+const MIN_SEARCH_BUDGET = 100000;
+// Built-in spirals stretch to the layout's aspect ratio up to this limit.
+// Beyond it they would barely move along the shorter axis, and searches that
+// cannot leave a blocked column or row would run for minutes.
+const MAX_SPIRAL_ASPECT_RATIO = 64;
+
+const STRATEGIES = {
+  archimedean: archimedeanStrategy,
+  rectangular: rectangularStrategy,
+  none: noneStrategy
+};
+
+class CloudLayout {
+  constructor() {
+    this._size = [256, 256];
+    this._overflow = true;
+    this._strategy = archimedeanStrategy;
+    this._random = Math.random;
+    this._blockSize = 512;
+    this._canvasFactory = defaultCanvasFactory;
+    this._spriteContext = null;
+    this._bounds = null;
+    this._blocks = createOccupancyBlocks(this._blockSize);
+    // The number of place() calls in progress, which strategies or random()
+    // could re-enter.
+    this._searches = 0;
+    // Maps each placed word returned by place() to the mask and position
+    // needed to erase it. Results that are dropped are garbage collected.
+    this._placements = new WeakMap();
+  }
+
+  canvas(_) {
+    if (!arguments.length) {
+      return this._canvasFactory;
+    }
+    if (typeof _ !== "function") {
+      throw new TypeError("canvas() expects a canvas factory function");
+    }
+    this._canvasFactory = _;
+    this._spriteContext = null;
+    return this;
+  }
+
+  clear() {
+    this._assertNotSearching("clear()");
+    this._placements = new WeakMap();
+    this._bounds = null;
+    this._blocks = createOccupancyBlocks(this._blockSize);
+    return this;
+  }
+
+  bounds() {
+    return cloneBounds(this._bounds);
+  }
+
+  size(_) {
+    if (!arguments.length) {
+      return this._size.slice();
+    }
+    this._size = normalizeSize(_);
+    return this;
+  }
+
+  overflow(_) {
+    if (!arguments.length) {
+      return this._overflow;
+    }
+    this._overflow = !!_;
+    return this;
+  }
+
+  strategy(_) {
+    if (!arguments.length) {
+      return this._strategy;
+    }
+    this._strategy = resolveStrategy(_);
+    return this;
+  }
+
+  random(_) {
+    if (!arguments.length) {
+      return this._random;
+    }
+    if (typeof _ !== "function") {
+      throw new TypeError("random() expects a function");
+    }
+    this._random = _;
+    return this;
+  }
+
+  blockSize(_) {
+    if (!arguments.length) {
+      return this._blockSize;
+    }
+    const nextBlockSize = normalizeBlockSize(_);
+    if (nextBlockSize === this._blockSize) {
+      return this;
+    }
+    this._assertNotSearching("blockSize()");
+    if (this._bounds) {
+      throw new Error("Cannot change blockSize after placement; call clear() first");
+    }
+    this._blockSize = nextBlockSize;
+    this._blocks = createOccupancyBlocks(this._blockSize);
+    return this;
+  }
+
+  getSprite(source, options) {
+    const fields = spriteFields(source, optionsObject(options, "getSprite()"));
+    if (!fields) {
+      return null;
+    }
+    return rasterizeSprite(fields, this._getContext());
+  }
+
+  erase(word) {
+    const placement = word && typeof word === "object" ? this._placements.get(word) : undefined;
+    if (!placement) {
+      throw new Error("erase() expects a word returned by place() on this layout since it was last cleared");
+    }
+
+    this._blocks.remove(placement.mask, placement.x, placement.y);
+    this._placements.delete(word);
+    if (this._blocks.isEmpty()) {
+      this._bounds = null;
+    }
+  }
+
+  place(sprite, options) {
+    const mask = spriteMask(sprite);
+    if (!mask) {
+      throw new TypeError("place() expects a CloudSprite from getSprite() on a layout from the same copy of d3-cloud");
+    }
+
+    const { x: optionX, y: optionY, strategy: optionStrategy } = optionsObject(options, "place()");
+    const strategy = optionStrategy == null ? this._strategy : resolveStrategy(optionStrategy);
+    const x = optionX == null ? seedCoordinate(this._size[0], this._random) : placeCoordinate(optionX);
+    const y = optionY == null ? seedCoordinate(this._size[1], this._random) : placeCoordinate(optionY);
+    let position;
+    this._searches++;
+    try {
+      position = tryPlaceSprite(this._blocks, mask, x, y, this._bounds, strategy, this._size, this._overflow, this._random);
+    } finally {
+      this._searches--;
+    }
+    if (!position) {
+      return null;
+    }
+
+    this._bounds = extendBounds(this._bounds, mask, position.x, position.y);
+    const word = createPlacedWord(sprite, position.x, position.y);
+    this._placements.set(word, { mask, x: position.x, y: position.y });
+    return word;
+  }
+
+  // A search holds the occupancy blocks it started with. Replacing them
+  // mid-search would leave the word out of the new blocks, where later words
+  // could overlap it.
+  _assertNotSearching(method) {
+    if (this._searches) {
+      throw new Error(`${method} cannot be called while place() is searching`);
+    }
+  }
+
+  _getContext() {
+    // A failed draw invalidates the state of every layout sharing the canvas,
+    // so each asks its factory again, and a reused canvas is reset.
+    if (!this._spriteContext || this._spriteContext.invalid) {
+      this._spriteContext = createSpriteContext(this._canvasFactory());
+    }
+    return this._spriteContext;
+  }
+}
+
+// Returns the first position at which the sprite fits, after inserting it into
+// the occupancy blocks there, or null.
+function tryPlaceSprite(blocks, mask, seedX, seedY, bounds, strategy, size, overflow, random) {
+  const range = anchorRange(mask, bounds, size, overflow);
+  if (!range) {
+    return null;
+  }
+  if (withinRange(range, seedX, seedY) && !blocks.collides(mask, seedX, seedY)) {
+    blocks.insert(mask, seedX, seedY);
+    return { x: seedX, y: seedY };
+  }
+
+  // Search from the nearest anchor at which the sprite could be placed, so
+  // seeds outside a fixed box or far from the cloud need no long search.
+  const startX = Math.min(Math.max(seedX, range.x0), range.x1);
+  const startY = Math.min(Math.max(seedY, range.y0), range.y1);
+
+  const next = strategy(
+    { x: startX, y: startY },
+    {
+      size: size.slice(),
+      aspectRatio: sizeAspectRatio(size),
+      bounds: cloneBounds(bounds),
+      overflow,
+      random
+    }
+  );
+  if (typeof next !== "function") {
+    throw new TypeError("strategy factories must return a candidate generator");
+  }
+
+  // Candidates outside the range cannot be placed. Stop once one is beyond
+  // the range, and the box or cloud the sprite is placed against, on both
+  // axes; after trying at least as many candidates inside the range as it has
+  // anchors; or after a long run outside it, so generators that repeat points
+  // also stop.
+  const envelope = mask.envelope;
+  const limitX = Math.max(startX - range.x0, range.x1 - startX) + envelope.x1 - envelope.x0 + 1;
+  const limitY = Math.max(startY - range.y0, range.y1 - startY) + envelope.y1 - envelope.y0 + 1;
+  const insideLimit = Math.max(MIN_SEARCH_BUDGET, (range.x1 - range.x0 + 1) * (range.y1 - range.y0 + 1));
+  const outsideLimit = Math.max(MIN_SEARCH_BUDGET, 4 * limitX * limitY);
+  let candidate;
+  let inside = 0;
+  let outside = 0;
+  while ((candidate = normalizeStrategyCandidate(next()))) {
+    if (!withinRange(range, candidate.x, candidate.y)) {
+      if (Math.abs(candidate.x - startX) >= limitX && Math.abs(candidate.y - startY) >= limitY) break;
+      if (++outside >= outsideLimit) break;
+      continue;
+    }
+    outside = 0;
+    if (++inside > insideLimit) break;
+    if (!blocks.collides(mask, candidate.x, candidate.y)) {
+      blocks.insert(mask, candidate.x, candidate.y);
+      return candidate;
+    }
+  }
+  return null;
+}
+
+// Returns the integer anchors at which the sprite could be placed: inside the
+// box when overflow is disabled, and with its envelope overlapping the cloud
+// bounds once there are any, or null if no anchors fit. Both ends of the
+// returned range are inclusive, unlike the exclusive right/bottom mask edges.
+// With overflow enabled and no cloud bounds, any seed within the coordinate
+// limit fits.
+function anchorRange(mask, bounds, size, overflow) {
+  let x0 = -MAX_COORDINATE;
+  let y0 = -MAX_COORDINATE;
+  let x1 = MAX_COORDINATE;
+  let y1 = MAX_COORDINATE;
+  const envelope = mask.envelope;
+
+  if (!overflow) {
+    x0 = Math.max(x0, Math.ceil(-size[0] / 2 - mask.x0));
+    y0 = Math.max(y0, Math.ceil(-size[1] / 2 - mask.y0));
+    x1 = Math.min(x1, Math.floor(size[0] / 2 - mask.x1));
+    y1 = Math.min(y1, Math.floor(size[1] / 2 - mask.y1));
+  }
+  if (bounds) {
+    x0 = Math.max(x0, Math.floor(bounds[0].x - envelope.x1) + 1);
+    y0 = Math.max(y0, Math.floor(bounds[0].y - envelope.y1) + 1);
+    x1 = Math.min(x1, Math.ceil(bounds[1].x - envelope.x0) - 1);
+    y1 = Math.min(y1, Math.ceil(bounds[1].y - envelope.y0) - 1);
+  }
+  return x0 <= x1 && y0 <= y1 ? { x0, y0, x1, y1 } : null;
+}
+
+function withinRange(range, x, y) {
+  return x >= range.x0 && x <= range.x1 && y >= range.y0 && y <= range.y1;
+}
+
+function createOccupancyBlocks(blockSize) {
+  const blocks = new Map();
+  const blockWordsPerRow = blockSize >>> 5;
+
+  // Applies visit to each block region the sprite overlaps at x, y, stopping
+  // early if it returns true. Missing blocks are created when inserting, and
+  // emptied blocks are pruned when removing.
+  function visitBlocks(mask, x, y, visit, create, prune) {
+    const data = mask.data;
+    const wordsPerRow = mask.words;
+    const left = x + mask.x0;
+    const top = y + mask.y0;
+    const right = x + mask.x1;
+    const bottom = y + mask.y1;
+    const firstX = Math.floor(left / blockSize);
+    const lastX = Math.floor((right - 1) / blockSize);
+    const firstY = Math.floor(top / blockSize);
+    const lastY = Math.floor((bottom - 1) / blockSize);
+
+    for (let blockY = firstY; blockY <= lastY; blockY++) {
+      let blockRow = blocks.get(blockY);
+      if (!blockRow) {
+        if (!create) continue;
+        blockRow = new Map();
+        blocks.set(blockY, blockRow);
+      }
+      const blockTop = blockY * blockSize;
+      const overlapTop = Math.max(top, blockTop);
+      const overlapBottom = Math.min(bottom, blockTop + blockSize);
+      for (let blockX = firstX; blockX <= lastX; blockX++) {
+        const blockLeft = blockX * blockSize;
+        const overlapLeft = Math.max(left, blockLeft);
+        const overlapRight = Math.min(right, blockLeft + blockSize);
+        if (overlapLeft >= overlapRight || overlapTop >= overlapBottom) continue;
+        let block = blockRow.get(blockX);
+        if (!block) {
+          if (!create) continue;
+          block = new Uint32Array(blockWordsPerRow * blockSize);
+          blockRow.set(blockX, block);
+        }
+        if (visit(
+          data,
+          wordsPerRow,
+          left,
+          top,
+          block,
+          blockWordsPerRow,
+          blockLeft,
+          blockTop,
+          overlapLeft,
+          overlapTop,
+          overlapRight,
+          overlapBottom
+        )) {
+          return true;
+        }
+        if (prune && isZeroBlock(block)) {
+          blockRow.delete(blockX);
+        }
+      }
+      if (prune && blockRow.size === 0) blocks.delete(blockY);
+    }
+    return false;
+  }
+
+  return {
+    isEmpty() {
+      return blocks.size === 0;
+    },
+    collides(mask, x, y) {
+      return visitBlocks(mask, x, y, packedRegionCollides, false, false);
+    },
+    insert(mask, x, y) {
+      visitBlocks(mask, x, y, stampPackedRegion, true, false);
+    },
+    remove(mask, x, y) {
+      visitBlocks(mask, x, y, clearPackedRegion, false, true);
+    }
+  };
+}
+
+function packedRegionCollides(aData, aWordsPerRow, aLeft, aTop, bData, bWordsPerRow, bLeft, bTop, overlapLeft, overlapTop, overlapRight, overlapBottom) {
+  const rows = overlapBottom - overlapTop;
+  const words = (overlapRight - overlapLeft + 31) >>> 5;
+  const aStartBit = overlapLeft - aLeft;
+  const bStartBit = overlapLeft - bLeft;
+  const aStartRow = overlapTop - aTop;
+  const bStartRow = overlapTop - bTop;
+  const trailing = (overlapRight - overlapLeft) & 31;
+  const lastMask = trailing ? (~0 << (32 - trailing)) >>> 0 : 0xffffffff;
+
+  for (let row = 0; row < rows; row++) {
+    const aRowOffset = (aStartRow + row) * aWordsPerRow;
+    const bRowOffset = (bStartRow + row) * bWordsPerRow;
+    for (let word = 0; word < words; word++) {
+      const mask = word === words - 1 ? lastMask : 0xffffffff;
+      const aWord = readPackedWord(aData, aRowOffset, aWordsPerRow, aStartBit + (word << 5));
+      const bWord = readPackedWord(bData, bRowOffset, bWordsPerRow, bStartBit + (word << 5));
+      if ((aWord & bWord & mask) !== 0) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// Keep insertion and erasure specialized: a shared set/clear writer measured
+// about 6% slower in an insertion/erasure microbenchmark.
+function stampPackedRegion(sourceData, sourceWordsPerRow, sourceLeft, sourceTop, targetData, targetWordsPerRow, targetLeft, targetTop, overlapLeft, overlapTop, overlapRight, overlapBottom) {
+  const rows = overlapBottom - overlapTop;
+  const words = (overlapRight - overlapLeft + 31) >>> 5;
+  const sourceStartBit = overlapLeft - sourceLeft;
+  const targetStartBit = overlapLeft - targetLeft;
+  const sourceStartRow = overlapTop - sourceTop;
+  const targetStartRow = overlapTop - targetTop;
+  const trailing = (overlapRight - overlapLeft) & 31;
+  const lastMask = trailing ? (~0 << (32 - trailing)) >>> 0 : 0xffffffff;
+
+  for (let row = 0; row < rows; row++) {
+    const sourceRowOffset = (sourceStartRow + row) * sourceWordsPerRow;
+    const targetRowOffset = (targetStartRow + row) * targetWordsPerRow;
+    for (let word = 0; word < words; word++) {
+      const mask = word === words - 1 ? lastMask : 0xffffffff;
+      const sourceWord = readPackedWord(sourceData, sourceRowOffset, sourceWordsPerRow, sourceStartBit + (word << 5)) & mask;
+      orPackedWord(targetData, targetRowOffset, targetWordsPerRow, targetStartBit + (word << 5), sourceWord);
+    }
+  }
+}
+
+function clearPackedRegion(sourceData, sourceWordsPerRow, sourceLeft, sourceTop, targetData, targetWordsPerRow, targetLeft, targetTop, overlapLeft, overlapTop, overlapRight, overlapBottom) {
+  const rows = overlapBottom - overlapTop;
+  const words = (overlapRight - overlapLeft + 31) >>> 5;
+  const sourceStartBit = overlapLeft - sourceLeft;
+  const targetStartBit = overlapLeft - targetLeft;
+  const sourceStartRow = overlapTop - sourceTop;
+  const targetStartRow = overlapTop - targetTop;
+  const trailing = (overlapRight - overlapLeft) & 31;
+  const lastMask = trailing ? (~0 << (32 - trailing)) >>> 0 : 0xffffffff;
+
+  for (let row = 0; row < rows; row++) {
+    const sourceRowOffset = (sourceStartRow + row) * sourceWordsPerRow;
+    const targetRowOffset = (targetStartRow + row) * targetWordsPerRow;
+    for (let word = 0; word < words; word++) {
+      const mask = word === words - 1 ? lastMask : 0xffffffff;
+      const sourceWord = readPackedWord(sourceData, sourceRowOffset, sourceWordsPerRow, sourceStartBit + (word << 5)) & mask;
+      clearPackedWord(targetData, targetRowOffset, targetWordsPerRow, targetStartBit + (word << 5), sourceWord);
+    }
+  }
+}
+
+function readPackedWord(sprite, rowOffset, wordsPerRow, bitIndex) {
+  const wordIndex = bitIndex >>> 5;
+  const bitOffset = bitIndex & 31;
+  const current = wordIndex < wordsPerRow ? sprite[rowOffset + wordIndex] : 0;
+
+  if (!bitOffset) {
+    return current;
+  }
+
+  const next = wordIndex + 1 < wordsPerRow ? sprite[rowOffset + wordIndex + 1] : 0;
+  return ((current << bitOffset) | (next >>> (32 - bitOffset))) >>> 0;
+}
+
+function orPackedWord(target, rowOffset, wordsPerRow, bitIndex, value) {
+  const wordIndex = bitIndex >>> 5;
+  const bitOffset = bitIndex & 31;
+
+  if (!bitOffset) {
+    target[rowOffset + wordIndex] |= value;
+    return;
+  }
+
+  target[rowOffset + wordIndex] |= value >>> bitOffset;
+  if (wordIndex + 1 < wordsPerRow) {
+    target[rowOffset + wordIndex + 1] |= (value << (32 - bitOffset)) >>> 0;
+  }
+}
+
+function clearPackedWord(target, rowOffset, wordsPerRow, bitIndex, value) {
+  const wordIndex = bitIndex >>> 5;
+  const bitOffset = bitIndex & 31;
+
+  if (!bitOffset) {
+    target[rowOffset + wordIndex] &= (~value) >>> 0;
+    return;
+  }
+
+  target[rowOffset + wordIndex] &= (~(value >>> bitOffset)) >>> 0;
+  if (wordIndex + 1 < wordsPerRow) {
+    target[rowOffset + wordIndex + 1] &= (~((value << (32 - bitOffset)) >>> 0)) >>> 0;
+  }
+}
+
+function isZeroBlock(block) {
+  for (let index = 0; index < block.length; index++) {
+    if (block[index] !== 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function createPlacedWord(sprite, x, y) {
+  // The placed word copies the sprite's public fields, except its mask.
+  const { sprite: _mask, spriteWidth: _spriteWidth, ...fields } = sprite;
+  return { ...fields, x, y };
+}
+
+// Returns the bounds extended to include the mask at x, y, updating existing
+// bounds in place.
+function extendBounds(bounds, mask, x, y) {
+  const left = x + mask.x0;
+  const top = y + mask.y0;
+  const right = x + mask.x1;
+  const bottom = y + mask.y1;
+  if (!bounds) {
+    return [{ x: left, y: top }, { x: right, y: bottom }];
+  }
+  if (left < bounds[0].x) bounds[0].x = left;
+  if (top < bounds[0].y) bounds[0].y = top;
+  if (right > bounds[1].x) bounds[1].x = right;
+  if (bottom > bounds[1].y) bounds[1].y = bottom;
+  return bounds;
+}
+
+function cloneBounds(bounds) {
+  if (!bounds) {
+    return bounds;
+  }
+  return [
+    { x: bounds[0].x, y: bounds[0].y },
+    { x: bounds[1].x, y: bounds[1].y }
+  ];
+}
+
+// Steps a tenth of a radian at a time along a spiral whose radius grows by a
+// tenth of a pixel per step, stretched horizontally by the aspect ratio.
+function archimedeanStrategy(initial, context) {
+  const e = spiralAspectRatio(context.aspectRatio);
+  const dt = context.random() < .5 ? 1 : -1;
+  // The search origin may have been clamped since the initial attempt.
+  let t = -dt;
+
+  return function() {
+    const angle = (t += dt) * .1;
+    // With the aspect ratio capped, offsets only exceed 32 bits after hundreds
+    // of millions of candidates.
+    return {
+      x: initial.x + ~~(e * angle * Math.cos(angle)),
+      y: initial.y + ~~(angle * Math.sin(angle))
+    };
+  };
+}
+
+// Walks a 4px grid in growing rectangles. The rectangle grows whenever the next
+// grid column or row reaches its boundary in aspect-scaled distance, and only
+// the new edges are visited, in angle order, so every grid point is visited
+// once. Each edge is a run of points, so each candidate takes constant time and
+// memory at any aspect ratio.
+function rectangularStrategy(initial, context) {
+  // e is the capped aspect ratio; a and b are the rectangle's horizontal and
+  // vertical half-extents in grid steps (each step is 4px).
+  const e = spiralAspectRatio(context.aspectRatio);
+  // Mirroring the rectangles vertically reverses the spiral's direction.
+  const sign = context.random() < .5 ? 1 : -1;
+  let a = 0;
+  let b = 0;
+  // The new edges, as runs of [x, y, dx, dy, count].
+  let runs = [];
+  let run = 0;
+  let x = 0;
+  let y = 0;
+  let dx = 0;
+  let dy = 0;
+  let count = 1;
+
+  function grow() {
+    const nextX = e >= 1 ? (a + 1) / e : a + 1;
+    const nextY = e >= 1 ? b + 1 : (b + 1) * e;
+    const growX = nextX <= nextY;
+    const growY = nextY <= nextX;
+    if (growX) a++;
+    if (growY) b++;
+
+    if (growX && growY) {
+      runs = [
+        -a, -1, 0, -1, b,
+        -a + 1, -b, 1, 0, 2 * a,
+        a, -b + 1, 0, 1, 2 * b,
+        a - 1, b, -1, 0, 2 * a,
+        -a, b - 1, 0, -1, b
+      ];
+    } else if (growX) {
+      runs = [
+        -a, -1, 0, -1, b,
+        a, -b, 0, 1, 2 * b + 1,
+        -a, b, 0, -1, b + 1
+      ];
+    } else {
+      runs = [
+        -a, -b, 1, 0, 2 * a + 1,
+        a, b, -1, 0, 2 * a + 1
+      ];
+    }
+    run = 0;
+  }
+
+  return function() {
+    while (!count) {
+      if (run === runs.length) grow();
+      x = runs[run++];
+      y = runs[run++];
+      dx = runs[run++];
+      dy = runs[run++];
+      count = runs[run++];
+    }
+    const candidate = {
+      x: initial.x + 4 * x,
+      y: initial.y + 4 * sign * y
+    };
+    x += dx;
+    y += dy;
+    count--;
+    return candidate;
+  };
+}
+
+function noneStrategy() {
+  return function() {
+    return null;
+  };
+}
+
+function defaultCanvasFactory() {
+  return document.createElement("canvas");
+}
+
+function normalizeAspectRatio(value) {
+  value = +value;
+  return value > 0 && Number.isFinite(value) ? value : 1;
+}
+
+function spiralAspectRatio(value) {
+  return Math.min(Math.max(normalizeAspectRatio(value), 1 / MAX_SPIRAL_ASPECT_RATIO), MAX_SPIRAL_ASPECT_RATIO);
+}
+
+function normalizeBlockSize(value) {
+  value = +value;
+  if (!(value >= 1 && value <= MAX_BLOCK_SIZE)) {
+    throw new RangeError(`blockSize() expects a size from 1 to ${MAX_BLOCK_SIZE}`);
+  }
+  return Math.ceil(value / 32) * 32;
+}
+
+function placeCoordinate(value) {
+  value = +value;
+  if (!Number.isFinite(value)) {
+    throw new TypeError("place() expects finite x and y coordinates");
+  }
+  if (Math.abs(value) > MAX_COORDINATE) {
+    throw new RangeError(`place() expects x and y coordinates within ±${MAX_COORDINATE}`);
+  }
+  return Math.floor(value);
+}
+
+function normalizeSize(value) {
+  if (!Array.isArray(value)) {
+    value = [value, value];
+  }
+  return [
+    normalizeSizeDimension(value[0]),
+    normalizeSizeDimension(value[1])
+  ];
+}
+
+function normalizeSizeDimension(value) {
+  value = +value;
+  if (!(value >= 0 && value <= MAX_COORDINATE)) {
+    throw new RangeError(`size() expects dimensions from 0 to ${MAX_COORDINATE}`);
+  }
+  return value;
+}
+
+function sizeAspectRatio(size) {
+  return normalizeAspectRatio(size[0] / size[1]);
+}
+
+function seedCoordinate(size, random) {
+  if (!(size > 0)) {
+    return 0;
+  }
+  const value = random();
+  if (!(typeof value === "number" && value >= 0 && value < 1)) {
+    throw new RangeError("random() must return a number in [0, 1)");
+  }
+  return Math.floor((value - 0.5) * (size / 2));
+}
+
+// Accepts null or undefined as no options, and any non-array object.
+function optionsObject(options, method) {
+  if (options == null) {
+    return {};
+  }
+  if (typeof options !== "object" || Array.isArray(options)) {
+    throw new TypeError(`${method} expects an options object`);
+  }
+  return options;
+}
+
+function resolveStrategy(value) {
+  const strategy = typeof value === "string" && Object.prototype.hasOwnProperty.call(STRATEGIES, value)
+    ? STRATEGIES[value] : value;
+  if (typeof strategy !== "function") {
+    throw new TypeError("strategy() expects a built-in strategy name or strategy factory");
+  }
+  return strategy;
+}
+
+function normalizeStrategyCandidate(value) {
+  if (!value) {
+    return null;
+  }
+  if (typeof value === "object") {
+    const x = +value.x;
+    const y = +value.y;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      throw new TypeError("strategy candidates must have finite x and y");
+    }
+    return { x: Math.floor(x), y: Math.floor(y) };
+  }
+  throw new TypeError("strategy candidates must be {x, y} or null");
+}
+
+// EXTERNAL MODULE: ./node_modules/.pnpm/canvas@4.0.0-rc3/node_modules/canvas/index.js
+var canvas = __nccwpck_require__(8994);
 ;// CONCATENATED MODULE: ./lib/build-cloud.ts
 
 
@@ -33669,25 +33290,36 @@ const createCanvas = (width: number, height: number): Canvas => {
   return new Canvas(width, height);
 }
 */
-function buildCloud(words, width, height, callback) {
-    try {
-        const flipRotation = iterator();
-        return d3_layout_cloud_default()().size([width, height])
-            .words(words)
-            // @ts-expect-error ignore canvas type mismatch
-            .canvas(function () { return (0,canvas.createCanvas)(1, 1); })
-            // Use an angle of 0 or -90 degrees
-            .rotate(function () { return (flipRotation.next().value * 90) - 90; })
-            .padding(5)
-            .font("Verdana")
-            .fontSize(function (d) { return d.size; })
-            .spiral("rectangular")
-            .on("end", callback);
+function buildCloud(words, width, height) {
+    const flipRotation = iterator();
+    const layout = new CloudLayout()
+        .canvas(() => (0,canvas.createCanvas)(1, 1))
+        .size([width, height])
+        .overflow(false)
+        .strategy("archimedean");
+    const prepared = words.map((datum, index) => ({
+        datum,
+        index,
+        text: datum.text,
+        size: datum.size
+    })).sort((a, b) => b.size - a.size);
+    const placed = [];
+    for (const word of prepared) {
+        const rotate = (flipRotation.next().value * 90) - 90;
+        const sprite = layout.getSprite(word.text, {
+            datum: word,
+            font: "Verdana",
+            size: word.size,
+            rotate: rotate,
+            padding: 3
+        });
+        if (!sprite)
+            continue;
+        const result = layout.place(sprite);
+        if (result)
+            placed.push(result);
     }
-    catch (e) {
-        console.log("Building word cloud failed");
-        throw e;
-    }
+    return { placed, layout };
 }
 /* harmony default export */ const build_cloud = (buildCloud);
 
@@ -34694,8 +34326,8 @@ function selectAll(selector) {
 // EXTERNAL MODULE: ./node_modules/.pnpm/randomcolor@0.6.2/node_modules/randomcolor/randomColor.js
 var randomColor = __nccwpck_require__(3337);
 var randomColor_default = /*#__PURE__*/__nccwpck_require__.n(randomColor);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/core.js + 15 modules
-var core = __nccwpck_require__(4768);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/core.js + 18 modules
+var core = __nccwpck_require__(4213);
 ;// CONCATENATED MODULE: ./lib/draw-cloud.ts
 
 
@@ -34727,7 +34359,7 @@ function drawCloud(words, layout, document) {
             .style("fill", () => randomColor_default()({ hue: color, luminosity: luminosity }))
             .attr("text-anchor", "middle")
             .attr("opacity", "0.0")
-            .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
+            .attr("transform", d => "translate(" + [d.x, d.y] + ") rotate(" + d.rotate + ")")
             .text(d => { return d.text; })
             .append("animate")
             .attr("attributeName", "opacity")
@@ -34743,7 +34375,7 @@ function drawCloud(words, layout, document) {
 }
 /* harmony default export */ const draw_cloud = (drawCloud);
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/symbols.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/symbols.js
 // used in Attr to signal changes
 const CHANGED = Symbol('changed');
 
@@ -39399,7 +39031,7 @@ function parseFeed(feed, options = parseFeedDefaultOptions) {
 }
 
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/constants.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/constants.js
 // Internal
 const constants_NODE_END = -1;
 
@@ -39434,7 +39066,7 @@ const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 // SVG
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/object.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/object.js
 const {
   assign: object_assign,
   create: object_create,
@@ -39447,7 +39079,7 @@ const {
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/utils.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/utils.js
 
 
 
@@ -39512,10 +39144,10 @@ const htmlToFragment = (ownerDocument, html) => {
 
   return fragment;
 };
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/shadow-roots.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/shadow-roots.js
 const shadowRoots = new WeakMap;
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/custom-element-registry.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/custom-element-registry.js
 
 
 
@@ -39722,7 +39354,7 @@ class CustomElementRegistry {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/parse-from-string.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/parse-from-string.js
 
 
 
@@ -39846,7 +39478,7 @@ const parseFromString = (document, isHTML, markupLanguage) => {
   return document;
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/register-html-class.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/register-html-class.js
 const register_html_class_htmlClasses = new Map;
 
 const registerHTMLClass = (names, Class) => {
@@ -39856,7 +39488,7 @@ const registerHTMLClass = (names, Class) => {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/jsdon.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/jsdon.js
 
 
 
@@ -39923,7 +39555,7 @@ const elementAsJSON = (element, json) => {
   loopSegment(element, json);
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/mutation-observer.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/mutation-observer.js
 
 
 const createRecord =
@@ -40106,7 +39738,7 @@ class MutationObserverClass {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/attributes.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/attributes.js
 
 
 
@@ -40212,7 +39844,7 @@ export const nullableAttribute = {
 };
 */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/event-target.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/event-target.js
 // https://dom.spec.whatwg.org/#interface-eventtarget
 
 const wm = new WeakMap();
@@ -40302,7 +39934,7 @@ class DOMEventTarget {
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/node-list.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/node-list.js
 // https://dom.spec.whatwg.org/#interface-nodelist
 
 /**
@@ -40312,7 +39944,7 @@ class NodeList extends Array {
   item(i) { return i < this.length ? this[i] : null; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/node.js
 // https://dom.spec.whatwg.org/#node
 
 
@@ -40503,7 +40135,7 @@ class node_Node extends DOMEventTarget {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/text-escaper.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/text-escaper.js
 const {replace} = '';
 
 // escape
@@ -40527,7 +40159,7 @@ const pe = m => esca[m];
  */
 const text_escaper_escape = es => replace.call(es, ca, pe);
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/attr.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/attr.js
 
 
 
@@ -40586,7 +40218,7 @@ class attr_Attr extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/node.js
 
 
 
@@ -40629,7 +40261,7 @@ const nextSibling = node => {
   return next && (next.nodeType === constants_NODE_END ? null : next);
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/mixin/non-document-type-child-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/mixin/non-document-type-child-node.js
 // https://dom.spec.whatwg.org/#nondocumenttypechildnode
 // CharacterData, Element
 
@@ -40651,7 +40283,7 @@ const previousElementSibling = node => {
   return prev;
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/mixin/child-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/mixin/child-node.js
 // https://dom.spec.whatwg.org/#childnode
 // CharacterData, DocumentType, Element
 
@@ -40715,7 +40347,7 @@ const child_node_remove = (prev, current, next) => {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/character-data.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/character-data.js
 // https://dom.spec.whatwg.org/#interface-characterdata
 
 
@@ -40801,7 +40433,7 @@ class CharacterData extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/cdata-section.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/cdata-section.js
 
 
 
@@ -40823,7 +40455,7 @@ class cdata_section_CDATASection extends CharacterData {
   toString() { return `<![CDATA[${this[VALUE]}]]>`; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/comment.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/comment.js
 
 
 
@@ -44736,7 +44368,7 @@ function dist_is(element, query, options) {
  */
 /* harmony default export */ const css_select_dist = ((/* unused pure expression or super */ null && (dist_selectAll)));
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/matches.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/matches.js
 
 
 
@@ -44856,7 +44488,7 @@ const matches = (element, selectors) => dist_is(
   }
 );
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/text.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/text.js
 
 
 
@@ -44900,7 +44532,7 @@ class text_Text extends CharacterData {
   toString() { return text_escaper_escape(this[VALUE]); }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/mixin/parent-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/mixin/parent-node.js
 // https://dom.spec.whatwg.org/#interface-parentnode
 // Document, DocumentFragment, Element
 
@@ -45187,7 +44819,7 @@ class ParentNode extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/mixin/non-element-parent-node.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/mixin/non-element-parent-node.js
 // https://dom.spec.whatwg.org/#interface-nonelementparentnode
 // Document, DocumentFragment
 
@@ -45231,7 +44863,7 @@ class NonElementParentNode extends ParentNode {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/document-fragment.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/document-fragment.js
 
 
 
@@ -45244,7 +44876,7 @@ class DocumentFragment extends NonElementParentNode {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/document-type.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/document-type.js
 
 
 
@@ -45287,7 +44919,7 @@ class document_type_DocumentType extends node_Node {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/mixin/inner-html.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/mixin/inner-html.js
 
 
 
@@ -45329,7 +44961,7 @@ function setOwnerDocument(node) {
 /* harmony default export */ const uhyphen_esm = (camel => camel.replace(/(([A-Z0-9])([A-Z0-9][a-z]))|(([a-z0-9]+)([A-Z]))/g, '$2$5-$3$6')
                              .toLowerCase());
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/dom/string-map.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/dom/string-map.js
 
 
 
@@ -45376,7 +45008,7 @@ class DOMStringMap {
 
 setPrototypeOf(DOMStringMap.prototype, null);
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/dom/token-list.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/dom/token-list.js
 
 
 
@@ -45479,7 +45111,7 @@ class DOMTokenList extends Set {
   supports() { return true; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/css-style-declaration.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/css-style-declaration.js
 
 
 
@@ -45609,7 +45241,7 @@ function push(value, key) {
     this.push(`${key}:${value}`);
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/event.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/event.js
 // https://dom.spec.whatwg.org/#interface-event
 
 /* c8 ignore start */
@@ -45675,7 +45307,7 @@ class GlobalEvent {
 
 /* c8 ignore stop */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/named-node-map.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/named-node-map.js
 /**
  * @implements globalThis.NamedNodeMap
  */
@@ -45719,7 +45351,7 @@ class NamedNodeMap extends Array {
   /* c8 ignore stop */
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/shadow-root.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/shadow-root.js
 
 
 
@@ -45741,7 +45373,7 @@ class ShadowRoot extends NonElementParentNode {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/element.js
 // https://dom.spec.whatwg.org/#interface-element
 
 
@@ -46235,7 +45867,7 @@ class element_Element extends ParentNode {
   /* c8 ignore stop */
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/svg/element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/svg/element.js
 
 
 
@@ -46295,7 +45927,7 @@ class element_SVGElement extends element_Element {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/facades.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/facades.js
 
 
 
@@ -46374,7 +46006,7 @@ const Facades = {
   SVGElement: facades_SVGElement
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/element.js
 
 
 
@@ -46695,7 +46327,7 @@ class element_HTMLElement extends element_Element {
 
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/template-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/template-element.js
 
 
 
@@ -46727,7 +46359,7 @@ registerHTMLClass(tagName, HTMLTemplateElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/html-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/html-element.js
 
 
 /**
@@ -46739,7 +46371,7 @@ class HTMLHtmlElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/text-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/text-element.js
 
 
 const {toString: text_element_toString} = element_HTMLElement.prototype;
@@ -46755,7 +46387,7 @@ class TextElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/script-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/script-element.js
 
 
 
@@ -46836,7 +46468,7 @@ registerHTMLClass(script_element_tagName, HTMLScriptElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/frame-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/frame-element.js
 
 
 /**
@@ -46848,7 +46480,7 @@ class HTMLFrameElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/i-frame-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/i-frame-element.js
 
 
 
@@ -46892,7 +46524,7 @@ registerHTMLClass(i_frame_element_tagName, HTMLIFrameElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/object-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/object-element.js
 
 
 /**
@@ -46904,7 +46536,7 @@ class HTMLObjectElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/head-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/head-element.js
 
 
 /**
@@ -46916,7 +46548,7 @@ class HTMLHeadElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/body-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/body-element.js
 
 
 /**
@@ -56535,7 +56167,7 @@ applyWebIDLInterface(CSSPositionTryDescriptors);
 applyWebIDLInterface(CSSMarginDescriptors);
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/style-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/style-element.js
 
 
 
@@ -56589,7 +56221,7 @@ registerHTMLClass(style_element_tagName, HTMLStyleElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/time-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/time-element.js
 
 
 
@@ -56614,7 +56246,7 @@ registerHTMLClass('time', HTMLTimeElement)
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/field-set-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/field-set-element.js
 
 
 /**
@@ -56626,7 +56258,7 @@ class HTMLFieldSetElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/embed-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/embed-element.js
 
 
 /**
@@ -56638,7 +56270,7 @@ class HTMLEmbedElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/hr-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/hr-element.js
 
 
 /**
@@ -56650,7 +56282,7 @@ class HTMLHRElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/progress-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/progress-element.js
 
 
 /**
@@ -56662,7 +56294,7 @@ class HTMLProgressElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/paragraph-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/paragraph-element.js
 
 
 /**
@@ -56674,7 +56306,7 @@ class HTMLParagraphElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/table-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/table-element.js
 
 
 /**
@@ -56686,7 +56318,7 @@ class HTMLTableElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/frame-set-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/frame-set-element.js
 
 
 /**
@@ -56698,7 +56330,7 @@ class HTMLFrameSetElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/li-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/li-element.js
 
 
 /**
@@ -56710,7 +56342,7 @@ class HTMLLIElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/base-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/base-element.js
 
 
 /**
@@ -56722,7 +56354,7 @@ class HTMLBaseElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/data-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/data-list-element.js
 
 
 /**
@@ -56734,7 +56366,7 @@ class HTMLDataListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/input-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/input-element.js
 
 
 
@@ -56775,7 +56407,7 @@ registerHTMLClass(input_element_tagName, HTMLInputElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/param-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/param-element.js
 
 
 /**
@@ -56787,7 +56419,7 @@ class HTMLParamElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/media-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/media-element.js
 
 
 /**
@@ -56799,7 +56431,7 @@ class HTMLMediaElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/audio-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/audio-element.js
 
 
 /**
@@ -56811,7 +56443,7 @@ class HTMLAudioElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/heading-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/heading-element.js
 
 
 
@@ -56831,7 +56463,7 @@ registerHTMLClass([heading_element_tagName, 'h2', 'h3', 'h4', 'h5', 'h6'], HTMLH
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/directory-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/directory-element.js
 
 
 /**
@@ -56843,7 +56475,7 @@ class HTMLDirectoryElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/quote-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/quote-element.js
 
 
 /**
@@ -56855,9 +56487,9 @@ class HTMLQuoteElement extends element_HTMLElement {
   }
 }
 
-// EXTERNAL MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/commonjs/canvas.cjs
-var commonjs_canvas = __nccwpck_require__(2896);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/canvas-element.js
+// EXTERNAL MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/commonjs/canvas.cjs
+var commonjs_canvas = __nccwpck_require__(9190);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/canvas-element.js
 
 
 
@@ -56911,7 +56543,7 @@ registerHTMLClass(canvas_element_tagName, HTMLCanvasElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/legend-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/legend-element.js
 
 
 /**
@@ -56923,7 +56555,7 @@ class HTMLLegendElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/option-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/option-element.js
 
 
 
@@ -56956,7 +56588,7 @@ registerHTMLClass(option_element_tagName, HTMLOptionElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/span-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/span-element.js
 
 
 /**
@@ -56968,7 +56600,7 @@ class HTMLSpanElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/meter-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/meter-element.js
 
 
 /**
@@ -56980,7 +56612,7 @@ class HTMLMeterElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/video-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/video-element.js
 
 
 /**
@@ -56992,7 +56624,7 @@ class HTMLVideoElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/table-cell-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/table-cell-element.js
 
 
 /**
@@ -57004,7 +56636,7 @@ class HTMLTableCellElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/title-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/title-element.js
 
 
 
@@ -57024,7 +56656,7 @@ registerHTMLClass(title_element_tagName, HTMLTitleElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/output-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/output-element.js
 
 
 /**
@@ -57036,7 +56668,7 @@ class HTMLOutputElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/table-row-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/table-row-element.js
 
 
 /**
@@ -57048,7 +56680,7 @@ class HTMLTableRowElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/data-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/data-element.js
 
 
 /**
@@ -57060,7 +56692,7 @@ class HTMLDataElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/menu-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/menu-element.js
 
 
 /**
@@ -57072,7 +56704,7 @@ class HTMLMenuElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/select-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/select-element.js
 
 
 
@@ -57118,7 +56750,7 @@ registerHTMLClass(select_element_tagName, HTMLSelectElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/br-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/br-element.js
 
 
 /**
@@ -57130,7 +56762,7 @@ class HTMLBRElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/button-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/button-element.js
 
 
 
@@ -57162,7 +56794,7 @@ registerHTMLClass(button_element_tagName, HTMLButtonElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/map-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/map-element.js
 
 
 /**
@@ -57174,7 +56806,7 @@ class HTMLMapElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/opt-group-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/opt-group-element.js
 
 
 /**
@@ -57186,7 +56818,7 @@ class HTMLOptGroupElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/d-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/d-list-element.js
 
 
 /**
@@ -57198,7 +56830,7 @@ class HTMLDListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/text-area-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/text-area-element.js
 
 
 
@@ -57236,7 +56868,7 @@ registerHTMLClass(text_area_element_tagName, HTMLTextAreaElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/font-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/font-element.js
 
 
 /**
@@ -57248,7 +56880,7 @@ class HTMLFontElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/div-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/div-element.js
 
 
 /**
@@ -57260,7 +56892,7 @@ class HTMLDivElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/link-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/link-element.js
 
 
 
@@ -57302,7 +56934,7 @@ registerHTMLClass(link_element_tagName, HTMLLinkElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/slot-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/slot-element.js
 
 
 
@@ -57365,7 +56997,7 @@ registerHTMLClass(slot_element_tagName, HTMLSlotElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/form-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/form-element.js
 
 
 /**
@@ -57377,7 +57009,7 @@ class HTMLFormElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/image-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/image-element.js
 
 
 
@@ -57421,7 +57053,7 @@ registerHTMLClass(image_element_tagName, HTMLImageElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/pre-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/pre-element.js
 
 
 /**
@@ -57433,7 +57065,7 @@ class HTMLPreElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/u-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/u-list-element.js
 
 
 /**
@@ -57445,7 +57077,7 @@ class HTMLUListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/meta-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/meta-element.js
 
 
 
@@ -57481,7 +57113,7 @@ class HTMLMetaElement extends element_HTMLElement {
 registerHTMLClass(meta_element_tagName, HTMLMetaElement);
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/picture-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/picture-element.js
 
 
 /**
@@ -57493,7 +57125,7 @@ class HTMLPictureElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/area-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/area-element.js
 
 
 /**
@@ -57505,7 +57137,7 @@ class HTMLAreaElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/o-list-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/o-list-element.js
 
 
 /**
@@ -57517,7 +57149,7 @@ class HTMLOListElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/table-caption-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/table-caption-element.js
 
 
 /**
@@ -57529,7 +57161,7 @@ class HTMLTableCaptionElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/anchor-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/anchor-element.js
 
 
 
@@ -57568,7 +57200,7 @@ registerHTMLClass(anchor_element_tagName, HTMLAnchorElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/label-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/label-element.js
 
 
 /**
@@ -57580,7 +57212,7 @@ class HTMLLabelElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/unknown-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/unknown-element.js
 
 
 /**
@@ -57592,7 +57224,7 @@ class HTMLUnknownElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/mod-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/mod-element.js
 
 
 /**
@@ -57604,7 +57236,7 @@ class HTMLModElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/details-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/details-element.js
 
 
 /**
@@ -57616,7 +57248,7 @@ class HTMLDetailsElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/source-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/source-element.js
 
 
 
@@ -57651,7 +57283,7 @@ registerHTMLClass(source_element_tagName, HTMLSourceElement);
 
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/track-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/track-element.js
 
 
 /**
@@ -57663,7 +57295,7 @@ class HTMLTrackElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/marquee-element.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/marquee-element.js
 
 
 /**
@@ -57675,7 +57307,7 @@ class HTMLMarqueeElement extends element_HTMLElement {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/html-classes.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/html-classes.js
 
 
 
@@ -57818,7 +57450,7 @@ const HTMLClasses = {
   HTMLMarqueeElement: HTMLMarqueeElement
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/mime.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/mime.js
 // TODO: ensure all these are text only
 // /^(?:plaintext|script|style|textarea|title|xmp)$/i
 
@@ -57851,7 +57483,7 @@ const Mime = {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/custom-event.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/custom-event.js
 // https://dom.spec.whatwg.org/#interface-customevent
 
 /* c8 ignore start */
@@ -57872,7 +57504,7 @@ class CustomEvent extends GlobalEvent {
 
 /* c8 ignore stop */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/input-event.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/input-event.js
 // https://dom.spec.whatwg.org/#interface-customevent
 
 /* c8 ignore start */
@@ -57896,7 +57528,7 @@ class InputEvent extends GlobalEvent {
 }
 /* c8 ignore stop */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/image.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/image.js
 
 
 const ImageClass = ownerDocument =>
@@ -57919,7 +57551,7 @@ class Image extends HTMLImageElement {
   }
 };
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/range.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/range.js
 // https://dom.spec.whatwg.org/#concept-live-range
 
 
@@ -58048,7 +57680,7 @@ class Range {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/tree-walker.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/tree-walker.js
 
 
 
@@ -58097,7 +57729,7 @@ class TreeWalker {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/document.js
 
 
 
@@ -58383,7 +58015,7 @@ setPrototypeOf(
   document_Document
 ).prototype = document_Document.prototype;
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/html/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/html/document.js
 
 
 
@@ -58488,7 +58120,7 @@ class document_HTMLDocument extends document_Document {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/svg/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/svg/document.js
 
 
 
@@ -58502,7 +58134,7 @@ class SVGDocument extends document_Document {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/xml/document.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/xml/document.js
 
 
 
@@ -58516,7 +58148,7 @@ class XMLDocument extends document_Document {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/dom/parser.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/dom/parser.js
 
 
 
@@ -58557,7 +58189,7 @@ class DOMParser {
   }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/shared/parse-json.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/shared/parse-json.js
 
 
 
@@ -58680,7 +58312,7 @@ const parseJSON = value => {
  */
 const toJSON = node => node.toJSON();
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/interface/node-filter.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/interface/node-filter.js
 
 
 class NodeFilter {
@@ -58691,7 +58323,7 @@ class NodeFilter {
   static get SHOW_TEXT() { return SHOW_TEXT; }
 }
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15/node_modules/linkedom/esm/index.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/linkedom@0.18.15_canvas@4.0.0-rc3/node_modules/linkedom/esm/index.js
 
 
 
@@ -58738,17 +58370,11 @@ async function genSVG(words) {
             size: minFont + ((w.count - min) * fontIncr)
         };
     });
-    const waitPromise = new Promise((resolve) => {
-        const layout = build_cloud(wordsSized, 800, 400, end);
-        function end(words) {
-            draw_cloud(words, layout, word_cloud_document);
-            resolve(word_cloud_document.body.innerHTML);
-        }
-        layout.start();
-    });
+    const cloud = build_cloud(wordsSized, 800, 400);
+    draw_cloud(cloud.placed, cloud.layout, word_cloud_document);
     let retBuffer = '<?xml version="1.0" standalone="no"?>' +
         '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">';
-    retBuffer += await waitPromise;
+    retBuffer += word_cloud_document.body.innerHTML;
     return (retBuffer);
 }
 /* harmony default export */ const word_cloud = (genSVG);
@@ -58756,82 +58382,65 @@ async function genSVG(words) {
 
 /***/ }),
 
-/***/ 3683:
+/***/ 2752:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(__nccwpck_require__.ab + "canvas.node")
+
+/***/ }),
+
+/***/ 5187:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.android-arm-eabi.node");
+module.exports = eval("require")("../bin/canvas.node");
 
 
 /***/ }),
 
-/***/ 123:
+/***/ 829:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.android-arm64.node");
+module.exports = eval("require")("canvas-darwin-arm64");
 
 
 /***/ }),
 
-/***/ 2165:
+/***/ 4711:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.darwin-arm64.node");
+module.exports = eval("require")("canvas-darwin-x64");
 
 
 /***/ }),
 
-/***/ 508:
+/***/ 6274:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.darwin-universal.node");
+module.exports = eval("require")("canvas-linux-arm-gnueabihf");
 
 
 /***/ }),
 
-/***/ 5847:
+/***/ 2487:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.darwin-x64.node");
+module.exports = eval("require")("canvas-linux-arm64-gnu");
 
 
 /***/ }),
 
-/***/ 5347:
+/***/ 8442:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.freebsd-arm64.node");
+module.exports = eval("require")("canvas-linux-arm64-musl");
 
 
 /***/ }),
 
-/***/ 7841:
+/***/ 2636:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.freebsd-x64.node");
-
-
-/***/ }),
-
-/***/ 1104:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.linux-arm-gnueabihf.node");
-
-
-/***/ }),
-
-/***/ 8535:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.linux-arm-musleabihf.node");
-
-
-/***/ }),
-
-/***/ 5127:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.linux-arm64-gnu.node");
+module.exports = eval("require")("canvas-linux-riscv64-gnu");
 
 
 /***/ }),
@@ -58839,351 +58448,47 @@ module.exports = eval("require")("./skia.linux-arm64-gnu.node");
 /***/ 1408:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.linux-arm64-musl.node");
+module.exports = eval("require")("canvas-linux-x64-musl");
 
 
 /***/ }),
 
-/***/ 1132:
+/***/ 8509:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.linux-loong64-gnu.node");
+module.exports = eval("require")("canvas-linux-x86-gnu");
 
 
 /***/ }),
 
-/***/ 7637:
+/***/ 2216:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.linux-loong64-musl.node");
+module.exports = eval("require")("canvas-linux-x86-musl");
 
 
 /***/ }),
 
-/***/ 9052:
+/***/ 1579:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.linux-ppc64-gnu.node");
+module.exports = eval("require")("canvas-win32-arm64");
 
 
 /***/ }),
 
-/***/ 1506:
+/***/ 7457:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.linux-riscv64-gnu.node");
+module.exports = eval("require")("canvas-win32-x64");
 
 
 /***/ }),
 
-/***/ 7675:
+/***/ 7213:
 /***/ ((module) => {
 
-module.exports = eval("require")("./skia.linux-riscv64-musl.node");
-
-
-/***/ }),
-
-/***/ 7162:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.linux-s390x-gnu.node");
-
-
-/***/ }),
-
-/***/ 8429:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.linux-x64-gnu.node");
-
-
-/***/ }),
-
-/***/ 3654:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.linux-x64-musl.node");
-
-
-/***/ }),
-
-/***/ 4060:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.openharmony-arm.node");
-
-
-/***/ }),
-
-/***/ 5334:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.openharmony-arm64.node");
-
-
-/***/ }),
-
-/***/ 964:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.openharmony-x64.node");
-
-
-/***/ }),
-
-/***/ 9759:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.wasi.cjs");
-
-
-/***/ }),
-
-/***/ 5425:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.win32-arm64-msvc.node");
-
-
-/***/ }),
-
-/***/ 6830:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.win32-ia32-msvc.node");
-
-
-/***/ }),
-
-/***/ 9780:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.win32-x64-gnu.node");
-
-
-/***/ }),
-
-/***/ 6063:
-/***/ ((module) => {
-
-module.exports = eval("require")("./skia.win32-x64-msvc.node");
-
-
-/***/ }),
-
-/***/ 6976:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-android-arm-eabi");
-
-
-/***/ }),
-
-/***/ 2178:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-android-arm64");
-
-
-/***/ }),
-
-/***/ 4418:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-darwin-arm64");
-
-
-/***/ }),
-
-/***/ 6725:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-darwin-universal");
-
-
-/***/ }),
-
-/***/ 4159:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-darwin-x64");
-
-
-/***/ }),
-
-/***/ 5526:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-freebsd-arm64");
-
-
-/***/ }),
-
-/***/ 2968:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-freebsd-x64");
-
-
-/***/ }),
-
-/***/ 7859:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-arm-gnueabihf");
-
-
-/***/ }),
-
-/***/ 9411:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-arm-musleabihf");
-
-
-/***/ }),
-
-/***/ 9026:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-arm64-gnu");
-
-
-/***/ }),
-
-/***/ 201:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-arm64-musl");
-
-
-/***/ }),
-
-/***/ 3059:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-loong64-gnu");
-
-
-/***/ }),
-
-/***/ 8238:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-loong64-musl");
-
-
-/***/ }),
-
-/***/ 7983:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-ppc64-gnu");
-
-
-/***/ }),
-
-/***/ 889:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-riscv64-gnu");
-
-
-/***/ }),
-
-/***/ 1308:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-riscv64-musl");
-
-
-/***/ }),
-
-/***/ 7937:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-s390x-gnu");
-
-
-/***/ }),
-
-/***/ 907:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-linux-x64-musl");
-
-
-/***/ }),
-
-/***/ 423:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-openharmony-arm");
-
-
-/***/ }),
-
-/***/ 1213:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-openharmony-arm64");
-
-
-/***/ }),
-
-/***/ 2967:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-openharmony-x64");
-
-
-/***/ }),
-
-/***/ 2948:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-wasm32-wasi");
-
-
-/***/ }),
-
-/***/ 370:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-win32-arm64-msvc");
-
-
-/***/ }),
-
-/***/ 2393:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-win32-ia32-msvc");
-
-
-/***/ }),
-
-/***/ 75:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-win32-x64-gnu");
-
-
-/***/ }),
-
-/***/ 4980:
-/***/ ((module) => {
-
-module.exports = eval("require")("@napi-rs/canvas-win32-x64-msvc");
-
-
-/***/ }),
-
-/***/ 4206:
-/***/ ((module) => {
-
-module.exports = eval("require")("canvas");
+module.exports = eval("require")("canvas-win32-x86");
 
 
 /***/ }),
@@ -59192,13 +58497,6 @@ module.exports = eval("require")("canvas");
 /***/ ((module) => {
 
 module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("assert");
-
-/***/ }),
-
-/***/ 5317:
-/***/ ((module) => {
-
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("child_process");
 
 /***/ }),
 
@@ -59377,20 +58675,6 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:zlib");
 
 /***/ }),
 
-/***/ 857:
-/***/ ((module) => {
-
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("os");
-
-/***/ }),
-
-/***/ 6928:
-/***/ ((module) => {
-
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("path");
-
-/***/ }),
-
 /***/ 2203:
 /***/ ((module) => {
 
@@ -59412,13 +58696,6 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("tls");
 
 /***/ }),
 
-/***/ 7016:
-/***/ ((module) => {
-
-module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("url");
-
-/***/ }),
-
 /***/ 9023:
 /***/ ((module) => {
 
@@ -59426,7 +58703,7 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
 
 /***/ }),
 
-/***/ 7154:
+/***/ 7448:
 /***/ ((module) => {
 
 class Canvas {
@@ -59449,21 +58726,21 @@ module.exports = {
 
 /***/ }),
 
-/***/ 2896:
+/***/ 9190:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 /* c8 ignore start */
 try {
-  module.exports = __nccwpck_require__(4206);
+  module.exports = __nccwpck_require__(8994);
 } catch (fallback) {
-  module.exports = __nccwpck_require__(7154);
+  module.exports = __nccwpck_require__(7448);
 }
 /* c8 ignore stop */
 
 
 /***/ }),
 
-/***/ 4768:
+/***/ 4213:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -59474,8 +58751,8 @@ __nccwpck_require__.d(__webpack_exports__, {
 
 // UNUSED EXPORTS: ExitCode, addPath, debug, endGroup, error, exportVariable, getBooleanInput, getIDToken, getMultilineInput, getState, group, info, isDebug, markdownSummary, notice, platform, saveState, setCommandEcho, setFailed, setOutput, setSecret, startGroup, summary, toPlatformPath, toPosixPath, toWin32Path, warning
 
-// EXTERNAL MODULE: external "os"
-var external_os_ = __nccwpck_require__(857);
+;// CONCATENATED MODULE: external "os"
+const external_os_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("os");
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/command.js
 
 
@@ -59607,8 +58884,8 @@ function file_command_prepareKeyValueMessage(key, value) {
     return `${key}<<${delimiter}${os.EOL}${convertedValue}${os.EOL}${delimiter}`;
 }
 //# sourceMappingURL=file-command.js.map
-// EXTERNAL MODULE: external "path"
-var external_path_ = __nccwpck_require__(6928);
+;// CONCATENATED MODULE: external "path"
+const external_path_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("path");
 // EXTERNAL MODULE: external "http"
 var external_http_ = __nccwpck_require__(8611);
 // EXTERNAL MODULE: external "https"
@@ -60686,7 +59963,7 @@ class Summary {
      * @returns {Summary} summary instance
      */
     addEOL() {
-        return this.addRaw(external_os_.EOL);
+        return this.addRaw(external_os_namespaceObject.EOL);
     }
     /**
      * Adds an HTML codeblock to the summary buffer
@@ -60874,8 +60151,8 @@ function toPlatformPath(pth) {
 var external_string_decoder_ = __nccwpck_require__(3193);
 // EXTERNAL MODULE: external "events"
 var external_events_ = __nccwpck_require__(4434);
-// EXTERNAL MODULE: external "child_process"
-var external_child_process_ = __nccwpck_require__(5317);
+;// CONCATENATED MODULE: external "child_process"
+const external_child_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("child_process");
 // EXTERNAL MODULE: external "assert"
 var external_assert_ = __nccwpck_require__(2613);
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+io@3.0.2/node_modules/@actions/io/lib/io-util.js
@@ -60975,7 +60252,7 @@ function tryGetExecutablePath(filePath, extensions) {
         if (stats && stats.isFile()) {
             if (IS_WINDOWS) {
                 // on Windows, test for valid extension
-                const upperExt = external_path_.extname(filePath).toUpperCase();
+                const upperExt = external_path_namespaceObject.extname(filePath).toUpperCase();
                 if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
                     return filePath;
                 }
@@ -61004,11 +60281,11 @@ function tryGetExecutablePath(filePath, extensions) {
                 if (IS_WINDOWS) {
                     // preserve the case of the actual file (since an extension was appended)
                     try {
-                        const directory = external_path_.dirname(filePath);
-                        const upperName = external_path_.basename(filePath).toUpperCase();
+                        const directory = external_path_namespaceObject.dirname(filePath);
+                        const upperName = external_path_namespaceObject.basename(filePath).toUpperCase();
                         for (const actualName of yield readdir(directory)) {
                             if (upperName === actualName.toUpperCase()) {
-                                filePath = external_path_.join(directory, actualName);
+                                filePath = external_path_namespaceObject.join(directory, actualName);
                                 break;
                             }
                         }
@@ -61228,7 +60505,7 @@ function findInPath(tool) {
         // build the list of extensions to try
         const extensions = [];
         if (IS_WINDOWS && process.env['PATHEXT']) {
-            for (const extension of process.env['PATHEXT'].split(external_path_.delimiter)) {
+            for (const extension of process.env['PATHEXT'].split(external_path_namespaceObject.delimiter)) {
                 if (extension) {
                     extensions.push(extension);
                 }
@@ -61243,7 +60520,7 @@ function findInPath(tool) {
             return [];
         }
         // if any path separators, return empty
-        if (tool.includes(external_path_.sep)) {
+        if (tool.includes(external_path_namespaceObject.sep)) {
             return [];
         }
         // build the list of directories
@@ -61254,7 +60531,7 @@ function findInPath(tool) {
         // across platforms.
         const directories = [];
         if (process.env.PATH) {
-            for (const p of process.env.PATH.split(external_path_.delimiter)) {
+            for (const p of process.env.PATH.split(external_path_namespaceObject.delimiter)) {
                 if (p) {
                     directories.push(p);
                 }
@@ -61263,7 +60540,7 @@ function findInPath(tool) {
         // find all matches
         const matches = [];
         for (const directory of directories) {
-            const filePath = yield tryGetExecutablePath(external_path_.join(directory, tool), extensions);
+            const filePath = yield tryGetExecutablePath(external_path_namespaceObject.join(directory, tool), extensions);
             if (filePath) {
                 matches.push(filePath);
             }
@@ -61410,13 +60687,13 @@ class ToolRunner extends external_events_.EventEmitter {
     _processLineBuffer(data, strBuffer, onLine) {
         try {
             let s = strBuffer + data.toString();
-            let n = s.indexOf(external_os_.EOL);
+            let n = s.indexOf(external_os_namespaceObject.EOL);
             while (n > -1) {
                 const line = s.substring(0, n);
                 onLine(line);
                 // the rest of the string ...
-                s = s.substring(n + external_os_.EOL.length);
-                n = s.indexOf(external_os_.EOL);
+                s = s.substring(n + external_os_namespaceObject.EOL.length);
+                n = s.indexOf(external_os_namespaceObject.EOL);
             }
             return s;
         }
@@ -61694,7 +60971,7 @@ class ToolRunner extends external_events_.EventEmitter {
                 (this.toolPath.includes('/') ||
                     (toolrunner_IS_WINDOWS && this.toolPath.includes('\\')))) {
                 // prefer options.cwd if it is specified, however options.cwd may also need to be rooted
-                this.toolPath = external_path_.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
+                this.toolPath = external_path_namespaceObject.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
             }
             // if the tool is only a file name, then resolve it from the PATH
             // otherwise verify it exists (add extension on Windows if necessary)
@@ -61707,7 +60984,7 @@ class ToolRunner extends external_events_.EventEmitter {
                 }
                 const optionsNonNull = this._cloneExecOptions(this.options);
                 if (!optionsNonNull.silent && optionsNonNull.outStream) {
-                    optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + external_os_.EOL);
+                    optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + external_os_namespaceObject.EOL);
                 }
                 const state = new ExecState(optionsNonNull, this.toolPath);
                 state.on('debug', (message) => {
@@ -61717,7 +60994,7 @@ class ToolRunner extends external_events_.EventEmitter {
                     return reject(new Error(`The cwd: ${this.options.cwd} does not exist!`));
                 }
                 const fileName = this._getSpawnFileName();
-                const cp = external_child_process_.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
+                const cp = external_child_process_namespaceObject.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
                 let stdbuffer = '';
                 if (cp.stdout) {
                     cp.stdout.on('data', (data) => {
@@ -62046,8 +61323,8 @@ const getLinuxInfo = () => platform_awaiter(void 0, void 0, void 0, function* ()
         version
     };
 });
-const platform = external_os_.platform();
-const arch = external_os_.arch();
+const platform = external_os_namespaceObject.platform();
+const arch = external_os_namespaceObject.arch();
 const isWindows = platform === 'win32';
 const isMacOS = platform === 'darwin';
 const isLinux = platform === 'linux';
@@ -62383,6 +61660,13 @@ function getIDToken(aud) {
  */
 
 //# sourceMappingURL=core.js.map
+
+/***/ }),
+
+/***/ 3583:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"name":"canvas","description":"Canvas graphics API backed by Cairo","version":"4.0.0-rc3","author":"TJ Holowaychuk <tj@learnboost.com>","main":"index.js","browser":"browser.js","types":"index.d.ts","contributors":["Nathan Rajlich <nathan@tootallnate.net>","Rod Vagg <r@va.gg>","Juriy Zaytsev <kangax@gmail.com>"],"keywords":["canvas","graphic","graphics","pixman","cairo","image","images","pdf"],"homepage":"https://github.com/Automattic/node-canvas","repository":{"type":"git","url":"https://github.com/Automattic/node-canvas"},"scripts":{"prebenchmark":"zig build","benchmark":"node benchmarks/run.js","lint":"standard examples/*.js test/server.js test/public/*.js benchmarks/run.js lib/context2d.js util/has_lib.js browser.js index.js","test":"mocha test/*.test.js","pretest-server":"zig build","test-server":"node test/server.js","generate-wpt":"node ./test/wpt/generate.js","test-wpt":"mocha test/wpt/generated/*.js","tsd":"tsd"},"files":["build.zig","build.zig.zon","browser.js","index.d.ts","index.js","lib/","pkg/","src/","util/","!.zig-cache"],"workspaces":["./npm/*"],"devDependencies":{"@types/node":"^10.12.18","assert-rejects":"^1.0.0","express":"^4.16.3","js-yaml":"^4.1.0","mocha":"^11.7.6","pixelmatch":"^4.0.2","standard":"^12.0.1","tsd":"^0.29.0","typescript":"^4.2.2"},"optionalDependencies":{"canvas-darwin-arm64":"4.0.0-rc3","canvas-darwin-x64":"4.0.0-rc3","canvas-linux-arm-gnueabihf":"4.0.0-rc3","canvas-linux-x86-musl":"4.0.0-rc3","canvas-linux-x86-gnu":"4.0.0-rc3","canvas-linux-arm64-musl":"4.0.0-rc3","canvas-linux-arm64-gnu":"4.0.0-rc3","canvas-linux-riscv64-gnu":"4.0.0-rc3","canvas-linux-x64-musl":"4.0.0-rc3","canvas-linux-x64-gnu":"4.0.0-rc3","canvas-win32-arm64":"4.0.0-rc3","canvas-win32-x64":"4.0.0-rc3","canvas-win32-x86":"4.0.0-rc3"},"engines":{"node":">= 22"},"license":"MIT"}');
 
 /***/ })
 
