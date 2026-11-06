@@ -1,5 +1,6 @@
-import cloud, {Word} from "d3-cloud";
-import {createCanvas} from "@napi-rs/canvas";
+import CloudLayout, {PlacedSprite} from "d3-cloud";
+import {createCanvas} from "canvas";
+import {Word} from "./word-cloud.js";
 
 // Generator function that will flip between returning 1 and 0
 function* iterator(): Generator<number> {
@@ -13,25 +14,39 @@ const createCanvas = (width: number, height: number): Canvas => {
   return new Canvas(width, height);
 }
 */
-function buildCloud(words: Array<Word>, width: number, height: number, callback: (words: Array<Word>) => void) {
-  try {
-    const flipRotation = iterator();
+function buildCloud(words: Array<Word>, width: number, height: number) {
+  const flipRotation = iterator();
 
-    return cloud().size([width , height])
-      .words(words)
-      // @ts-expect-error ignore canvas type mismatch
-      .canvas(function() { return createCanvas(1,1); })
-      // Use an angle of 0 or -90 degrees
-      .rotate(function() { return (flipRotation.next().value * 90) - 90; })
-      .padding(5)
-      .font("Verdana")
-      .fontSize(function(d): number { return d.size!; })
-      .spiral("rectangular")
-      .on("end", callback)
-  } catch(e) {
-    console.log("Building word cloud failed");
-    throw e;
+  const layout = new CloudLayout()
+    .canvas(() => createCanvas(1, 1))
+    .size([width , height])
+    .overflow(false)
+    .strategy("archimedean")
+  
+  const prepared = words.map((datum, index) => ({
+    datum,
+    index,
+    text: datum.text,
+    size: datum.size
+  })).sort((a, b) => b.size - a.size);
+
+  const placed: Array<PlacedSprite> = [];
+  for (const word of prepared) {
+    const rotate = (flipRotation.next().value * 90) - 90;
+    const sprite = layout.getSprite(word.text, {
+      datum: word,
+      font: "Verdana",
+      size: word.size,
+      rotate: rotate,
+      padding: 3
+    });
+    if (!sprite) continue;
+  
+    const result = layout.place(sprite);
+    if (result) placed.push(result);
   }
+
+  return {placed, layout};
 }
 
 export default  buildCloud;

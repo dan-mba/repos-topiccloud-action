@@ -2,7 +2,13 @@ import buildCloud from "./build-cloud.js";
 import drawCloud from "./draw-cloud.js";
 import {parseHTML} from 'linkedom';
 import {Topic} from "./topics.js";
-import {Word} from "d3-cloud";
+
+interface Word {
+  text: string
+  size: number
+}
+
+export type {Word};
 
 const {document} = parseHTML(`<!DOCTYPE html><body></body>`);
 
@@ -13,25 +19,18 @@ async function genSVG(words: Array<Topic>) {
   const minFont = 24;
   const fontIncr = (max-min) == 0 ? 0 : 48/(max-min);
   
-  const wordsSized: Array<Word> = words.map((w: Topic): Word => { return {
+  const wordsSized = words.map((w: Topic) => { return {
     text: w.text,
     size: minFont + ((w.count - min) * fontIncr)
   }})
 
-  const waitPromise = new Promise((resolve) => {
-    const layout = buildCloud(wordsSized, 800, 400, end)
+  const cloud = buildCloud(wordsSized, 800, 400);
 
-    function end(words: Array<Word>) {
-      drawCloud(words, layout, document)
-      resolve(document.body.innerHTML);
-    }
-
-    layout.start();
-  });
+  drawCloud(cloud.placed, cloud.layout, document);
 
   let retBuffer = '<?xml version="1.0" standalone="no"?>' + 
     '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">';
-  retBuffer += await waitPromise;
+  retBuffer += document.body.innerHTML;
 
   return(retBuffer);
 }
